@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Mes Recettes</title>
+  <style>
+ body {
+  font-family: Arial, sans-serif;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f5f5f5;
+}
+
+h1 {
+  color: #e74c3c;
+  text-align: center;
+}
+
+.recette {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.recette h2 {
+  color: #e74c3c;
+  margin-top: 0;
+}
+
+.categorie {
+  background-color: #e74c3c;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+}
+
+.formulaire {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.formulaire input, .formulaire select {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 15px;
+}
+
+.formulaire button {
+  padding: 10px;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.recette button {
+  margin-top: 10px;
+  padding: 6px 12px;
+  background-color: white;
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#recherche {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+</style>
+</head>
+<body>
+ <h1>Mes Recettes</h1>
+<div class="formulaire">
+  <input type="text" id="nom" placeholder="Nom de la recette">
+  <input type="text" id="ingredients" placeholder="Ingrédients séparés par des virgules">
+  <input type="text" id="etapes" placeholder="Étapes séparées par des virgules">
+  <select id="categorie">
+    <option value="cuisine">Cuisine</option>
+    <option value="pâtisserie">Pâtisserie</option>
+  </select>
+  <button onclick="ajouterRecette()">Ajouter</button>
+</div>
+<input type="text" id="recherche" placeholder="Rechercher une recette..." oninput="rechercherRecette()">
+<div style="display: flex; gap: 20px;">
+  <div style="flex: 1;">
+    <h2 style="color: #e74c3c;">🍳 Cuisine</h2>
+    <div id="liste-cuisine"></div>
+  </div>
+  <div style="flex: 1;">
+    <h2 style="color: #e74c3c;">🍰 Pâtisserie</h2>
+    <div id="liste-patisserie"></div>
+  </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
