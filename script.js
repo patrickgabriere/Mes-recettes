@@ -1,11 +1,16 @@
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, getDocs, collection, addDoc, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
 // 2. CONFIGURATION FIREBASE
 const app = initializeApp(window.firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth();
+const auth = getAuth(app); // <--- Correction ici : on ajoute (app)
 const provider = new GoogleAuthProvider();
+
+// On rend db accessible pour tes fonctions window.chargerRecettes etc.
+window.db = db; 
 
 let modeEdition = null;
 
