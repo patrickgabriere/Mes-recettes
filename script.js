@@ -1,147 +1,136 @@
-// 1. IMPORTS
 import { 
-    getDocs, collection, addDoc, deleteDoc, doc 
+    getDocs, collection, addDoc, deleteDoc, doc, updateDoc 
 } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-// 2. RÉCUPÉRATION DE LA DB
-const database = (typeof db !== 'undefined') ? db : window.db;
+const db = window.db;
+let modeEdition = null; 
 
-// --- GESTION DE LA MODALE ---
-window.ouvrirRecette = function(nom, ingredients, etapes, image) {
-    const modal = document.getElementById("modalRecette");
-    const contenu = document.getElementById("contenuRecette");
-    if (!modal || !contenu) return;
-
-    // On nettoie les étapes pour l'affichage en liste
-    const listeEtapes = etapes ? etapes.split('\n').filter(e => e.trim()).map(e => `<li>${e}</li>`).join('') : "Étapes non renseignées";
-
-    contenu.innerHTML = `
-        <img src="${image}" style="width:100%; max-height:250px; object-fit:cover; border-radius:10px; margin-bottom:15px;">
-        <h1 style="color:#27ae60; margin:0 0 10px 0;">${nom}</h1>
-        <div style="background:#f9f9f9; padding:15px; border-radius:8px; margin-bottom:15px;">
-            <h3 style="margin-top:0;">🛒 Ingrédients</h3>
-            <p style="white-space: pre-wrap;">${ingredients || 'Aucun ingrédient'}</p>
-        </div>
-        <h3>👨‍🍳 Préparation</h3>
-        <ul style="padding-left:20px; line-height:1.6;">${listeEtapes}</ul>
-    `;
-    modal.style.display = "block";
-};
-
-window.fermerRecette = function() {
-    const modal = document.getElementById("modalRecette");
-    if (modal) modal.style.display = "none";
-};
-
-// --- AFFICHAGE DES RECETTES ---
-function afficherRecettes(recettes) {
+// --- 1. AFFICHAGE DES RECETTES ---
+function afficherRecettes(liste) {
     const cuisineCtn = document.getElementById("liste-cuisine");
     const patisserieCtn = document.getElementById("liste-patisserie");
     
-    if (!cuisineCtn || !patisserieCtn) return;
     cuisineCtn.innerHTML = ""; 
     patisserieCtn.innerHTML = "";
 
-    recettes.forEach(r => {
+    liste.forEach(r => {
         const card = document.createElement("div");
         card.className = "recette";
-        card.style.cursor = "pointer";
-        const imgUrl = r.image || "https://via.placeholder.com/300x150?text=Pas+d'image";
+        const img = r.image || "https://via.placeholder.com/300x150?text=Pas+d'image";
+
+        // Nettoyage des textes pour éviter les erreurs JS dans le onclick
+        const nomEsc = r.nom.replace(/'/g, "\\'");
+        const ingEsc = r.ingredients.replace(/'/g, "\\'").replace(/\n/g, " ");
+        const etaEsc = r.etapes.replace(/'/g, "\\'").replace(/\n/g, " ");
 
         card.innerHTML = `
-            <img src="${imgUrl}" style="width:100%; height:140px; object-fit:cover; border-radius:8px;">
-            <h2>${r.nom}</h2>
-            <div style="display:flex; justify-content: space-between; align-items: center;">
+            <div onclick="window.ouvrirRecette('${nomEsc}', '${ingEsc}', '${etaEsc}', '${img}')" style="cursor:pointer">
+                <img src="${img}" style="width:100%; height:140px; object-fit:cover; border-radius:8px;">
+                <h2>${r.nom}</h2>
+            </div>
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-top:10px;">
                 <span class="badge-sous-cat">${r.sousCategorie || ''}</span>
-                <button class="btn-suppr" style="color:#e74c3c; border:none; background:none; font-size:1.5rem;">×</button>
+                <div>
+                    <button onclick="window.preparerModif('${r.id}', '${nomEsc}', '${ingEsc}', '${etaEsc}', '${r.univers}', '${r.sousCategorie}', '${img}')" style="background:none; border:none; cursor:pointer;">✏️</button>
+                    <button onclick="window.supprimerRecette('${r.id}')" class="btn-suppr">×</button>
+                </div>
             </div>
         `;
 
-        card.addEventListener('click', (e) => {
-            if (e.target.className !== 'btn-suppr') {
-                window.ouvrirRecette(r.nom, r.ingredients, r.etapes, imgUrl);
-            }
-        });
-
-        const btnSuppr = card.querySelector(".btn-suppr");
-        if (btnSuppr) {
-            btnSuppr.addEventListener('click', (e) => {
-                e.stopPropagation();
-                window.supprimerRecette(r.id);
-            });
-        }
-
-        // Tri entre cuisine et pâtisserie
-        const uni = r.univers ? r.univers.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
-        if (uni === "patisserie") patisserieCtn.appendChild(card);
+        if (r.univers === "pâtisserie") patisserieCtn.appendChild(card);
         else cuisineCtn.appendChild(card);
     });
 }
 
-// --- ACTIONS FIREBASE ---
-window.chargerRecettes = async function() {
-    try {
-        if (!database) throw new Error("Base de données introuvable");
-        const snap = await getDocs(collection(database, "recettes"));
-        let liste = [];
-        snap.forEach(d => {
-            liste.push({ id: d.id, ...d.data() });
-        });
-        afficherRecettes(liste);
-    } catch (e) {
-        console.error("Erreur chargement:", e);
-    }
-};
-
+// --- 2. ACTIONS (AJOUTER / MODIFIER) ---
 window.ajouterRecette = async function() {
-    const nomVal = document.getElementById("nom")?.value;
-    if (!nomVal) return alert("Le nom est obligatoire !");
+    const nom = document.getElementById("nom").value;
+    if (!nom) return alert("Le nom est obligatoire !");
 
-    const r = {
-        nom: nomVal,
-        univers: document.getElementById("univers")?.value || "cuisine",
-        sousCategorie: document.getElementById("sousCategorie")?.value || "",
-        ingredients: document.getElementById("ingredients")?.value || "",
-        etapes: document.getElementById("etapes")?.value || "",
-        image: document.getElementById("imageLien")?.value || ""
+    const donnees = {
+        nom,
+        univers: document.getElementById("univers").value,
+        sousCategorie: document.getElementById("sousCategorie").value,
+        image: document.getElementById("imageLien").value,
+        ingredients: document.getElementById("ingredients").value,
+        etapes: document.getElementById("etapes").value
     };
 
-    try {
-        await addDoc(collection(database, "recettes"), r);
-        ["nom", "ingredients", "etapes", "imageLien"].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = "";
-        });
-        window.chargerRecettes();
-    } catch (e) {
-        alert("Erreur lors de l'ajout");
+    if (modeEdition) {
+        await updateDoc(doc(db, "recettes", modeEdition), donnees);
+        modeEdition = null;
+        document.querySelector(".formulaire button").innerText = "Enregistrer la Recette";
+    } else {
+        await addDoc(collection(db, "recettes"), donnees);
     }
-};
 
-window.supprimerRecette = async function(id) {
-    if (confirm("Supprimer cette recette ?")) {
-        try {
-            await deleteDoc(doc(database, "recettes", id));
-            window.chargerRecettes();
-        } catch (e) {
-            console.error("Erreur suppression:", e);
-        }
-    }
-};
-
-// --- INITIALISATION ---
-window.majSousCategories = function() {
-    const universEl = document.getElementById("univers");
-    const sousCatEl = document.getElementById("sousCategorie");
-    if (!universEl || !sousCatEl) return;
-
-    const u = universEl.value;
-    const options = u === "cuisine" ? ["Entrée", "Plat", "Accompagnement"] : ["Gâteau", "Tarte", "Biscuit"];
-    sousCatEl.innerHTML = options.map(o => `<option value="${o.toLowerCase()}">${o}</option>`).join('');
-};
-
-// Lancement automatique
-window.majSousCategories();
-setTimeout(() => {
+    document.querySelectorAll(".formulaire input, .formulaire textarea").forEach(i => i.value = "");
     window.chargerRecettes();
-}, 1000);
+};
+
+window.preparerModif = function(id, nom, ing, eta, univ, scat, img) {
+    modeEdition = id;
+    document.getElementById("nom").value = nom;
+    document.getElementById("ingredients").value = ing;
+    document.getElementById("etapes").value = eta;
+    document.getElementById("univers").value = univ;
+    window.majSousCategories();
+    document.getElementById("sousCategorie").value = scat;
+    document.getElementById("imageLien").value = img;
+    document.querySelector(".formulaire button").innerText = "Mettre à jour";
+    window.scrollTo(0,0);
+};
+
+// --- 3. FILTRES ET RECHERCHE ---
+window.filtrerParCategorie = async function(cat) {
+    const snap = await getDocs(collection(db, "recettes"));
+    let res = [];
+    snap.forEach(d => {
+        const r = d.data();
+        if (cat === "" || r.univers === cat || r.sousCategorie === cat) res.push({id: d.id, ...r});
+    });
+    afficherRecettes(res);
+};
+
+window.rechercherParNom = async function() {
+    const txt = document.getElementById("recherche").value.toLowerCase();
+    const snap = await getDocs(collection(db, "recettes"));
+    let res = [];
+    snap.forEach(d => {
+        if (d.data().nom.toLowerCase().includes(txt)) res.push({id: d.id, ...d.data()});
+    });
+    afficherRecettes(res);
+};
+
+// --- 4. MODALE ET CHARGEMENT ---
+window.ouvrirRecette = function(nom, ing, eta, img) {
+    const list = eta.split(/[|\n]/).filter(e => e.trim()).map(e => `<li>${e.trim()}</li>`).join('');
+    document.getElementById("contenuRecette").innerHTML = `
+        <img src="${img}" style="width:100%; border-radius:10px;">
+        <h1>${nom}</h1>
+        <p><b>Ingrédients :</b><br>${ing}</p>
+        <p><b>Préparation :</b><ul>${list}</ul></p>`;
+    document.getElementById("modalRecette").style.display = "block";
+};
+
+window.fermerRecette = () => document.getElementById("modalRecette").style.display = "none";
+
+window.supprimerRecette = async (id) => { 
+    if(confirm("Supprimer ?")) { await deleteDoc(doc(db, "recettes", id)); window.chargerRecettes(); }
+};
+
+window.majSousCategories = function() {
+    const u = document.getElementById("univers").value;
+    const s = document.getElementById("sousCategorie");
+    const opts = u === "cuisine" ? ["Entrée", "Plat", "Accompagnement"] : ["Gâteau", "Tarte", "Biscuit"];
+    s.innerHTML = opts.map(o => `<option value="${o.toLowerCase()}">${o}</option>`).join('');
+};
+
+window.chargerRecettes = async () => {
+    const snap = await getDocs(collection(db, "recettes"));
+    let l = []; snap.forEach(d => l.push({id: d.id, ...d.data()}));
+    afficherRecettes(l);
+};
+
+window.majSousCategories();
+window.chargerRecettes();
