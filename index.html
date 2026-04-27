@@ -5,143 +5,128 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Le Grimoire des Parents</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; padding: 20px; color: #333; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; color: #333; }
         h1 { text-align: center; color: #2c3e50; }
         
+        /* Section Authentification */
+        #section-auth { background: white; padding: 15px; border-radius: 12px; max-width: 600px; margin: 0 auto 20px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        #section-auth input { padding: 8px; border: 1px solid #ddd; border-radius: 5px; margin: 5px; }
+        #section-auth button { padding: 8px 15px; background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; }
+
         /* Formulaire */
-        .formulaire { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto 30px auto; display: flex; flex-direction: column; gap: 12px; }
-        input, select, textarea { padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
-        button#btn-ajouter { padding: 12px; background-color: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .formulaire { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 600px; margin: 0 auto 30px auto; display: flex; flex-direction: column; gap: 10px; }
+        input, select, textarea { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        .btn-save { padding: 12px; background-color: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
-        /* Navigation Visuelle */
-        .navigation-visuelle { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; max-width: 800px; margin: 0 auto 20px auto; }
-        .card-nav { position: relative; height: 100px; border-radius: 12px; overflow: hidden; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: 0.2s; }
-        .card-nav:hover { transform: scale(1.03); }
-        .card-nav img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.6); }
-        .card-nav span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-align: center; width: 100%; text-transform: uppercase; }
+        /* Navigation */
+        .navigation-visuelle { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }
+        .card-nav { position: relative; height: 100px; border-radius: 12px; overflow: hidden; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .card-nav img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.5); }
+        .card-nav span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-transform: uppercase; }
 
-        /* Grille de recettes */
-        .grille-recettes { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; max-width: 1000px; margin: 20px auto; }
-        .recette { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .badge-sous-cat { background: #f39c12; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; }
-        
-        /* --- LE STYLE DE LA FENÊTRE (MODALE) --- */
-.modal {
-    display: none; /* Caché par défaut */
-    position: fixed;
-    z-index: 9999; /* Pour passer devant tout le reste */
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.8); /* Fond noir transparent */
-}
+        /* Grilles */
+        .grille-recettes { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
+        .recette { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
+        .badge-sous-cat { background: #f39c12; color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; }
 
-.modal-content {
-    background-color: #fff;
-    margin: 5% auto;
-    padding: 25px;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 600px;
-    position: relative;
-    box-shadow: 0 5px 30px rgba(0,0,0,0.3);
-}
-
-.close {
-    position: absolute;
-    right: 20px;
-    top: 15px;
-    color: #aaa;
-    font-size: 35px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.close:hover {
-    color: #333;
-}
+        /* Modale */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); }
+        .modal-content { background-color: white; margin: 5% auto; padding: 25px; border-radius: 20px; width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; position: relative; }
+        .close { position: absolute; right: 20px; top: 15px; font-size: 30px; cursor: pointer; }
     </style>
-   <script type="module">
-  // LIGNES 1 à 5 (tes imports actuels)
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
-
-  // --- CE QUE TU DOIS AJOUTER ICI ---
-  const firebaseConfig = {
-    apiKey: "AIzaSyCXO-I5ZaXd_qdp5dC0hVle-pnr_3TAK_E",
-    authDomain: "recipearl-911f4.firebaseapp.com",
-    projectId: "recipearl-911f4",
-    storageBucket: "recipearl-911f4.firebasestorage.app",
-    messagingSenderId: "367451931371",
-    appId: "1:367451931371:web:f3a4b4f8f8b7443cb974ae"
- };
-
-  // Initialisation
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  console.log("Firebase initialisé avec succès !");
-
-  // Le pont pour ton fichier script.js
-  window.db = db;
-  // ----------------------------------
-
-</script>
 </head>
 <body>
 
     <h1>👨‍🍳 Le Grimoire des Parents</h1>
 
-    <div class="formulaire">
-        <input type="text" id="nom" placeholder="Nom de la recette">
-        <textarea id="ingredients" placeholder="Ingrédients (ex: 2 œufs, sucre...)"></textarea>
-        <textarea id="etapes" placeholder="Étapes (utilisez | pour séparer les étapes)"></textarea>
-        
-        <div style="display: flex; gap: 10px;">
-            <select id="univers" onchange="window.majSousCategories()" style="flex: 1;">
-                <option value="cuisine">🍳 Cuisine</option>
-                <option value="pâtisserie">🍰 Pâtisserie</option>
-            </select>
-            <select id="sousCategorie" style="flex: 1;"></select>
+    <div id="section-auth">
+        <div id="form-login">
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Mot de passe">
+            <button onclick="window.gererConnexion()">Connexion / Inscription</button>
         </div>
-        
-        <input type="text" id="imageLien" placeholder="Lien de l'image (URL)">
-        <button id="btn-ajouter" onclick="window.ajouterRecette()">Enregistrer la Recette</button>
+        <div id="info-user" style="display: none;">
+            <span id="txt-user"></span>
+            <button onclick="window.deconnexion()" style="background: #e74c3c;">Déconnexion</button>
+        </div>
     </div>
 
+    <div class="formulaire">
+    <input type="text" id="nom" placeholder="Nom de la recette">
+    <textarea id="ingredients" placeholder="Ingrédients..."></textarea>
+    <textarea id="etapes" placeholder="Étapes..."></textarea>
+    
+    <div style="display: flex; gap: 10px;">
+        <select id="univers" onchange="window.majSousCategories()" style="flex: 1;">
+            <option value="cuisine">🍳 Cuisine</option>
+            <option value="pâtisserie">🍰 Pâtisserie</option>
+        </select>
+        <select id="sousCategorie" style="flex: 1;"></select>
+    </div>
+    
+    <input type="text" id="imageLien" placeholder="Lien de l'image (URL)">
+
+    <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0; background: #f9f9f9; padding: 10px; border-radius: 8px;">
+        <input type="checkbox" id="public" checked style="width: 20px; height: 20px; cursor: pointer;">
+        <label for="public" style="cursor: pointer; font-size: 14px; color: #2c3e50;">
+            🔓 Partager avec mes collègues (Public)
+        </label>
+    </div>
+    <button class="btn-save" onclick="window.ajouterRecette()">Enregistrer la Recette</button>
+</div>
     <div class="navigation-visuelle">
         <div class="card-nav" onclick="window.filtrerParCategorie('entrée')">
-            <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=300" alt="Entrées">
-            <span>ENTRÉES</span>
+            <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300" alt="Entrées">
+            <span>Entrées</span>
         </div>
         <div class="card-nav" onclick="window.filtrerParCategorie('plat')">
-            <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=300" alt="Plats">
-            <span>PLATS</span>
+            <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300" alt="Plats">
+            <span>Plats</span>
+        </div>
+        <div class="card-nav" onclick="window.filtrerParCategorie('dessert')">
+            <img src="https://images.unsplash.com/photo-1551024506-0bccd828d307?w=300" alt="Desserts">
+            <span>Desserts</span>
         </div>
         <div class="card-nav" onclick="window.filtrerParCategorie('pâtisserie')">
-            <img src="https://images.unsplash.com/photo-1551024506-0bccd828d307?q=80&w=300" alt="Desserts">
-            <span>DESSERTS</span>
-        </div>
-        <div class="card-nav" onclick="window.filtrerParCategorie('')">
-            <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?q=80&w=300" alt="Tout">
-            <span>TOUT VOIR</span>
+            <img src="https://images.unsplash.com/photo-1488477181946-6428a0291777?w=300" alt="Pâtisserie">
+            <span>Pâtisserie</span>
         </div>
     </div>
 
-    <div style="max-width: 800px; margin: 0 auto;">
-        <input type="text" id="recherche" placeholder="🔎 Rechercher une recette..." oninput="window.rechercherParNom()" style="width: 100%; box-sizing: border-box;">
+    <div style="max-width: 800px; margin: 0 auto 30px;">
+        <input type="text" id="recherche" placeholder="Rechercher une recette..." oninput="window.rechercherParNom()" style="width: 100%; box-sizing: border-box;">
     </div>
 
+    <h2 style="text-align:center;">🍳 Coin Cuisine</h2>
     <div id="liste-cuisine" class="grille-recettes"></div>
+
+    <h2 style="text-align:center; margin-top:40px;">🍰 Coin Pâtisserie</h2>
     <div id="liste-patisserie" class="grille-recettes"></div>
 
     <div id="modalRecette" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="window.fermerRecette()">&times;</span>
-        <div id="contenuRecette"></div>
+        <div class="modal-content">
+            <span class="close" onclick="window.fermerRecette()">&times;</span>
+            <div id="contenuRecette"></div>
+        </div>
     </div>
-</div>
-    <script type="module" src="script.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            // COLLE TES CLÉS FIREBASE ICI SI ELLES N'Y SONT PAS
+            apiKey: "TA_CLE",
+            authDomain: "TON_DOMAINE",
+            projectId: "TON_PROJET_ID",
+            storageBucket: "TON_BUCKET",
+            messagingSenderId: "TON_ID",
+            appId: "TON_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        window.db = getFirestore(app);
+    </script>
+    <script src="script.js" type="module"></script>
 </body>
 </html>
