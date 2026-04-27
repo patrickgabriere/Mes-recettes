@@ -95,9 +95,22 @@ h1 {
     <option value="cuisine">Cuisine</option>
     <option value="pâtisserie">Pâtisserie</option>
   </select>
+  <input type="text" id="imageLien" placeholder="Lien d'une image (URL)">
   <button onclick="ajouterRecette()">Ajouter</button>
 </div>
-<input type="text" id="recherche" placeholder="Rechercher une recette..." oninput="rechercherRecette()">
+<div class="navigation-recherche">
+    <div class="filtres">
+        <button class="btn-filtre" onclick="filtrerParCategorie('')">Tout</button>
+        <button class="btn-filtre" onclick="filtrerParCategorie('entrée')">🥗 Entrées</button>
+        <button class="btn-filtre" onclick="filtrerParCategorie('plat')">🍲 Plats</button>
+        <button class="btn-filtre" onclick="filtrerParCategorie('dessert')">🍰 Desserts</button>
+        <button class="btn-filtre" onclick="filtrerParCategorie('pâtisserie')">🥧 Pâtisserie</button>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="recherche" placeholder="Chercher un nom de recette (ex: Tarte)..." oninput="rechercherParNom()">
+    </div>
+</div>
 <div style="display: flex; gap: 20px;">
   <div style="flex: 1;">
     <h2 style="color: #e74c3c;">🍳 Cuisine</h2>
