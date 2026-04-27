@@ -108,6 +108,23 @@ h1 {
     <div id="liste-patisserie"></div>
   </div>
 </div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCXO-I5ZaXd_qdp5dC0hVle-pnr_3TAK_E",
+    authDomain: "recipearl-911f4.firebaseapp.com",
+    projectId: "recipearl-911f4",
+    storageBucket: "recipearl-911f4.firebasestorage.app",
+    messagingSenderId: "367451931371",
+    appId: "1:367451931371:web:f3a4b4f8f8b7443cb974ae"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  window.db = db;
+</script>
 <script src="script.js"></script>
 </body>
 </html>
