@@ -1,31 +1,17 @@
-let recettesBase = [
-  {
-    nom: "Tarte aux pommes",
-    categorie: "pâtisserie",
-    ingredients: ["pommes", "farine", "beurre", "sucre"],
-    etapes: ["Préparer la pâte", "Éplucher et couper les pommes", "Garnir le moule", "Cuire 35 min à 180°"]
-  },
-  {
-    nom: "Quiche lorraine",
-    categorie: "cuisine",
-    ingredients: ["œufs", "lardons", "crème", "gruyère"],
-    etapes: ["Préparer la pâte", "Faire revenir les lardons", "Mélanger œufs et crème", "Verser sur la pâte et cuire 30 min"]
-  },
-  {
-    nom: "Rigatoni bacon, créme de bleu & ciboulette",
-    categorie: "cuisine",
-    ingredients: ["oignon", "fromage bleu", "rigatoni", "tranche de poitrine fumée", "ciboulette", "crème fraîche", "noix concassées"],
-    etapes: ["Cuire les pâtes", "Faire revenir l'oignon et la poitrine", "Ajouter la crème et le fromage bleu", "Mélanger avec les pâtes et garnir"]
-  }
-];
-
-let sauvegarde = localStorage.getItem("recettes");
-let recettes = sauvegarde ? JSON.parse(sauvegarde) : recettesBase;
-
 let cuisine = document.getElementById("liste-cuisine");
 let patisserie = document.getElementById("liste-patisserie");
 
-function afficherRecettes() {
+async function chargerRecettes() {
+  const { getDocs, collection } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+  const snapshot = await getDocs(collection(window.db, "recettes"));
+  let recettes = [];
+  snapshot.forEach(doc => {
+    recettes.push({ id: doc.id, ...doc.data() });
+  });
+  afficherRecettes(recettes);
+}
+
+function afficherRecettes(recettes) {
   cuisine.innerHTML = "";
   patisserie.innerHTML = "";
   for (let i = 0; i < recettes.length; i++) {
@@ -43,7 +29,7 @@ function afficherRecettes() {
         <span class="categorie">${recettes[i].categorie}</span>
         <p>Ingrédients : ${recettes[i].ingredients.join(", ")}</p>
         ${etapesHTML}
-        <button onclick="supprimerRecette(${i})">Supprimer</button>
+        <button onclick="supprimerRecette('${recettes[i].id}')">Supprimer</button>
       </div>
     `;
     if (recettes[i].categorie === "pâtisserie") {
@@ -54,52 +40,31 @@ function afficherRecettes() {
   }
 }
 
-function sauvegarder() {
-  localStorage.setItem("recettes", JSON.stringify(recettes));
-}
-
-function supprimerRecette(i) {
-  recettes.splice(i, 1);
-  sauvegarder();
-  afficherRecettes();
-}
-
-function ajouterRecette() {
+async function ajouterRecette() {
+  const { addDoc, collection } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
   let nom = document.getElementById("nom").value;
   let ingredients = document.getElementById("ingredients").value.split(",");
-  let categorie = document.getElementById("categorie").value;
   let etapes = document.getElementById("etapes").value.split(",");
+  let categorie = document.getElementById("categorie").value;
 
-  recettes.push({ nom: nom, categorie: categorie, ingredients: ingredients, etapes: etapes });
-  sauvegarder();
-  afficherRecettes();
-
+  await addDoc(collection(window.db, "recettes"), { nom, categorie, ingredients, etapes });
+  
   document.getElementById("nom").value = "";
   document.getElementById("ingredients").value = "";
   document.getElementById("etapes").value = "";
+  
+  chargerRecettes();
+}
+
+async function supprimerRecette(id) {
+  const { deleteDoc, doc } = await import("https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js");
+  await deleteDoc(doc(window.db, "recettes", id));
+  chargerRecettes();
 }
 
 function rechercherRecette() {
   let recherche = document.getElementById("recherche").value.toLowerCase();
-  let resultats = recettes.filter(function(recette) {
-    return recette.nom.toLowerCase().includes(recherche);
-  });
-  cuisine.innerHTML = "";
-  patisserie.innerHTML = "";
-  for (let i = 0; i < resultats.length; i++) {
-    let html = `
-      <div class="recette">
-        <h2>${resultats[i].nom}</h2>
-     <span class="categorie">${resultats[i].categorie}</span>
-        <p>Ingrédients : ${resultats[i].ingredients.join(", ")}</p>
-      </div>
-    `;
-    if (resultats[i].categorie === "pâtisserie") {
-      patisserie.innerHTML += html;
-    } else {
-      cuisine.innerHTML += html;
-    }
-  }
+  const { getDocs, collection } = window;
 }
 
-afficherRecettes();
+chargerRecettes();
