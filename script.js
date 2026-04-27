@@ -1,4 +1,3 @@
-// 1. On importe tout ce qu'on a besoin d'un coup
 import { 
     getDocs, 
     collection, 
@@ -10,7 +9,7 @@ import {
 let cuisine = document.getElementById("liste-cuisine");
 let patisserie = document.getElementById("liste-patisserie");
 
-// 2. Charger les recettes au démarrage
+// 1. Charger les recettes (Fonction principale)
 async function chargerRecettes() {
     const snapshot = await getDocs(collection(window.db, "recettes"));
     let recettes = [];
@@ -20,26 +19,21 @@ async function chargerRecettes() {
     afficherRecettes(recettes);
 }
 
-// 3. Afficher les recettes (avec une jolie liste à puces)
-function afficherRecettes(recettes) {
+// 2. Afficher les recettes dans le HTML
+function afficherRecettes(recettesALister) {
     cuisine.innerHTML = "";
     patisserie.innerHTML = "";
 
-    recettes.forEach(r => {
-        // Transformation des ingrédients en liste HTML
-        let ingList = "<ul>" + r.ingredients.map(i => `<li>${i}</li>`).join('') + "</ul>";
-        
-        // Transformation des étapes en liste ordonnée (1, 2, 3...)
-        let etapesList = "<ol>" + r.etapes.map(e => `<li>${e}</li>`).join('') + "</ol>";
-
+    recettesALister.forEach(r => {
+        // On crée le HTML pour chaque recette
         let html = `
             <div class="recette">
                 <h2>${r.nom}</h2>
                 <span class="categorie">${r.categorie}</span>
-                <p><strong>Ingrédients :</strong></p>
-                ${ingList}
-                <p><strong>Préparation :</strong></p>
-                ${etapesList}
+                <p><strong>Ingrédients :</strong> ${Array.isArray(r.ingredients) ? r.ingredients.join(', ') : r.ingredients}</p>
+                <ol>
+                    ${r.etapes.map(e => `<li>${e}</li>`).join('')}
+                </ol>
                 <button onclick="supprimerRecette('${r.id}')">Supprimer</button>
             </div>
         `;
@@ -52,24 +46,39 @@ function afficherRecettes(recettes) {
     });
 }
 
+// 3. LA RECHERCHE (C'est ici que ça se joue !)
+window.rechercherRecette = async function() {
+    let texte = document.getElementById("recherche").value.toLowerCase();
+    
+    // On va chercher les recettes actuelles sur Firebase
+    const snapshot = await getDocs(collection(window.db, "recettes"));
+    let toutesLesRecettes = [];
+    snapshot.forEach(doc => {
+        toutesLesRecettes.push({ id: doc.id, ...doc.data() });
+    });
+
+    // On filtre : on ne garde que celles dont le nom contient le texte tapé
+    let resultats = toutesLesRecettes.filter(r => 
+        r.nom.toLowerCase().includes(texte)
+    );
+
+    // On demande à ré-afficher seulement les résultats filtrés
+    afficherRecettes(resultats);
+};
+
 // 4. Ajouter une recette
 window.ajouterRecette = async function() {
     let nom = document.getElementById("nom").value;
-    // .split(",") transforme le texte "sel,poivre" en tableau ["sel", "poivre"]
     let ingredients = document.getElementById("ingredients").value.split(",");
     let etapes = document.getElementById("etapes").value.split(",");
     let categorie = document.getElementById("categorie").value;
 
-    if(nom === "") return alert("Donne un nom à la recette !");
+    if(nom === "") return alert("Donne un nom !");
 
     await addDoc(collection(window.db, "recettes"), {
-        nom,
-        ingredients,
-        etapes,
-        categorie
+        nom, ingredients, etapes, categorie
     });
 
-    // On vide le formulaire
     document.getElementById("nom").value = "";
     document.getElementById("ingredients").value = "";
     document.getElementById("etapes").value = "";
@@ -77,7 +86,7 @@ window.ajouterRecette = async function() {
     chargerRecettes();
 };
 
-// 5. Supprimer une recette (avec confirmation)
+// 5. Supprimer une recette
 window.supprimerRecette = async function(id) {
     if (confirm("Supprimer cette recette ?")) {
         await deleteDoc(doc(window.db, "recettes", id));
@@ -85,21 +94,5 @@ window.supprimerRecette = async function(id) {
     }
 };
 
-// 6. Rechercher une recette (Filtrage local)
-window.rechercherRecette = async function() {
-    let texte = document.getElementById("recherche").value.toLowerCase();
-    const snapshot = await getDocs(collection(window.db, "recettes"));
-    
-    let resultats = [];
-    snapshot.forEach(doc => {
-        let data = doc.data();
-        if (data.nom.toLowerCase().includes(texte)) {
-            resultats.push({ id: doc.id, ...data });
-        }
-    });
-    
-    afficherRecettes(resultats);
-};
-
-// On lance le premier chargement
+// Lancer le chargement au démarrage
 chargerRecettes();
