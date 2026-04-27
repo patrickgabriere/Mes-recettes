@@ -88,35 +88,49 @@ function afficherRecettes(liste) {
 window.ajouterRecette = async function() {
     if (!auth.currentUser) return alert("Tu dois être connecté !");
     const nom = document.getElementById("nom").value;
-    if(!nom) return alert("Nom manquant !");
+    if(!nom) return alert("Le nom est obligatoire !");
 
     const donnees = {
-        nom,
+        nom: nom,
         univers: document.getElementById("univers").value,
         sousCategorie: document.getElementById("sousCategorie").value,
         image: document.getElementById("imageLien").value,
         ingredients: document.getElementById("ingredients").value,
         etapes: document.getElementById("etapes").value,
-        auteurId: auth.currentUser.uid
+        auteurId: auth.currentUser.uid, // ID de celui qui crée
+        estPublic: document.getElementById("public").checked // True si coché, False sinon
     };
 
     if (modeEdition) {
         await updateDoc(doc(db, "recettes", modeEdition), donnees);
         modeEdition = null;
-        document.querySelector(".formulaire button").innerText = "Enregistrer la Recette";
+        document.querySelector(".btn-save").innerText = "Enregistrer la Recette";
     } else {
         await addDoc(collection(db, "recettes"), donnees);
     }
+
+    // Vider les champs
     document.querySelectorAll(".formulaire input, .formulaire textarea").forEach(i => i.value = "");
+    document.getElementById("public").checked = true; // Remettre en public par défaut
     window.chargerRecettes();
 };
 
 window.chargerRecettes = async () => {
     const snap = await getDocs(collection(db, "recettes"));
-    let l = []; snap.forEach(d => l.push({id: d.id, ...d.data()}));
-    afficherRecettes(l);
-};
+    const user = auth.currentUser;
+    let listeFiltree = [];
 
+    snap.forEach(d => {
+        const r = d.data();
+        // CONDITION DE VISIBILITÉ :
+        // On affiche si : La recette est publique OU (on est connecté ET on est l'auteur)
+        if (r.estPublic === true || (user && r.auteurId === user.uid)) {
+            listeFiltree.push({ id: d.id, ...r });
+        }
+    });
+
+    afficherRecettes(listeFiltree);
+};
 // ... Garde tes fonctions ouvrirRecette, preparerModif, supprimerRecette et majSousCategories ...
 // Mais assure-toi qu'elles commencent par window. pour être accessibles !
 
