@@ -1,143 +1,89 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Mes Recettes</title>
-  <style>
- body {
-  font-family: Arial, sans-serif;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #f5f5f5;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Grimoire des Parents</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; padding: 20px; color: #333; }
+        h1 { text-align: center; color: #2c3e50; }
+        
+        /* Formulaire */
+        .formulaire { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto 30px auto; display: flex; flex-direction: column; gap: 12px; }
+        input, select, textarea { padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+        button#btn-ajouter { padding: 12px; background-color: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
-h1 {
-  color: #e74c3c;
-  text-align: center;
-}
+        /* Navigation Visuelle */
+        .navigation-visuelle { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; max-width: 800px; margin: 0 auto 20px auto; }
+        .card-nav { position: relative; height: 100px; border-radius: 12px; overflow: hidden; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .card-nav img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.6); }
+        .card-nav span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-align: center; width: 100%; }
 
-.recette {
-  background-color: white;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
-}
-
-.recette h2 {
-  color: #e74c3c;
-  margin-top: 0;
-}
-
-.categorie {
-  background-color: #e74c3c;
-  color: white;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 13px;
-}
-
-.formulaire {
-  background-color: white;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.formulaire input, .formulaire select {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 15px;
-}
-
-.formulaire button {
-  padding: 10px;
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 15px;
-  cursor: pointer;
-}
-
-.recette button {
-  margin-top: 10px;
-  padding: 6px 12px;
-  background-color: white;
-  color: #e74c3c;
-  border: 1px solid #e74c3c;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-#recherche {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 20px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 15px;
-  box-sizing: border-box;
-}
-</style>
+        /* Grille de recettes */
+        .grille-recettes { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; max-width: 1000px; margin: 20px auto; }
+        .recette { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .badge-sous-cat { background: #f39c12; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; }
+        
+        /* Fenêtre surgissante (Modale) */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); }
+        .modal-content { background: white; margin: 5% auto; padding: 20px; border-radius: 15px; width: 90%; max-width: 500px; position: relative; }
+        .close { position: absolute; right: 20px; top: 10px; font-size: 30px; cursor: pointer; }
+    </style>
 </head>
 <body>
- <h1>Mes Recettes</h1>
-<div class="formulaire">
-  <input type="text" id="nom" placeholder="Nom de la recette">
-  <input type="text" id="ingredients" placeholder="Ingrédients séparés par des virgules">
-  <input type="text" id="etapes" placeholder="Étapes séparées par des virgules">
-  <select id="categorie">
-    <option value="cuisine">Cuisine</option>
-    <option value="pâtisserie">Pâtisserie</option>
-  </select>
-  <input type="text" id="imageLien" placeholder="Lien d'une image (URL)">
-  <button onclick="ajouterRecette()">Ajouter</button>
-</div>
-<div class="navigation-recherche">
-    <div class="filtres">
-        <button class="btn-filtre" onclick="filtrerParCategorie('')">Tout</button>
-        <button class="btn-filtre" onclick="filtrerParCategorie('entrée')">🥗 Entrées</button>
-        <button class="btn-filtre" onclick="filtrerParCategorie('plat')">🍲 Plats</button>
-        <button class="btn-filtre" onclick="filtrerParCategorie('dessert')">🍰 Desserts</button>
-        <button class="btn-filtre" onclick="filtrerParCategorie('pâtisserie')">🥧 Pâtisserie</button>
+
+    <h1>👨‍🍳 Le Grimoire des Parents</h1>
+
+    <div class="formulaire">
+        <input type="text" id="nom" placeholder="Nom de la recette">
+        <textarea id="ingredients" placeholder="Ingrédients (ex: 2 œufs, sucre...)"></textarea>
+        <textarea id="etapes" placeholder="Étapes (utilisez | pour séparer les étapes)"></textarea>
+        
+        <div style="display: flex; gap: 10px;">
+            <select id="univers" onchange="window.majSousCategories()">
+                <option value="cuisine">🍳 Cuisine</option>
+                <option value="pâtisserie">🍰 Pâtisserie</option>
+            </select>
+            <select id="sousCategorie"></select>
+        </div>
+        
+        <input type="text" id="imageLien" placeholder="Lien de l'image (URL)">
+        <button id="btn-ajouter" onclick="window.ajouterRecette()">Ajouter la recette</button>
     </div>
 
-    <div class="search-container">
-        <input type="text" id="recherche" placeholder="Chercher un nom de recette (ex: Tarte)..." oninput="rechercherParNom()">
+    <div class="navigation-visuelle">
+        <div class="card-nav" onclick="window.filtrerParCategorie('entrée')">
+            <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=300" alt="Entrées">
+            <span>ENTRÉES</span>
+        </div>
+        <div class="card-nav" onclick="window.filtrerParCategorie('plat')">
+            <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=300" alt="Plats">
+            <span>PLATS</span>
+        </div>
+        <div class="card-nav" onclick="window.filtrerParCategorie('pâtisserie')">
+            <img src="https://images.unsplash.com/photo-1551024506-0bccd828d307?q=80&w=300" alt="Desserts">
+            <span>DESSERTS</span>
+        </div>
+        <div class="card-nav" onclick="window.filtrerParCategorie('')">
+            <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?q=80&w=300" alt="Tout">
+            <span>TOUT VOIR</span>
+        </div>
     </div>
-</div>
-<div style="display: flex; gap: 20px;">
-  <div style="flex: 1;">
-    <h2 style="color: #e74c3c;">🍳 Cuisine</h2>
-    <div id="liste-cuisine"></div>
-  </div>
-  <div style="flex: 1;">
-    <h2 style="color: #e74c3c;">🍰 Pâtisserie</h2>
-    <div id="liste-patisserie"></div>
-  </div>
-</div>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCXO-I5ZaXd_qdp5dC0hVle-pnr_3TAK_E",
-    authDomain: "recipearl-911f4.firebaseapp.com",
-    projectId: "recipearl-911f4",
-    storageBucket: "recipearl-911f4.firebasestorage.app",
-    messagingSenderId: "367451931371",
-    appId: "1:367451931371:web:f3a4b4f8f8b7443cb974ae"
-  };
+    <div style="max-width: 800px; margin: 0 auto;">
+        <input type="text" id="recherche" placeholder="🔎 Rechercher une recette..." oninput="window.rechercherParNom()" style="width: 100%;">
+    </div>
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  window.db = db;
-</script>
-<script src="script.js" type="module"></script>
+    <div id="liste-cuisine" class="grille-recettes"></div>
+    <div id="liste-patisserie" class="grille-recettes"></div>
+
+    <div id="modalRecette" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="window.fermerRecette()">&times;</span>
+            <div id="contenuRecette"></div>
+        </div>
+    </div>
+
+    <script src="script.js" type="module"></script>
 </body>
 </html>
