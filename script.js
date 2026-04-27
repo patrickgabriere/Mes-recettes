@@ -1,29 +1,36 @@
-
+// --- DEBUT DU FICHIER ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-// 2. CONFIGURATION FIREBASE
+// 1. INITIALISATION
 const app = initializeApp(window.firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app); // <--- Correction ici : on ajoute (app)
+const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// On rend db accessible pour tes fonctions window.chargerRecettes etc.
-window.db = db; 
+// IMPORTANT : On rend db et auth visibles pour le reste du code
+window.db = db;
+window.auth = auth;
 
 let modeEdition = null;
 
-// 3. FONCTIONS D'AUTHENTIFICATION
+// 2. AUTHENTIFICATION
 window.connexionGoogle = function() {
     signInWithPopup(auth, provider)
         .then((result) => {
-            console.log("Connecté avec Google !", result.user.displayName);
+            console.log("Connecté !", result.user.displayName);
         }).catch((error) => {
-            console.error("Erreur Google :", error.message);
+            alert("Erreur Firebase : " + error.message);
         });
 };
 
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        console.log("Session active pour :", user.displayName);
+    }
+});
+// --- LA SUITE DE TON CODE (FONCTIONS RECETTES) RESTE EN DESSOUS ---
 window.gererConnexion = async function() {
     const email = document.getElementById("email").value;
     const pass = document.getElementById("password").value;
