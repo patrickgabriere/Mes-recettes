@@ -1,17 +1,30 @@
-// 1. LES IMPORTS (Toujours en haut)
+// 1. LES IMPORTS
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { 
-    getDocs, collection, addDoc, deleteDoc, doc, updateDoc 
-} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+    getFirestore, getDocs, collection, addDoc, deleteDoc, doc, updateDoc 
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { 
-    getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut 
-} from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+    getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider 
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-// 2. RÉCUPÉRATION DES INSTANCES (déjà créées dans ton index.html ou script.js d'init)
-const db = window.db;
+// 2. CONFIGURATION FIREBASE
+const app = initializeApp(window.firebaseConfig);
+const db = getFirestore(app);
 const auth = getAuth();
+const provider = new GoogleAuthProvider();
+
 let modeEdition = null;
 
 // 3. FONCTIONS D'AUTHENTIFICATION
+window.connexionGoogle = function() {
+    signInWithPopup(auth, provider)
+        .then((result) => {
+            console.log("Connecté avec Google !", result.user.displayName);
+        }).catch((error) => {
+            console.error("Erreur Google :", error.message);
+        });
+};
+
 window.gererConnexion = async function() {
     const email = document.getElementById("email").value;
     const pass = document.getElementById("password").value;
@@ -37,7 +50,7 @@ onAuthStateChanged(auth, (user) => {
         if(loginDiv) loginDiv.style.display = "none";
         if(infoDiv) {
             infoDiv.style.display = "block";
-            document.getElementById("txt-user").innerText = "👨‍🍳 " + user.email;
+            document.getElementById("txt-user").innerText = "👨‍🍳 " + (user.displayName || user.email);
         }
     } else {
         if(loginDiv) loginDiv.style.display = "block";
@@ -63,9 +76,10 @@ function afficherRecettes(liste) {
         card.className = "recette";
         const img = r.image || "https://via.placeholder.com/300x150?text=Pas+d'image";
 
-        const nomEsc = r.nom.replace(/'/g, "\\'");
-        const ingEsc = r.ingredients ? r.ingredients.replace(/'/g, "\\'").replace(/\n/g, " ") : "";
-        const etaEsc = r.etapes ? r.etapes.replace(/'/g, "\\'").replace(/\n/g, " ") : "";
+        // Nettoyage des données pour éviter les bugs JS dans le onclick
+        const nomEsc = (r.nom || "").replace(/'/g, "\\'");
+        const ingEsc = (r.ingredients || "").replace(/'/g, "\\'").replace(/\n/g, " ");
+        const etaEsc = (r.etapes || "").replace(/'/g, "\\'").replace(/\n/g, " ");
 
         card.innerHTML = `
             <div onclick="window.ouvrirRecette('${nomEsc}', '${ingEsc}', '${etaEsc}', '${img}')" style="cursor:pointer">
@@ -76,7 +90,7 @@ function afficherRecettes(liste) {
                 <span class="badge-sous-cat">${r.sousCategorie || ''}</span>
                 <div style="display: ${estAuteur ? 'block' : 'none'}">
                     <button onclick="window.preparerModif('${r.id}', '${nomEsc}', '${ingEsc}', '${etaEsc}', '${r.univers}', '${r.sousCategorie}', '${img}')" style="background:none; border:none; cursor:pointer;">✏️</button>
-                    <button onclick="window.supprimerRecette('${r.id}')" style="color:red; background:none; border:none; cursor:pointer;">×</button>
+                    <button onclick="window.supprimerRecette('${r.id}')" style="color:red; background:none; border:none; cursor:pointer; font-size: 1.2rem;">×</button>
                 </div>
             </div>
         `;
@@ -97,57 +111,61 @@ window.ajouterRecette = async function() {
         image: document.getElementById("imageLien").value,
         ingredients: document.getElementById("ingredients").value,
         etapes: document.getElementById("etapes").value,
-        auteurId: auth.currentUser.uid, // ID de celui qui crée
-        estPublic: document.getElementById("public").checked // True si coché, False sinon
+        auteurId: auth.currentUser.uid,
+        estPublic: document.getElementById("public") ? document.getElementById("public").checked : true
     };
 
-    if (modeEdition) {
-        await updateDoc(doc(db, "recettes", modeEdition), donnees);
-        modeEdition = null;
-        document.querySelector(".btn-save").innerText = "Enregistrer la Recette";
-    } else {
-        await addDoc(collection(db, "recettes"), donnees);
+    try {
+        if (modeEdition) {
+            await updateDoc(doc(db, "recettes", modeEdition), donnees);
+            modeEdition = null;
+            document.querySelector(".formulaire button.btn-save").innerText = "Enregistrer la Recette";
+        } else {
+            await addDoc(collection(db, "recettes"), donnees);
+        }
+        document.querySelectorAll(".formulaire input, .formulaire textarea").forEach(i => i.value = "");
+        window.chargerRecettes();
+    } catch(err) {
+        alert("Erreur: " + err.message);
     }
-
-    // Vider les champs
-    document.querySelectorAll(".formulaire input, .formulaire textarea").forEach(i => i.value = "");
-    document.getElementById("public").checked = true; // Remettre en public par défaut
-    window.chargerRecettes();
 };
 
 window.chargerRecettes = async () => {
-    const snap = await getDocs(collection(db, "recettes"));
-    const user = auth.currentUser;
-    let listeFiltree = [];
-
-    snap.forEach(d => {
-        const r = d.data();
-        // CONDITION DE VISIBILITÉ :
-        // On affiche si : La recette est publique OU (on est connecté ET on est l'auteur)
-        if (r.estPublic === true || (user && r.auteurId === user.uid)) {
-            listeFiltree.push({ id: d.id, ...r });
-        }
-    });
-
-    afficherRecettes(listeFiltree);
+    try {
+        const snap = await getDocs(collection(db, "recettes"));
+        const user = auth.currentUser;
+        let listeFiltree = [];
+        snap.forEach(d => {
+            const r = d.data();
+            if (r.estPublic === true || (user && r.auteurId === user.uid)) {
+                listeFiltree.push({ id: d.id, ...r });
+            }
+        });
+        afficherRecettes(listeFiltree);
+    } catch (err) { console.error(err); }
 };
-// ... Garde tes fonctions ouvrirRecette, preparerModif, supprimerRecette et majSousCategories ...
-// Mais assure-toi qu'elles commencent par window. pour être accessibles !
 
 window.ouvrirRecette = function(nom, ing, eta, img) {
     const list = eta.split(/[|\n]/).filter(e => e.trim()).map(e => `<li>${e.trim()}</li>`).join('');
     document.getElementById("contenuRecette").innerHTML = `
-        <img src="${img}" style="width:100%; border-radius:10px;">
-        <h1>${nom}</h1>
-        <p><b>Ingrédients :</b><br>${ing}</p>
-        <p><b>Préparation :</b><ul>${list}</ul></p>`;
+        <img src="${img}" style="width:100%; max-height:250px; object-fit:cover; border-radius:10px;">
+        <h1 style="color:#2c3e50; margin-top:15px;">${nom}</h1>
+        <div style="background:#f9f9f9; padding:15px; border-radius:10px;">
+            <h3>🛒 Ingrédients</h3>
+            <p style="white-space: pre-wrap;">${ing}</p>
+        </div>
+        <h3>👨‍🍳 Préparation</h3>
+        <ul style="line-height:1.6;">${list}</ul>`;
     document.getElementById("modalRecette").style.display = "block";
 };
 
 window.fermerRecette = () => document.getElementById("modalRecette").style.display = "none";
 
 window.supprimerRecette = async (id) => { 
-    if(confirm("Supprimer ?")) { await deleteDoc(doc(db, "recettes", id)); window.chargerRecettes(); }
+    if(confirm("Supprimer cette recette ?")) { 
+        await deleteDoc(doc(db, "recettes", id)); 
+        window.chargerRecettes(); 
+    }
 };
 
 window.preparerModif = function(id, nom, ing, eta, univ, scat, img) {
@@ -159,7 +177,8 @@ window.preparerModif = function(id, nom, ing, eta, univ, scat, img) {
     window.majSousCategories();
     document.getElementById("sousCategorie").value = scat;
     document.getElementById("imageLien").value = img;
-    document.querySelector(".formulaire button").innerText = "Mettre à jour";
+    document.querySelector(".formulaire button.btn-save").innerText = "Mettre à jour";
+    window.scrollTo(0,0);
 };
 
 window.majSousCategories = function() {
