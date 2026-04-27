@@ -10,25 +10,84 @@
         
         /* Formulaire */
         .formulaire { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto 30px auto; display: flex; flex-direction: column; gap: 12px; }
-        input, select, textarea { padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+        input, select, textarea { padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
         button#btn-ajouter { padding: 12px; background-color: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
         /* Navigation Visuelle */
-        .navigation-visuelle { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; max-width: 800px; margin: 0 auto 20px auto; }
-        .card-nav { position: relative; height: 100px; border-radius: 12px; overflow: hidden; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .navigation-visuelle { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; max-width: 800px; margin: 0 auto 20px auto; }
+        .card-nav { position: relative; height: 100px; border-radius: 12px; overflow: hidden; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: 0.2s; }
+        .card-nav:hover { transform: scale(1.03); }
         .card-nav img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.6); }
-        .card-nav span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-align: center; width: 100%; }
+        .card-nav span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-align: center; width: 100%; text-transform: uppercase; }
 
         /* Grille de recettes */
         .grille-recettes { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; max-width: 1000px; margin: 20px auto; }
         .recette { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .badge-sous-cat { background: #f39c12; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; }
         
-        /* Fenêtre surgissante (Modale) */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); }
-        .modal-content { background: white; margin: 5% auto; padding: 20px; border-radius: 15px; width: 90%; max-width: 500px; position: relative; }
-        .close { position: absolute; right: 20px; top: 10px; font-size: 30px; cursor: pointer; }
+        /* --- LE STYLE DE LA FENÊTRE (MODALE) --- */
+.modal {
+    display: none; /* Caché par défaut */
+    position: fixed;
+    z-index: 9999; /* Pour passer devant tout le reste */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.8); /* Fond noir transparent */
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 25px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 600px;
+    position: relative;
+    box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+}
+
+.close {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    color: #aaa;
+    font-size: 35px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #333;
+}
     </style>
+   <script type="module">
+  // LIGNES 1 à 5 (tes imports actuels)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+  // --- CE QUE TU DOIS AJOUTER ICI ---
+  const firebaseConfig = {
+    apiKey: "AIzaSyCXO-I5ZaXd_qdp5dC0hVle-pnr_3TAK_E",
+    authDomain: "recipearl-911f4.firebaseapp.com",
+    projectId: "recipearl-911f4",
+    storageBucket: "recipearl-911f4.firebasestorage.app",
+    messagingSenderId: "367451931371",
+    appId: "1:367451931371:web:f3a4b4f8f8b7443cb974ae"
+ };
+
+  // Initialisation
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  console.log("Firebase initialisé avec succès !");
+
+  // Le pont pour ton fichier script.js
+  window.db = db;
+  // ----------------------------------
+
+</script>
 </head>
 <body>
 
@@ -40,15 +99,15 @@
         <textarea id="etapes" placeholder="Étapes (utilisez | pour séparer les étapes)"></textarea>
         
         <div style="display: flex; gap: 10px;">
-            <select id="univers" onchange="window.majSousCategories()">
+            <select id="univers" onchange="window.majSousCategories()" style="flex: 1;">
                 <option value="cuisine">🍳 Cuisine</option>
                 <option value="pâtisserie">🍰 Pâtisserie</option>
             </select>
-            <select id="sousCategorie"></select>
+            <select id="sousCategorie" style="flex: 1;"></select>
         </div>
         
         <input type="text" id="imageLien" placeholder="Lien de l'image (URL)">
-        <button id="btn-ajouter" onclick="window.ajouterRecette()">Ajouter la recette</button>
+        <button id="btn-ajouter" onclick="window.ajouterRecette()">Enregistrer la Recette</button>
     </div>
 
     <div class="navigation-visuelle">
@@ -71,19 +130,18 @@
     </div>
 
     <div style="max-width: 800px; margin: 0 auto;">
-        <input type="text" id="recherche" placeholder="🔎 Rechercher une recette..." oninput="window.rechercherParNom()" style="width: 100%;">
+        <input type="text" id="recherche" placeholder="🔎 Rechercher une recette..." oninput="window.rechercherParNom()" style="width: 100%; box-sizing: border-box;">
     </div>
 
     <div id="liste-cuisine" class="grille-recettes"></div>
     <div id="liste-patisserie" class="grille-recettes"></div>
 
     <div id="modalRecette" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="window.fermerRecette()">&times;</span>
-            <div id="contenuRecette"></div>
-        </div>
+    <div class="modal-content">
+        <span class="close" onclick="window.fermerRecette()">&times;</span>
+        <div id="contenuRecette"></div>
     </div>
-
-    <script src="script.js" type="module"></script>
+</div>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
