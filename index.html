@@ -5,40 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Le Grimoire des Parents</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-    <style>
-        :root { --cream: #fdf6ec; --brown: #3d2b1f; --orange: #e8672a; --gold: #c9a84c; --gray: #f0ebe3; }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--brown); min-height: 100vh; }
-        header { background: var(--brown); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 100; }
-        .tabs { display: flex; max-width: 1000px; margin: 20px auto 0; padding: 0 20px; }
-        .tab { padding: 12px 25px; cursor: pointer; background: var(--gray); border-radius: 10px 10px 0 0; margin-right: 5px; border: 1px solid #ddd; border-bottom: none; }
-        .tab.active { background: white; font-weight: bold; border-top: 3px solid var(--orange); }
-        .main-content { max-width: 1000px; margin: 0 auto; padding: 20px; }
-        .section-page { display: none; background: white; padding: 30px; border-radius: 0 15px 15px 15px; border: 2px solid #e0d8cc; }
-        .section-page.active { display: block; }
-        .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }
-        .recette-card { background: white; border: 1px solid var(--gray); border-radius: 15px; overflow: hidden; cursor: pointer; transition: 0.3s; }
-        .recette-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .recette-card img { width: 100%; height: 150px; object-fit: cover; }
-        .recette-card-body { padding: 15px; }
-        .input-group { margin-bottom: 20px; }
-        input[type="text"], select { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid var(--gray); }
-        .btn-save { width: 100%; padding: 15px; background: var(--orange); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        /* MODALE */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; }
-        .modal-content { background: white; margin: 5vh auto; padding: 30px; width: 90%; max-width: 600px; border-radius: 20px; position: relative; max-height: 85vh; overflow-y: auto; }
-        .modal-close { position: absolute; right: 20px; top: 15px; font-size: 30px; cursor: pointer; border: none; background: none; }
-    </style>
+<style>
+    :root { --cream: #fdf6ec; --brown: #3d2b1f; --orange: #e8672a; --gold: #c9a84c; --gray: #f0ebe3; --white: #ffffff; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--brown); min-height: 100vh; }
+    header { background: var(--brown); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    
+    .tabs { display: flex; max-width: 1000px; margin: 20px auto 0; padding: 0 20px; }
+    .tab { padding: 12px 25px; cursor: pointer; background: #e0d8cc; border-radius: 10px 10px 0 0; margin-right: 5px; border: none; color: #555; transition: 0.3s; }
+    .tab.active { background: white; font-weight: bold; color: var(--brown); border-top: 4px solid var(--orange); }
+    
+    .main-content { max-width: 1000px; margin: 0 auto; padding: 40px; background: white; border-radius: 0 0 15px 15px; min-height: 80vh; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    .section-page { display: none; }
+    .section-page.active { display: block; }
+    
+    /* STYLE DES CASES DE TEXTE - HARMONISÉ ET LARGE */
+    input[type="text"], select { 
+        width: 100%; 
+        padding: 14px 18px; 
+        border-radius: 10px; 
+        border: 2px solid var(--gray); 
+        margin-bottom: 15px; 
+        font-size: 1rem; 
+        outline: none; 
+        background: #fafafa;
+        transition: border-color 0.3s;
+    }
+    input[type="text"]:focus { border-color: var(--orange); }
+
+    /* Ligne pour les sélecteurs du bas */
+    .form-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+    .form-row select, .form-row input { flex: 1; min-width: 150px; margin-bottom: 0; }
+
+    .btn-save { width: 100%; padding: 16px; background: var(--orange); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 20px; font-size: 1.1rem; }
+    .btn-add-item { margin: 10px 0 20px 0; background: none; border: 1px dashed var(--brown); width: 100%; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 500; }
+    
+    .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 25px; padding-top: 20px; }
+    .recette-card { background: white; border: 1px solid var(--gray); border-radius: 15px; overflow: hidden; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    .recette-card:hover { transform: translateY(-5px); }
+    .recette-card img { width: 100%; height: 160px; object-fit: cover; }
+    .recette-card-body { padding: 15px; }
+    .tag { font-size: 0.75rem; background: var(--cream); color: var(--orange); padding: 3px 10px; border-radius: 10px; font-weight: bold; }
+
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; backdrop-filter: blur(5px); }
+    .modal-content { background: white; margin: 5vh auto; width: 90%; max-width: 600px; border-radius: 20px; position: relative; max-height: 85vh; overflow-y: auto; }
+</style>
 </head>
 <body>
 
 <header>
     <h1>📖 Le Grimoire</h1>
     <div id="section-auth">
-        <button id="btn-login" onclick="window.connexionGoogle()">Connexion Google</button>
-        <div id="info-user" style="display:none;">
-            <span id="txt-user"></span>
-            <button onclick="window.deconnexion()">Déconnexion</button>
+        <button id="btn-login" onclick="window.connexionGoogle()" style="padding: 10px 20px; border-radius: 8px; cursor: pointer; border: none; background: white; font-weight: bold;">Connexion Google</button>
+        <div id="info-user" style="display:none; align-items: center;">
+            <span id="txt-user" style="margin-right: 15px; color: var(--gold); font-weight: bold;"></span>
+            <button onclick="window.deconnexion()" style="background: #c0392b; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer;">Déconnexion</button>
         </div>
     </div>
 </header>
@@ -51,41 +72,57 @@
 
 <div class="main-content">
     <div id="page-communaute" class="section-page active">
-        <input type="text" id="recherche" placeholder="🔎 Rechercher une recette..." style="width:100%; padding:15px; border-radius:12px; border:2px solid #eee;" oninput="window.rechercherParNom()">
+        <input type="text" id="recherche" placeholder="🔎 Rechercher une recette..." oninput="window.rechercherParNom()">
+        <h2 style="border-left: 5px solid var(--orange); padding-left: 15px;">🍳 Cuisine</h2>
         <div id="liste-cuisine" class="grille"></div>
+        <h2 style="border-left: 5px solid var(--gold); padding-left: 15px; margin-top: 40px;">🍰 Pâtisserie</h2>
         <div id="liste-patisserie" class="grille"></div>
     </div>
 
     <div id="page-mes-recettes" class="section-page">
+        <h2 style="border-left: 5px solid var(--orange); padding-left: 15px;">📚 Mes Recettes</h2>
         <div id="liste-mes-recettes" class="grille"></div>
     </div>
 
     <div id="page-ajouter" class="section-page">
-        <div class="input-group"><label>Nom de la recette</label><input type="text" id="nom"></div>
-        <div class="input-group">
-            <label>🛒 Ingrédients</label>
-            <div id="liste-ingredients-input"></div>
-            <button onclick="window.ajouterChamp('liste-ingredients-input', 'ingredient-item')">+ Ingrédient</button>
+        <h2 style="font-family: 'Playfair Display'; margin-bottom: 25px;">🖋️ Nouvelle Recette</h2>
+        
+        <label style="font-weight: bold;">Nom de la recette</label>
+        <input type="text" id="nom" placeholder="Ex: Gâteau au chocolat">
+        
+        <label style="font-weight: bold;">Ingrédients</label>
+        <div id="liste-ingredients-input">
+            <input type="text" class="ingredient-item" placeholder="Ex: 200g de farine">
         </div>
-        <div class="input-group">
-            <label>👨‍🍳 Étapes</label>
-            <div id="liste-etapes-input"></div>
-            <button onclick="window.ajouterChamp('liste-etapes-input', 'etape-item')">+ Étape</button>
+        <button class="btn-add-item" onclick="window.ajouterChamp('liste-ingredients-input', 'ingredient-item')">+ Ajouter un ingrédient</button>
+        
+        <label style="font-weight: bold;">Étapes</label>
+        <div id="liste-etapes-input">
+            <input type="text" class="etape-item" placeholder="Ex: Préchauffer le four">
         </div>
-        <div class="input-group">
+        <button class="btn-add-item" onclick="window.ajouterChamp('liste-etapes-input', 'etape-item')">+ Ajouter une étape</button>
+
+        <div class="form-row">
             <select id="univers" onchange="window.majSousCategories()">
                 <option value="cuisine">Cuisine</option>
                 <option value="pâtisserie">Pâtisserie</option>
             </select>
-            <select id="sousCategorie" style="margin-top:10px;"></select>
+            <select id="sousCategorie"></select>
+            <input type="text" id="imageLien" placeholder="Lien image (optionnel)">
         </div>
-        <button class="btn-save" onclick="window.ajouterRecette()">Enregistrer</button>
+
+        <div style="margin: 20px 0; display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" id="public" checked style="width: 20px; height: 20px; cursor: pointer;"> 
+            <label for="public" style="cursor: pointer;">🌍 Partager avec la communauté</label>
+        </div>
+
+        <button class="btn-save" onclick="window.ajouterRecette()">Enregistrer la recette</button>
     </div>
 </div>
 
-<div id="modalRecette" class="modal">
+<div id="modalRecette" class="modal" onclick="if(event.target===this)window.fermerRecette()">
     <div class="modal-content">
-        <span class="modal-close" onclick="window.fermerRecette()">&times;</span>
+        <button onclick="window.fermerRecette()" style="position: absolute; right: 20px; top: 15px; font-size: 30px; cursor: pointer; border: none; background: none; z-index: 10;">×</button>
         <div id="contenuRecette"></div>
     </div>
 </div>
