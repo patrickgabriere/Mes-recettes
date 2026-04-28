@@ -13,16 +13,19 @@
         .formulaire { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 600px; margin: 0 auto 30px auto; display: flex; flex-direction: column; gap: 10px; }
         input, select, textarea { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
         .btn-save { padding: 12px; background-color: #27ae60; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .navigation-visuelle { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }
-        .card-nav { position: relative; height: 100px; border-radius: 12px; overflow: hidden; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .navigation-visuelle { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 0 auto 20px; max-width: 800px; }
+        .card-nav { position: relative; height: 100px; border-radius: 12px; overflow: hidden; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: 0.2s; }
+        .card-nav:hover { transform: scale(1.03); }
         .card-nav img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.5); }
         .card-nav span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; text-transform: uppercase; }
-        .grille-recettes { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
-        .recette { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
+        .grille-recettes { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto 40px; }
+        .recette { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
         .badge-sous-cat { background: #f39c12; color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; }
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); }
         .modal-content { background-color: white; margin: 5% auto; padding: 25px; border-radius: 20px; width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; position: relative; }
         .close { position: absolute; right: 20px; top: 15px; font-size: 30px; cursor: pointer; }
+        .badge-public { background: #27ae60; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; }
+        .badge-prive { background: #95a5a6; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; }
     </style>
 </head>
 <body>
@@ -47,7 +50,6 @@
         <input type="text" id="nom" placeholder="Nom de la recette">
         <textarea id="ingredients" placeholder="Ingrédients..."></textarea>
         <textarea id="etapes" placeholder="Étapes..."></textarea>
-        
         <div style="display: flex; gap: 10px;">
             <select id="univers" onchange="window.majSousCategories()" style="flex: 1;">
                 <option value="cuisine">🍳 Cuisine</option>
@@ -55,14 +57,10 @@
             </select>
             <select id="sousCategorie" style="flex: 1;"></select>
         </div>
-        
         <input type="text" id="imageLien" placeholder="Lien de l'image (URL)">
-
-        <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0; background: #f9f9f9; padding: 10px; border-radius: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px; background: #f9f9f9; padding: 10px; border-radius: 8px;">
             <input type="checkbox" id="public" checked style="width: 20px; height: 20px; cursor: pointer;">
-            <label for="public" style="cursor: pointer; font-size: 14px; color: #2c3e50;">
-                🔓 Partager avec mes collègues (Public)
-            </label>
+            <label for="public" style="cursor: pointer; font-size: 14px;">🔓 Partager avec tout le monde</label>
         </div>
         <button class="btn-save" onclick="window.ajouterRecette()">Enregistrer la Recette</button>
     </div>
@@ -80,14 +78,14 @@
             <img src="https://images.unsplash.com/photo-1551024506-0bccd828d307?w=300" alt="Desserts">
             <span>Desserts</span>
         </div>
-        <div class="card-nav" onclick="window.filtrerParCategorie('pâtisserie')">
-            <img src="https://images.unsplash.com/photo-1488477181946-6428a0291777?w=300" alt="Pâtisserie">
-            <span>Pâtisserie</span>
+        <div class="card-nav" onclick="window.filtrerParCategorie('')">
+            <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=300" alt="Tout">
+            <span>Tout voir</span>
         </div>
     </div>
 
     <div style="max-width: 800px; margin: 0 auto 30px;">
-        <input type="text" id="recherche" placeholder="Rechercher une recette..." oninput="window.rechercherParNom()" style="width: 100%; box-sizing: border-box;">
+        <input type="text" id="recherche" placeholder="🔎 Rechercher une recette..." oninput="window.rechercherParNom()" style="width: 100%; box-sizing: border-box;">
     </div>
 
     <h2 style="text-align:center;">🍳 Coin Cuisine</h2>
@@ -104,16 +102,15 @@
     </div>
 
     <script>
-        // CONFIGURATION CENTRALE : Remplace par tes vraies clés Firebase
         window.firebaseConfig = {
-            apiKey: "AIzaSyCXO-I5ZaXd_qdp5dC0hVle-pnr_3TAK_E", 
+            apiKey: "AIzaSyCXO-I5ZaXd_qdp5dC0hVle-pnr_3TAK_E",
             authDomain: "recipearl-911f4.firebaseapp.com",
             projectId: "recipearl-911f4",
             storageBucket: "recipearl-911f4.firebasestorage.app",
-            messagingSenderId:"367451931371",
+            messagingSenderId: "367451931371",
             appId: "1:367451931371:web:597e70556e668eb5b974ae"
         };
     </script>
-    <script src="script.js" type="module"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
