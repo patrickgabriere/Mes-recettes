@@ -21,15 +21,14 @@
         .section-page { display: none; background: white; padding: 30px; border-radius: 0 15px 15px 15px; border: 2px solid #e0d8cc; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .section-page.active { display: block; }
 
-        /* Catégories */
+        /* Navigation Catégories */
         .nav-visuelle { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 25px; }
-        .card-nav { position: relative; height: 100px; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s; }
-        .card-nav:hover { transform: scale(1.05); }
-        .card-nav img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.7); }
-        .card-nav span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; font-size: 1.1rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .card-nav { position: relative; height: 80px; border-radius: 12px; overflow: hidden; cursor: pointer; transition: 0.2s; }
+        .card-nav:hover { transform: scale(1.02); }
+        .card-nav img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.6); }
+        .card-nav span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; }
 
-        .search-bar { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid var(--gray); font-size: 1rem; margin-bottom: 25px; outline: none; transition: 0.3s; }
-        .search-bar:focus { border-color: var(--orange); }
+        .search-bar { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid var(--gray); font-size: 1rem; margin-bottom: 25px; outline: none; }
         .section-titre { border-left: 5px solid var(--orange); padding-left: 15px; margin: 30px 0 20px; font-family: 'Playfair Display', serif; font-size: 1.5rem; }
 
         .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
@@ -38,16 +37,17 @@
         .recette-card img { width: 100%; height: 150px; object-fit: cover; }
         .recette-card-body { padding: 15px; }
 
+        /* Formulaire */
         .input-group { margin-bottom: 20px; }
         label { display: block; font-weight: 600; margin-bottom: 8px; }
-        input[type="text"], select { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid var(--gray); font-size: 1rem; outline: none; }
-        .btn-add { width: 100%; padding: 12px; background: none; border: 2px dashed #ccc; cursor: pointer; margin-top: 10px; border-radius: 10px; font-weight: 500; color: #666; transition: 0.2s; }
-        .btn-add:hover { border-color: var(--orange); color: var(--orange); }
-        .btn-save { width: 100%; padding: 18px; background: var(--orange); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1.1rem; margin-top: 20px; box-shadow: 0 4px 10px rgba(232, 103, 42, 0.3); }
+        input[type="text"], select { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid var(--gray); outline: none; }
+        .btn-add { width: 100%; padding: 10px; background: none; border: 2px dashed #ccc; cursor: pointer; margin-top: 5px; border-radius: 10px; }
+        .btn-save { width: 100%; padding: 15px; background: var(--orange); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 20px; }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; backdrop-filter: blur(5px); }
-        .modal-content { background: white; margin: 30px auto; padding: 40px; width: 90%; max-width: 700px; border-radius: 25px; position: relative; max-height: 90vh; overflow-y: auto; text-align: center; }
-        .modal-close { position: absolute; right: 25px; top: 20px; font-size: 35px; cursor: pointer; border: none; background: none; color: #aaa; }
+        /* Modale */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; }
+        .modal-content { background: white; margin: 5vh auto; padding: 30px; width: 90%; max-width: 600px; border-radius: 20px; position: relative; max-height: 85vh; overflow-y: auto; }
+        .modal-close { position: absolute; right: 20px; top: 15px; font-size: 30px; cursor: pointer; border: none; background: none; }
     </style>
 </head>
 <body>
@@ -55,12 +55,10 @@
 <header>
     <h1>📖 Le Grimoire</h1>
     <div id="section-auth">
-        <div id="form-login">
-            <button onclick="window.connexionGoogle()" style="padding: 10px 20px; border-radius: 8px; cursor: pointer; border: none; background: white; font-weight: bold; color: var(--brown);">Connexion Google</button>
-        </div>
-        <div id="info-user" style="display:none; align-items: center;">
-            <span id="txt-user" style="margin-right: 15px; color: var(--gold); font-weight: bold;"></span>
-            <button onclick="window.deconnexion()" style="background: #c0392b; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold;">Déconnexion</button>
+        <div id="form-login"><button onclick="window.connexionGoogle()">Connexion Google</button></div>
+        <div id="info-user" style="display:none;">
+            <span id="txt-user"></span>
+            <button onclick="window.deconnexion()">Déconnexion</button>
         </div>
     </div>
 </header>
@@ -74,80 +72,39 @@
 <div class="main-content">
     <div id="page-communaute" class="section-page active">
         <div class="nav-visuelle">
-            <div class="card-nav" onclick="window.filtrerParCategorie('entrée')">
-                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400"><span>Entrées</span>
-            </div>
-            <div class="card-nav" onclick="window.filtrerParCategorie('plat')">
-                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400"><span>Plats</span>
-            </div>
-            <div class="card-nav" onclick="window.filtrerParCategorie('dessert')">
-                <img src="https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400"><span>Desserts</span>
-            </div>
-            <div class="card-nav" onclick="window.filtrerParCategorie('')">
-                <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=400"><span>Tout voir</span>
-            </div>
+            <div class="card-nav" onclick="window.filtrerParCategorie('entrée')"><img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200"><span>Entrées</span></div>
+            <div class="card-nav" onclick="window.filtrerParCategorie('plat')"><img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200"><span>Plats</span></div>
+            <div class="card-nav" onclick="window.filtrerParCategorie('dessert')"><img src="https://images.unsplash.com/photo-1551024506-0bccd828d307?w=200"><span>Desserts</span></div>
+            <div class="card-nav" onclick="window.filtrerParCategorie('')"><img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=200"><span>Tout voir</span></div>
         </div>
-
-        <input type="text" id="recherche" class="search-bar" placeholder="🔎 Rechercher une recette..." oninput="window.rechercherParNom()">
-        
-        <div id="section-standard">
-            <h2 class="section-titre">🍳 Cuisine</h2>
-            <div id="liste-cuisine" class="grille"></div>
-            <h2 class="section-titre" style="border-left-color: var(--gold);">🍰 Pâtisserie</h2>
-            <div id="liste-patisserie" class="grille"></div>
-        </div>
+        <input type="text" id="recherche" class="search-bar" placeholder="🔎 Rechercher..." oninput="window.rechercherParNom()">
+        <div id="liste-cuisine" class="grille"></div>
+        <div id="liste-patisserie" class="grille"></div>
     </div>
 
     <div id="page-mes-recettes" class="section-page">
-        <h2 class="section-titre">📚 Ma Bibliothèque Personnelle</h2>
         <div id="liste-mes-recettes" class="grille"></div>
     </div>
 
     <div id="page-ajouter" class="section-page">
-        <h2 class="section-titre">🖋️ Nouvelle Recette</h2>
-        
-        <div class="input-group">
-            <label>Nom de la recette</label>
-            <input type="text" id="nom" placeholder="Ex: Gratin de Mamie">
-        </div>
-
+        <div class="input-group"><label>Nom</label><input type="text" id="nom"></div>
         <div class="input-group">
             <label>🛒 Ingrédients</label>
             <div id="liste-ingredients-input"></div>
-            <button type="button" class="btn-add" onclick="window.ajouterChamp('liste-ingredients-input', 'ingredient-item')">＋ Ajouter un ingrédient</button>
+            <button class="btn-add" onclick="window.ajouterChamp('liste-ingredients-input', 'ingredient-item')">+ Ingrédient</button>
         </div>
-
         <div class="input-group">
-            <label>👨‍🍳 Étapes de préparation</label>
+            <label>👨‍🍳 Étapes</label>
             <div id="liste-etapes-input"></div>
-            <button type="button" class="btn-add" onclick="window.ajouterChamp('liste-etapes-input', 'etape-item')">＋ Ajouter une étape</button>
+            <button class="btn-add" onclick="window.ajouterChamp('liste-etapes-input', 'etape-item')">+ Étape</button>
         </div>
-
-        <div style="display:flex; gap:15px;">
-            <div style="flex:1;">
-                <label>Univers</label>
-                <select id="univers" onchange="window.majSousCategories()">
-                    <option value="cuisine">Cuisine</option>
-                    <option value="pâtisserie">Pâtisserie</option>
-                </select>
-            </div>
-            <div style="flex:1;">
-                <label>Catégorie</label>
-                <select id="sousCategorie"></select>
-            </div>
+        <div style="display:flex; gap:10px;">
+            <select id="univers" onchange="window.majSousCategories()"><option value="cuisine">Cuisine</option><option value="pâtisserie">Pâtisserie</option></select>
+            <select id="sousCategorie"></select>
         </div>
-
-        <div class="input-group" style="margin-top:20px;">
-            <label>Lien image (URL)</label>
-            <input type="text" id="imageLien" placeholder="Laissez vide pour l'image par défaut">
-        </div>
-
-        <div class="input-group" style="display: flex; align-items: center; gap: 10px;">
-            <input type="checkbox" id="public" checked style="width: auto;"> 
-            <label for="public" style="margin-bottom: 0;">Partager avec la communauté</label>
-        </div>
-
-        <button class="btn-save" onclick="window.ajouterRecette()">Enregistrer dans le Grimoire</button>
+        <div class="input-group" style="margin-top:15px;"><label>Image URL</label><input type="text" id="imageLien"></div>
+        <div class="input-group"><input type="checkbox" id="public" checked> <label for="public" style="display:inline;">Public</label></div>
+        <button class="btn-save" onclick="window.ajouterRecette()">Enregistrer</button>
     </div>
 </div>
 
