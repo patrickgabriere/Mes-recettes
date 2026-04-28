@@ -6,6 +6,60 @@
     <title>Le Grimoire des Parents</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
+        .form-container {
+    max-width: 700px; /* Plus large */
+    background: white;
+    padding: 40px; /* Plus d'espace intérieur */
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+
+.form-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: var(--brown);
+}
+
+.input-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 1.1rem; /* Texte plus grand */
+    color: var(--brown);
+}
+
+.form-container input, 
+.form-container textarea, 
+.form-container select {
+    font-size: 1.1rem; /* Saisie plus grande */
+    padding: 15px;
+    border: 2px solid var(--gray);
+    border-radius: 12px;
+    transition: border-color 0.3s;
+}
+
+.form-container textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.btn-save {
+    width: 100%;
+    padding: 20px;
+    font-size: 1.2rem;
+    background-color: var(--orange);
+    color: white;
+    border-radius: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 20px;
+}
         :root {
             --cream: #fdf6ec;
             --brown: #3d2b1f;
@@ -404,28 +458,53 @@
             <p class="empty-msg">Connecte-toi pour voir tes recettes</p>
         </div>
     </div>
-
     <!-- ONGLET AJOUTER -->
     <div id="page-ajouter" class="section-page">
-        <div class="formulaire">
-            <h3>✍️ Nouvelle recette</h3>
-            <input type="text" id="nom" placeholder="Nom de la recette">
-            <textarea id="ingredients" placeholder="Ingrédients (un par ligne ou séparés par virgule)"></textarea>
-            <textarea id="etapes" placeholder="Étapes de préparation (utilisez | pour séparer les étapes)"></textarea>
-            <div class="row-select">
+    <div class="form-container">
+        <h2 class="form-title">🖋️ Nouvelle Recette</h2>
+        
+        <div class="input-group">
+            <label>Nom de la recette</label>
+            <input type="text" id="nom" placeholder="Ex: Gratin de macaronis à la Lyonnaise">
+        </div>
+
+        <div class="input-group">
+            <label>Ingrédients (un par ligne ou séparés par des virgules)</label>
+            <textarea id="ingredients" placeholder="Ex: 250g de macaronis, 70g de beurre..."></textarea>
+        </div>
+
+        <div class="input-group">
+            <label>Étapes de préparation</label>
+            <textarea id="etapes" placeholder="Ex: Préchauffer le four, Cuire les pâtes..."></textarea>
+        </div>
+        
+        <div class="row-select">
+            <div class="input-group">
+                <label>Univers</label>
                 <select id="univers" onchange="window.majSousCategories()">
-                    <option value="cuisine">🍳 Cuisine</option>
-                    <option value="pâtisserie">🍰 Pâtisserie</option>
+                    <option value="cuisine">🍳 Cuisine (Salé)</option>
+                    <option value="pâtisserie">🍰 Pâtisserie (Sucré)</option>
                 </select>
+            </div>
+            <div class="input-group">
+                <label>Catégorie précise</label>
                 <select id="sousCategorie"></select>
             </div>
-            <input type="text" id="imageLien" placeholder="Lien image (URL) — optionnel">
-            <div class="checkbox-row">
-                <input type="checkbox" id="public" checked>
-                <label for="public">🔓 Partager avec la communauté</label>
-            </div>
-            <button class="btn-save" onclick="window.ajouterRecette()">Enregistrer la Recette</button>
         </div>
+        
+        <div class="input-group">
+            <label>Lien d'une image (optionnel)</label>
+            <input type="text" id="imageLien" placeholder="https://lien-de-l-image.jpg">
+        </div>
+        
+        <div class="checkbox-row">
+            <input type="checkbox" id="public" checked>
+            <label for="public">🔓 Partager avec la communauté</label>
+        </div>
+        
+        <button class="btn-save" onclick="window.ajouterRecette()">Enregistrer dans le Grimoire</button>
+    </div>
+</div>
     </div>
 
 </div>
