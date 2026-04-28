@@ -9,43 +9,23 @@
         :root { --cream: #fdf6ec; --brown: #3d2b1f; --orange: #e8672a; --gold: #c9a84c; --gray: #f0ebe3; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--brown); min-height: 100vh; }
-        
-        header { background: var(--brown); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        header h1 { font-family: 'Playfair Display', serif; }
-
+        header { background: var(--brown); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 100; }
         .tabs { display: flex; max-width: 1000px; margin: 20px auto 0; padding: 0 20px; }
-        .tab { padding: 12px 25px; cursor: pointer; background: var(--gray); border-radius: 10px 10px 0 0; margin-right: 5px; border: 1px solid #ddd; border-bottom: none; color: #777; transition: 0.3s; }
-        .tab.active { background: white; font-weight: bold; color: var(--brown); border-color: #e0d8cc; border-top: 3px solid var(--orange); }
-
+        .tab { padding: 12px 25px; cursor: pointer; background: var(--gray); border-radius: 10px 10px 0 0; margin-right: 5px; border: 1px solid #ddd; border-bottom: none; }
+        .tab.active { background: white; font-weight: bold; border-top: 3px solid var(--orange); }
         .main-content { max-width: 1000px; margin: 0 auto; padding: 20px; }
-        .section-page { display: none; background: white; padding: 30px; border-radius: 0 15px 15px 15px; border: 2px solid #e0d8cc; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .section-page { display: none; background: white; padding: 30px; border-radius: 0 15px 15px 15px; border: 2px solid #e0d8cc; }
         .section-page.active { display: block; }
-
-        /* Navigation Catégories */
-        .nav-visuelle { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 25px; }
-        .card-nav { position: relative; height: 80px; border-radius: 12px; overflow: hidden; cursor: pointer; transition: 0.2s; }
-        .card-nav:hover { transform: scale(1.02); }
-        .card-nav img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.6); }
-        .card-nav span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; }
-
-        .search-bar { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid var(--gray); font-size: 1rem; margin-bottom: 25px; outline: none; }
-        .section-titre { border-left: 5px solid var(--orange); padding-left: 15px; margin: 30px 0 20px; font-family: 'Playfair Display', serif; font-size: 1.5rem; }
-
-        .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }
         .recette-card { background: white; border: 1px solid var(--gray); border-radius: 15px; overflow: hidden; cursor: pointer; transition: 0.3s; }
-        .recette-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .recette-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         .recette-card img { width: 100%; height: 150px; object-fit: cover; }
         .recette-card-body { padding: 15px; }
-
-        /* Formulaire */
         .input-group { margin-bottom: 20px; }
-        label { display: block; font-weight: 600; margin-bottom: 8px; }
-        input[type="text"], select { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid var(--gray); outline: none; }
-        .btn-add { width: 100%; padding: 10px; background: none; border: 2px dashed #ccc; cursor: pointer; margin-top: 5px; border-radius: 10px; }
-        .btn-save { width: 100%; padding: 15px; background: var(--orange); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-
-        /* Modale */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; }
+        input[type="text"], select { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid var(--gray); }
+        .btn-save { width: 100%; padding: 15px; background: var(--orange); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        /* MODALE */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; }
         .modal-content { background: white; margin: 5vh auto; padding: 30px; width: 90%; max-width: 600px; border-radius: 20px; position: relative; max-height: 85vh; overflow-y: auto; }
         .modal-close { position: absolute; right: 20px; top: 15px; font-size: 30px; cursor: pointer; border: none; background: none; }
     </style>
@@ -55,7 +35,7 @@
 <header>
     <h1>📖 Le Grimoire</h1>
     <div id="section-auth">
-        <div id="form-login"><button onclick="window.connexionGoogle()">Connexion Google</button></div>
+        <button id="btn-login" onclick="window.connexionGoogle()">Connexion Google</button>
         <div id="info-user" style="display:none;">
             <span id="txt-user"></span>
             <button onclick="window.deconnexion()">Déconnexion</button>
@@ -71,13 +51,7 @@
 
 <div class="main-content">
     <div id="page-communaute" class="section-page active">
-        <div class="nav-visuelle">
-            <div class="card-nav" onclick="window.filtrerParCategorie('entrée')"><img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200"><span>Entrées</span></div>
-            <div class="card-nav" onclick="window.filtrerParCategorie('plat')"><img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200"><span>Plats</span></div>
-            <div class="card-nav" onclick="window.filtrerParCategorie('dessert')"><img src="https://images.unsplash.com/photo-1551024506-0bccd828d307?w=200"><span>Desserts</span></div>
-            <div class="card-nav" onclick="window.filtrerParCategorie('')"><img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=200"><span>Tout voir</span></div>
-        </div>
-        <input type="text" id="recherche" class="search-bar" placeholder="🔎 Rechercher..." oninput="window.rechercherParNom()">
+        <input type="text" id="recherche" placeholder="🔎 Rechercher une recette..." style="width:100%; padding:15px; border-radius:12px; border:2px solid #eee;" oninput="window.rechercherParNom()">
         <div id="liste-cuisine" class="grille"></div>
         <div id="liste-patisserie" class="grille"></div>
     </div>
@@ -87,30 +61,31 @@
     </div>
 
     <div id="page-ajouter" class="section-page">
-        <div class="input-group"><label>Nom</label><input type="text" id="nom"></div>
+        <div class="input-group"><label>Nom de la recette</label><input type="text" id="nom"></div>
         <div class="input-group">
             <label>🛒 Ingrédients</label>
             <div id="liste-ingredients-input"></div>
-            <button class="btn-add" onclick="window.ajouterChamp('liste-ingredients-input', 'ingredient-item')">+ Ingrédient</button>
+            <button onclick="window.ajouterChamp('liste-ingredients-input', 'ingredient-item')">+ Ingrédient</button>
         </div>
         <div class="input-group">
             <label>👨‍🍳 Étapes</label>
             <div id="liste-etapes-input"></div>
-            <button class="btn-add" onclick="window.ajouterChamp('liste-etapes-input', 'etape-item')">+ Étape</button>
+            <button onclick="window.ajouterChamp('liste-etapes-input', 'etape-item')">+ Étape</button>
         </div>
-        <div style="display:flex; gap:10px;">
-            <select id="univers" onchange="window.majSousCategories()"><option value="cuisine">Cuisine</option><option value="pâtisserie">Pâtisserie</option></select>
-            <select id="sousCategorie"></select>
+        <div class="input-group">
+            <select id="univers" onchange="window.majSousCategories()">
+                <option value="cuisine">Cuisine</option>
+                <option value="pâtisserie">Pâtisserie</option>
+            </select>
+            <select id="sousCategorie" style="margin-top:10px;"></select>
         </div>
-        <div class="input-group" style="margin-top:15px;"><label>Image URL</label><input type="text" id="imageLien"></div>
-        <div class="input-group"><input type="checkbox" id="public" checked> <label for="public" style="display:inline;">Public</label></div>
         <button class="btn-save" onclick="window.ajouterRecette()">Enregistrer</button>
     </div>
 </div>
 
-<div id="modalRecette" class="modal" onclick="if(event.target===this)window.fermerRecette()">
+<div id="modalRecette" class="modal">
     <div class="modal-content">
-        <button class="modal-close" onclick="window.fermerRecette()">×</button>
+        <span class="modal-close" onclick="window.fermerRecette()">&times;</span>
         <div id="contenuRecette"></div>
     </div>
 </div>
