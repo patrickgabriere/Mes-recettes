@@ -6,396 +6,48 @@
     <title>Le Grimoire des Parents</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        .form-container {
-    max-width: 700px; /* Plus large */
-    background: white;
-    padding: 40px; /* Plus d'espace intérieur */
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-}
-
-.form-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 2rem;
-    margin-bottom: 30px;
-    color: var(--brown);
-}
-
-.input-group {
-    margin-bottom: 20px;
-    text-align: left;
-}
-
-.input-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    font-size: 1.1rem; /* Texte plus grand */
-    color: var(--brown);
-}
-
-.form-container input, 
-.form-container textarea, 
-.form-container select {
-    font-size: 1.1rem; /* Saisie plus grande */
-    padding: 15px;
-    border: 2px solid var(--gray);
-    border-radius: 12px;
-    transition: border-color 0.3s;
-}
-
-.form-container textarea {
-    min-height: 120px;
-    resize: vertical;
-}
-
-.btn-save {
-    width: 100%;
-    padding: 20px;
-    font-size: 1.2rem;
-    background-color: var(--orange);
-    color: white;
-    border-radius: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 20px;
-}
-        :root {
-            --cream: #fdf6ec;
-            --brown: #3d2b1f;
-            --orange: #e8672a;
-            --green: #2d6a4f;
-            --gold: #c9a84c;
-            --gray: #f0ebe3;
-        }
-
+        :root { --cream: #fdf6ec; --brown: #3d2b1f; --orange: #e8672a; --gold: #c9a84c; --gray: #f0ebe3; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--brown); min-height: 100vh; }
+        
+        header { background: var(--brown); padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        header h1 { font-family: 'Playfair Display', serif; }
 
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background-color: var(--cream);
-            color: var(--brown);
-            min-height: 100vh;
-        }
+        .tabs { display: flex; max-width: 1000px; margin: 20px auto 0; padding: 0 20px; }
+        .tab { padding: 12px 25px; cursor: pointer; background: var(--gray); border-radius: 10px 10px 0 0; margin-right: 5px; border: 1px solid #ddd; border-bottom: none; color: #777; transition: 0.3s; }
+        .tab.active { background: white; font-weight: bold; color: var(--brown); border-color: #e0d8cc; border-top: 3px solid var(--orange); }
 
-        /* HEADER */
-        header {
-            background: var(--brown);
-            padding: 20px 40px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
-        }
-
-        header h1 {
-            font-family: 'Playfair Display', serif;
-            color: var(--cream);
-            font-size: 1.6rem;
-            letter-spacing: 1px;
-        }
-
-        #section-auth { display: flex; align-items: center; gap: 10px; }
-        #section-auth input {
-            padding: 8px 14px;
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 6px;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            font-size: 13px;
-        }
-        #section-auth input::placeholder { color: rgba(255,255,255,0.5); }
-        .btn-auth {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            transition: 0.2s;
-        }
-        .btn-login { background: var(--orange); color: white; }
-        .btn-google { background: white; color: var(--brown); }
-        .btn-logout { background: #c0392b; color: white; }
-        #txt-user { color: var(--gold); font-weight: 500; font-size: 14px; }
-
-        /* ONGLETS */
-        .tabs {
-            display: flex;
-            gap: 0;
-            max-width: 900px;
-            margin: 30px auto 0;
-            padding: 0 20px;
-        }
-        .tab {
-            padding: 12px 30px;
-            cursor: pointer;
-            border-radius: 10px 10px 0 0;
-            font-weight: 500;
-            font-size: 15px;
-            background: var(--gray);
-            color: #888;
-            transition: 0.2s;
-            border: 2px solid transparent;
-            border-bottom: none;
-        }
-        .tab.active {
-            background: white;
-            color: var(--brown);
-            border-color: #e0d8cc;
-        }
-
-        /* CONTENU PRINCIPAL */
-        .main-content {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 20px 40px;
-        }
-
-        .section-page {
-            display: none;
-            background: white;
-            border-radius: 0 12px 12px 12px;
-            padding: 30px;
-            border: 2px solid #e0d8cc;
-        }
+        .main-content { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .section-page { display: none; background: white; padding: 30px; border-radius: 0 15px 15px 15px; border: 2px solid #e0d8cc; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .section-page.active { display: block; }
 
-        /* FORMULAIRE */
-        .formulaire {
-            background: var(--gray);
-            padding: 25px;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 30px;
-        }
+        /* Catégories */
+        .nav-visuelle { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 25px; }
+        .card-nav { position: relative; height: 100px; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform 0.2s; }
+        .card-nav:hover { transform: scale(1.05); }
+        .card-nav img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.7); }
+        .card-nav span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-weight: bold; font-size: 1.1rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 
-        .formulaire h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.2rem;
-            color: var(--brown);
-            margin-bottom: 5px;
-        }
+        .search-bar { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid var(--gray); font-size: 1rem; margin-bottom: 25px; outline: none; transition: 0.3s; }
+        .search-bar:focus { border-color: var(--orange); }
+        .section-titre { border-left: 5px solid var(--orange); padding-left: 15px; margin: 30px 0 20px; font-family: 'Playfair Display', serif; font-size: 1.5rem; }
 
-        .formulaire input,
-        .formulaire select,
-        .formulaire textarea {
-            padding: 12px 15px;
-            border: 1.5px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: 'DM Sans', sans-serif;
-            background: white;
-            color: var(--brown);
-            transition: border-color 0.2s;
-        }
-        .formulaire input:focus,
-        .formulaire select:focus,
-        .formulaire textarea:focus {
-            outline: none;
-            border-color: var(--orange);
-        }
-        .formulaire textarea { min-height: 80px; resize: vertical; }
+        .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .recette-card { background: white; border: 1px solid var(--gray); border-radius: 15px; overflow: hidden; cursor: pointer; transition: 0.3s; }
+        .recette-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .recette-card img { width: 100%; height: 150px; object-fit: cover; }
+        .recette-card-body { padding: 15px; }
 
-        .row-select { display: flex; gap: 10px; }
-        .row-select select { flex: 1; }
+        .input-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; }
+        input[type="text"], select { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid var(--gray); font-size: 1rem; outline: none; }
+        .btn-add { width: 100%; padding: 12px; background: none; border: 2px dashed #ccc; cursor: pointer; margin-top: 10px; border-radius: 10px; font-weight: 500; color: #666; transition: 0.2s; }
+        .btn-add:hover { border-color: var(--orange); color: var(--orange); }
+        .btn-save { width: 100%; padding: 18px; background: var(--orange); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1.1rem; margin-top: 20px; box-shadow: 0 4px 10px rgba(232, 103, 42, 0.3); }
 
-        .checkbox-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: white;
-            padding: 12px 15px;
-            border-radius: 8px;
-            border: 1.5px solid #ddd;
-            cursor: pointer;
-        }
-        .checkbox-row input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--green); }
-        .checkbox-row label { cursor: pointer; font-size: 14px; }
-
-        .btn-save {
-            padding: 14px;
-            background: var(--orange);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 15px;
-            font-family: 'DM Sans', sans-serif;
-            transition: background 0.2s;
-        }
-        .btn-save:hover { background: #d45a20; }
-
-        /* NAVIGATION VISUELLE */
-        .nav-visuelle {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 25px;
-        }
-        .card-nav {
-            position: relative;
-            height: 80px;
-            border-radius: 10px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .card-nav:hover { transform: scale(1.04); }
-        .card-nav img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.5); }
-        .card-nav span {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-weight: 600;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            white-space: nowrap;
-        }
-
-        /* RECHERCHE */
-        .search-bar {
-            width: 100%;
-            padding: 12px 18px;
-            border: 1.5px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            font-family: 'DM Sans', sans-serif;
-            margin-bottom: 20px;
-            background: white;
-        }
-        .search-bar:focus { outline: none; border-color: var(--orange); }
-
-        /* GRILLE RECETTES */
-        .grille {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 18px;
-        }
-
-        .recette-card {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: 1.5px solid #f0ebe3;
-        }
-        .recette-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
-
-        .recette-card img { width: 100%; height: 140px; object-fit: cover; }
-
-        .recette-card-body { padding: 12px 14px; }
-        .recette-card-body h3 {
-            font-family: 'Playfair Display', serif;
-            font-size: 1rem;
-            margin-bottom: 8px;
-            color: var(--brown);
-        }
-
-        .card-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-        }
-
-        .badge {
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 500;
-        }
-        .badge-cat { background: #fde8d8; color: var(--orange); }
-        .badge-public { background: #d4edda; color: var(--green); }
-        .badge-prive { background: #e9ecef; color: #666; }
-
-        .card-actions { display: flex; gap: 5px; }
-        .card-actions button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-            padding: 4px;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-        .card-actions button:hover { background: var(--gray); }
-
-        .section-titre {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.4rem;
-            color: var(--brown);
-            margin: 25px 0 15px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid var(--gray);
-        }
-
-        .empty-msg {
-            text-align: center;
-            color: #aaa;
-            padding: 30px;
-            font-style: italic;
-        }
-
-        /* MODALE */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 3000;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.75);
-            backdrop-filter: blur(4px);
-        }
-        .modal-content {
-            background: white;
-            margin: 4% auto;
-            padding: 30px;
-            border-radius: 16px;
-            width: 92%;
-            max-width: 580px;
-            max-height: 88vh;
-            overflow-y: auto;
-            position: relative;
-        }
-        .modal-content img { width: 100%; height: 220px; object-fit: cover; border-radius: 10px; margin-bottom: 20px; }
-        .modal-content h2 { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--brown); margin-bottom: 15px; }
-        .modal-close {
-            position: absolute;
-            right: 18px; top: 14px;
-            font-size: 28px;
-            cursor: pointer;
-            color: #888;
-            background: none;
-            border: none;
-            line-height: 1;
-        }
-        .modal-section {
-            background: var(--gray);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-        .modal-section h4 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--orange); margin-bottom: 8px; }
-        .modal-section p { font-size: 14px; line-height: 1.7; white-space: pre-wrap; }
-        .modal-section ol { padding-left: 18px; font-size: 14px; line-height: 1.9; }
-
-        @media (max-width: 600px) {
-            header { padding: 15px 20px; flex-direction: column; gap: 10px; }
-            .nav-visuelle { grid-template-columns: repeat(2, 1fr); }
-            .tabs { padding: 0 10px; }
-            .tab { padding: 10px 18px; font-size: 13px; }
-        }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; backdrop-filter: blur(5px); }
+        .modal-content { background: white; margin: 30px auto; padding: 40px; width: 90%; max-width: 700px; border-radius: 25px; position: relative; max-height: 90vh; overflow-y: auto; text-align: center; }
+        .modal-close { position: absolute; right: 25px; top: 20px; font-size: 35px; cursor: pointer; border: none; background: none; color: #aaa; }
     </style>
 </head>
 <body>
@@ -403,15 +55,12 @@
 <header>
     <h1>📖 Le Grimoire</h1>
     <div id="section-auth">
-        <div id="form-login" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="password" placeholder="Mot de passe">
-            <button class="btn-auth btn-login" onclick="window.gererConnexion()">Connexion</button>
-            <button class="btn-auth btn-google" onclick="window.connexionGoogle()">Google</button>
+        <div id="form-login">
+            <button onclick="window.connexionGoogle()" style="padding: 10px 20px; border-radius: 8px; cursor: pointer; border: none; background: white; font-weight: bold; color: var(--brown);">Connexion Google</button>
         </div>
-        <div id="info-user" style="display:none;align-items:center;gap:10px;">
-            <span id="txt-user"></span>
-            <button class="btn-auth btn-logout" onclick="window.deconnexion()">Déconnexion</button>
+        <div id="info-user" style="display:none; align-items: center;">
+            <span id="txt-user" style="margin-right: 15px; color: var(--gold); font-weight: bold;"></span>
+            <button onclick="window.deconnexion()" style="background: #c0392b; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold;">Déconnexion</button>
         </div>
     </div>
 </header>
@@ -423,93 +72,85 @@
 </div>
 
 <div class="main-content">
-
-    <!-- ONGLET COMMUNAUTE -->
     <div id="page-communaute" class="section-page active">
         <div class="nav-visuelle">
             <div class="card-nav" onclick="window.filtrerParCategorie('entrée')">
-                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300" alt="Entrées">
-                <span>Entrées</span>
+                <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400"><span>Entrées</span>
             </div>
             <div class="card-nav" onclick="window.filtrerParCategorie('plat')">
-                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=300" alt="Plats">
-                <span>Plats</span>
+                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400"><span>Plats</span>
             </div>
             <div class="card-nav" onclick="window.filtrerParCategorie('dessert')">
-                <img src="https://images.unsplash.com/photo-1551024506-0bccd828d307?w=300" alt="Desserts">
-                <span>Desserts</span>
+                <img src="https://images.unsplash.com/photo-1551024506-0bccd828d307?w=400"><span>Desserts</span>
             </div>
             <div class="card-nav" onclick="window.filtrerParCategorie('')">
-                <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=300" alt="Tout">
-                <span>Tout voir</span>
+                <img src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=400"><span>Tout voir</span>
             </div>
         </div>
-        <input class="search-bar" type="text" id="recherche" placeholder="🔎 Rechercher une recette..." oninput="window.rechercherParNom()">
-        <p class="section-titre">🍳 Cuisine</p>
-        <div id="liste-cuisine" class="grille"></div>
-        <p class="section-titre">🍰 Pâtisserie</p>
-        <div id="liste-patisserie" class="grille"></div>
+
+        <input type="text" id="recherche" class="search-bar" placeholder="🔎 Rechercher une recette..." oninput="window.rechercherParNom()">
+        
+        <div id="section-standard">
+            <h2 class="section-titre">🍳 Cuisine</h2>
+            <div id="liste-cuisine" class="grille"></div>
+            <h2 class="section-titre" style="border-left-color: var(--gold);">🍰 Pâtisserie</h2>
+            <div id="liste-patisserie" class="grille"></div>
+        </div>
     </div>
 
-    <!-- ONGLET MES RECETTES -->
     <div id="page-mes-recettes" class="section-page">
-        <p class="section-titre">📚 Ma bibliothèque personnelle</p>
-        <div id="liste-mes-recettes" class="grille">
-            <p class="empty-msg">Connecte-toi pour voir tes recettes</p>
-        </div>
+        <h2 class="section-titre">📚 Ma Bibliothèque Personnelle</h2>
+        <div id="liste-mes-recettes" class="grille"></div>
     </div>
-    <!-- ONGLET AJOUTER -->
+
     <div id="page-ajouter" class="section-page">
-    <div class="form-container">
-    <h2 class="form-title">🖋️ Nouvelle Recette</h2>
-    
-    <div class="input-group">
-        <label>Nom de la recette</label>
-        <input type="text" id="nom" placeholder="Ex: Gratin de macaronis de Mamie">
-    </div>
-
-    <div class="input-group">
-        <label>Ingrédients</label>
-        <textarea id="ingredients" placeholder="250g de pâtes, 50g de fromage..."></textarea>
-    </div>
-
-    <div class="input-group">
-        <label>Étapes de préparation</label>
-        <textarea id="etapes" placeholder="1. Cuire les pâtes... 2. Faire la sauce..."></textarea>
-    </div>
-    
-    <div class="row-select">
+        <h2 class="section-titre">🖋️ Nouvelle Recette</h2>
+        
         <div class="input-group">
-            <label>Univers</label>
-            <select id="univers" onchange="window.majSousCategories()">
-                <option value="cuisine">🍳 Cuisine (Salé)</option>
-                <option value="pâtisserie">🍰 Pâtisserie (Sucré)</option>
-            </select>
+            <label>Nom de la recette</label>
+            <input type="text" id="nom" placeholder="Ex: Gratin de Mamie">
         </div>
+
         <div class="input-group">
-            <label>Catégorie précise</label>
-            <select id="sousCategorie">
+            <label>🛒 Ingrédients</label>
+            <div id="liste-ingredients-input"></div>
+            <button type="button" class="btn-add" onclick="window.ajouterChamp('liste-ingredients-input', 'ingredient-item')">＋ Ajouter un ingrédient</button>
+        </div>
+
+        <div class="input-group">
+            <label>👨‍🍳 Étapes de préparation</label>
+            <div id="liste-etapes-input"></div>
+            <button type="button" class="btn-add" onclick="window.ajouterChamp('liste-etapes-input', 'etape-item')">＋ Ajouter une étape</button>
+        </div>
+
+        <div style="display:flex; gap:15px;">
+            <div style="flex:1;">
+                <label>Univers</label>
+                <select id="univers" onchange="window.majSousCategories()">
+                    <option value="cuisine">Cuisine</option>
+                    <option value="pâtisserie">Pâtisserie</option>
                 </select>
+            </div>
+            <div style="flex:1;">
+                <label>Catégorie</label>
+                <select id="sousCategorie"></select>
+            </div>
         </div>
-    </div>
-    
-    <div class="input-group">
-        <label>Lien d'une image (URL)</label>
-        <input type="text" id="imageLien" placeholder="https://exemple.com/image.jpg">
-    </div>
-    
-    <div class="checkbox-row">
-        <input type="checkbox" id="public" checked>
-        <label for="public">🔓 Partager avec la communauté</label>
-    </div>
-    <button class="btn-save" onclick="window.ajouterRecette()">Enregistrer dans le Grimoire</button>
-</div>
-</div>
-    </div>
 
+        <div class="input-group" style="margin-top:20px;">
+            <label>Lien image (URL)</label>
+            <input type="text" id="imageLien" placeholder="Laissez vide pour l'image par défaut">
+        </div>
+
+        <div class="input-group" style="display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" id="public" checked style="width: auto;"> 
+            <label for="public" style="margin-bottom: 0;">Partager avec la communauté</label>
+        </div>
+
+        <button class="btn-save" onclick="window.ajouterRecette()">Enregistrer dans le Grimoire</button>
+    </div>
 </div>
 
-<!-- MODALE -->
 <div id="modalRecette" class="modal" onclick="if(event.target===this)window.fermerRecette()">
     <div class="modal-content">
         <button class="modal-close" onclick="window.fermerRecette()">×</button>
