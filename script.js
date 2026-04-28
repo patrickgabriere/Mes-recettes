@@ -1,7 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
+// --- INITIALISATION ---
 const app = initializeApp(window.firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -10,354 +11,157 @@ const provider = new GoogleAuthProvider();
 let toutesLesRecettes = [];
 let modeEdition = null;
 
-// --- ONGLETS ---
-window.changerOnglet = function(page, tabEl) {
-    document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('page-' + page).classList.add('active');
-    tabEl.classList.add('active');
-    if (page === 'mes-recettes') window.chargerMesRecettes();
-};
+// --- GESTION DES SOUS-CATÉGORIES ---
+window.majSousCategories = function() {
+    const u = document.getElementById("univers").value;
+    const s = document.getElementById("sousCategorie");
+    if (!s) return;
 
-// --- AUTH ---
-window.connexionGoogle = function() {
-    signInWithPopup(auth, provider).catch(e => alert("Erreur : " + e.message));
-};
-
-window.gererConnexion = async function() {
-    const email = document.getElementById("email").value;
-    const pass = document.getElementById("password").value;
-    if (!email || !pass) return alert("Remplis les champs !");
-    try {
-        await signInWithEmailAndPassword(auth, email, pass);
-    } catch (e) {
-        if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
-            try {
-                await createUserWithEmailAndPassword(auth, email, pass);
-            } catch (err) { alert("Erreur création : " + err.message); }
-        } else { alert("Erreur : " + e.message); }
-    }
-};
-
-window.deconnexion = () => signOut(auth);
-
-onAuthStateChanged(auth, (user) => {
-    const loginDiv = document.getElementById("form-login");
-    const infoDiv = document.getElementById("info-user");
-    if (user) {
-        if (loginDiv) loginDiv.style.display = "none";
-        if (infoDiv) {
-            infoDiv.style.display = "flex";
-            document.getElementById("txt-user").innerText = "👨‍🍳 " + (user.displayName || user.email);
-        }
-    } else {
-        if (loginDiv) loginDiv.style.display = "flex";
-        if (infoDiv) infoDiv.style.display = "none";
-    }
-    window.chargerRecettes();
-});
-
-// --- CREATION CARTE ---
-function creerCarte(r, montrerActions) {
-    const user = auth.currentUser;
-    const estAuteur = user && r.auteurId === user.uid;
-    const img = r.image || "https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=400";
-    const badgeVisi = r.estPublic
-        ? '<span class="badge badge-public">🔓 Public</span>'
-        : '<span class="badge badge-prive">🔒 Privé</span>';
-
-    const card = document.createElement("div");
-    card.className = "recette-card";
-
-    card.innerHTML = `
-        <img src="${img}" alt="${r.nom}" onerror="this.src='https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=400'">
-        <div class="recette-card-body">
-            <h3>${r.nom}</h3>
-            <div class="card-footer">
-                <span class="badge badge-cat">${r.sousCategorie || r.univers}</span>
-                ${montrerActions ? badgeVisi : ''}
-                <div class="card-actions" style="display:${estAuteur && montrerActions ? 'flex' : 'none'}">
-                    <button title="Modifier" data-id="${r.id}">✏️</button>
-                    <button title="Supprimer" data-id="${r.id}" data-action="suppr">🗑️</button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    // Clic pour ouvrir
-    card.querySelector('img').addEventListener('click', () => ouvrirRecette(r));
-    card.querySelector('h3').addEventListener('click', () => ouvrirRecette(r));
-
-    // Modifier
-    const btnEdit = card.querySelector('[title="Modifier"]');
-    if (btnEdit) btnEdit.addEventListener('click', (e) => {
-        e.stopPropagation();
-        window.preparerModif(r);
-    });
-
-    // Supprimer
-    const btnSuppr = card.querySelector('[data-action="suppr"]');
-    if (btnSuppr) btnSuppr.addEventListener('click', (e) => {
-        e.stopPropagation();
-        window.supprimerRecette(r.id);
-    });
-
-    return card;
-}
-
-// --- AFFICHAGE COMMUNAUTE ---
-function afficherRecettes(liste) {
-    const cuisineCtn = document.getElementById("liste-cuisine");
-    const patisserieCtn = document.getElementById("liste-patisserie");
-    if (!cuisineCtn || !patisserieCtn) return;
-    cuisineCtn.innerHTML = "";
-    patisserieCtn.innerHTML = "";
-
-    const cuisine = liste.filter(r => r.univers !== "pâtisserie");
-    const patisserie = liste.filter(r => r.univers === "pâtisserie");
-
-    if (cuisine.length === 0) cuisineCtn.innerHTML = '<p class="empty-msg">Aucune recette de cuisine</p>';
-    if (patisserie.length === 0) patisserieCtn.innerHTML = '<p class="empty-msg">Aucune recette de pâtisserie</p>';
-
-    cuisine.forEach(r => cuisineCtn.appendChild(creerCarte(r, false)));
-    patisserie.forEach(r => patisserieCtn.appendChild(creerCarte(r, false)));
-}
-
-// --- AFFICHAGE MES RECETTES ---
-window.chargerMesRecettes = function() {
-    const container = document.getElementById("liste-mes-recettes");
-    if (!container) return;
-    const user = auth.currentUser;
-    if (!user) {
-        container.innerHTML = '<p class="empty-msg">Connecte-toi pour voir tes recettes</p>';
-        return;
-    }
-    const mesRecettes = toutesLesRecettes.filter(r => r.auteurId === user.uid);
-    container.innerHTML = "";
-    if (mesRecettes.length === 0) {
-        container.innerHTML = '<p class="empty-msg">Tu n\'as pas encore ajouté de recettes</p>';
-        return;
-    }
-    mesRecettes.forEach(r => container.appendChild(creerCarte(r, true)));
-};
-
-// --- FIREBASE ---
-window.chargerRecettes = async function() {
-    try {
-        const snap = await getDocs(collection(db, "recettes"));
-        const user = auth.currentUser;
-        toutesLesRecettes = [];
-        snap.forEach(d => {
-            const r = { id: d.id, ...d.data() };
-            if (r.estPublic === true || (user && r.auteurId === user.uid)) {
-                toutesLesRecettes.push(r);
-            }
-        });
-        afficherRecettes(toutesLesRecettes);
-    } catch (err) { console.error(err); }
-};
-
-window.ajouterRecette = async function() {
-    if (!auth.currentUser) return alert("Tu dois être connecté pour ajouter une recette !");
-    const nom = document.getElementById("nom").value.trim();
-    if (!nom) return alert("Le nom est obligatoire !");
-
-    const donnees = {
-        nom,
-        univers: document.getElementById("univers").value,
-        sousCategorie: document.getElementById("sousCategorie").value,
-        image: document.getElementById("imageLien").value.trim(),
-        ingredients: document.getElementById("ingredients").value,
-        etapes: document.getElementById("etapes").value,
-        auteurId: auth.currentUser.uid,
-        estPublic: document.getElementById("public").checked
+    const categories = {
+        "cuisine": ["Apéritif", "Entrée", "Plat de résistance", "Accompagnement", "Sauce & Condiment", "Soupe & Velouté"],
+        "pâtisserie": ["Gâteau classique", "Tarte & Tourte", "Biscuit & Cookie", "Dessert à la cuillère", "Petit-déjeuner", "Confiserie"]
     };
 
-    try {
-        if (modeEdition) {
-            await updateDoc(doc(db, "recettes", modeEdition), donnees);
-            modeEdition = null;
-            document.querySelector(".btn-save").innerText = "Enregistrer la Recette";
-        } else {
-            await addDoc(collection(db, "recettes"), donnees);
-        }
-        document.querySelectorAll(".formulaire input[type=text], .formulaire textarea").forEach(i => i.value = "");
-        await window.chargerRecettes();
-        // Retour à l'onglet communauté
-        document.querySelectorAll('.tab')[0].click();
-    } catch (err) { alert("Erreur : " + err.message); }
+    const opts = categories[u] || [];
+    s.innerHTML = opts.map(o => `<option value="${o.toLowerCase()}">${o}</option>`).join("");
 };
 
-window.supprimerRecette = async function(id) {
-    if (confirm("Supprimer cette recette définitivement ?")) {
-        await deleteDoc(doc(db, "recettes", id));
-        await window.chargerRecettes();
-        window.chargerMesRecettes();
-    }
+// --- CHARGEMENT DES RECETTES ---
+window.chargerRecettes = async function() {
+    const snapshot = await getDocs(collection(db, "recettes"));
+    toutesLesRecettes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    afficherRecettes(toutesLesRecettes);
 };
 
-window.preparerModif = function(r) {
-    modeEdition = r.id;
-    document.getElementById("nom").value = r.nom || "";
-    document.getElementById("ingredients").value = r.ingredients || "";
-    document.getElementById("etapes").value = r.etapes || "";
-    document.getElementById("univers").value = r.univers || "cuisine";
-    window.majSousCategories();
-    document.getElementById("sousCategorie").value = r.sousCategorie || "";
-    document.getElementById("imageLien").value = r.image || "";
-    document.getElementById("public").checked = r.estPublic !== false;
-    document.querySelector(".btn-save").innerText = "Mettre à jour la recette";
-    // Aller à l'onglet ajouter
-    document.querySelectorAll('.tab')[2].click();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-};
+function afficherRecettes(liste) {
+    const cuisineDiv = document.getElementById("liste-cuisine");
+    const patisserieDiv = document.getElementById("liste-patisserie");
+    if (!cuisineDiv || !patisserieDiv) return;
 
-// --- MODALE ---
-function ouvrirRecette(r) {
-    const img = r.image || "https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=400";
-    const etapes = (r.etapes || "").split(/[|\n]/).filter(e => e.trim());
-    const listeEtapes = etapes.map((e, i) => `<li>${e.trim()}</li>`).join('');
+    cuisineDiv.innerHTML = "";
+    patisserieDiv.innerHTML = "";
 
-    document.getElementById("contenuRecette").innerHTML = `
-        <img src="${img}" alt="${r.nom}" onerror="this.src='https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=400'">
-        <h2>${r.nom}</h2>
-        <div class="modal-section">
-            <h4>🛒 Ingrédients</h4>
-            <p>${r.ingredients || "Non renseigné"}</p>
-        </div>
-        <div class="modal-section">
-            <h4>👨‍🍳 Préparation</h4>
-            <ol>${listeEtapes || '<li>Non renseigné</li>'}</ol>
-        </div>
-    `;
-    document.getElementById("modalRecette").style.display = "block";
+    liste.forEach(r => {
+        const card = document.createElement("div");
+        card.className = "recette-card";
+        card.onclick = () => window.ouvrirRecette(r.id);
+        card.innerHTML = `
+            <img src="${r.imageLien || 'https://images.unsplash.com/photo-1495195129352-aec329a2d7ca?w=400'}" alt="${r.nom}">
+            <div class="recette-info">
+                <h3>${r.nom}</h3>
+                <p>${r.sousCategorie || r.univers}</p>
+            </div>
+        `;
+
+        if (r.univers === "pâtisserie") patisserieDiv.appendChild(card);
+        else cuisineDiv.appendChild(card);
+    });
 }
 
-window.fermerRecette = function() {
-    document.getElementById("modalRecette").style.display = "none";
+// --- AJOUTER UNE RECETTE ---
+window.ajouterRecette = async function() {
+    const nom = document.getElementById("nom").value;
+    const ingredients = document.getElementById("ingredients").value;
+    const etapes = document.getElementById("etapes").value;
+    const univers = document.getElementById("univers").value;
+    const sousCategorie = document.getElementById("sousCategorie").value;
+    const imageLien = document.getElementById("imageLien").value;
+
+    if (!nom || !ingredients || !etapes) {
+        alert("Merci de remplir le nom, les ingrédients et les étapes.");
+        return;
+    }
+
+    try {
+        await addDoc(collection(db, "recettes"), {
+            nom,
+            ingredients,
+            etapes,
+            univers,
+            sousCategorie,
+            imageLien,
+            auteur: auth.currentUser ? auth.currentUser.displayName : "Anonyme",
+            uid: auth.currentUser ? auth.currentUser.uid : null,
+            date: new Date()
+        });
+
+        alert("Recette ajoutée au Grimoire !");
+        document.querySelectorAll("input, textarea").forEach(i => i.value = "");
+        window.majSousCategories();
+        window.chargerRecettes();
+        window.changerOnglet('accueil', document.querySelector('.tab'));
+    } catch (e) {
+        alert("Erreur lors de l'enregistrement : " + e.message);
+    }
 };
 
 // --- RECHERCHE ET FILTRES ---
 window.rechercherParNom = function() {
-    const recherche = document.getElementById("recherche").value.toLowerCase();
-    const resultats = toutesLesRecettes.filter(r => r.nom.toLowerCase().includes(recherche));
+    const texte = document.getElementById("recherche").value.toLowerCase();
+    const resultats = toutesLesRecettes.filter(r => r.nom.toLowerCase().includes(texte));
     afficherRecettes(resultats);
 };
 
-window.filtrerParCategorie = function(categorie) {
-    if (!categorie) { afficherRecettes(toutesLesRecettes); return; }
-    const resultats = toutesLesRecettes.filter(r =>
-        (r.sousCategorie && r.sousCategorie.toLowerCase().includes(categorie)) ||
-        (r.univers && r.univers.toLowerCase().includes(categorie))
+window.filtrerParCategorie = function(cat) {
+    if (!cat) {
+        afficherRecettes(toutesLesRecettes);
+        return;
+    }
+    const recherche = cat.toLowerCase();
+    const resultats = toutesLesRecettes.filter(r => 
+        (r.univers && r.univers.toLowerCase() === recherche) || 
+        (r.sousCategorie && r.sousCategorie.toLowerCase() === recherche)
     );
     afficherRecettes(resultats);
 };
 
-// --- SOUS CATEGORIES ---
-window.majSousCategories = function() {
-    const u = document.getElementById("univers").value;
-    const s = document.getElementById("sousCategorie");
-    if (!s) return;
-
-    const categoriesCuisine = [
-        "Apéritif", "Entrée", "Plat de résistance", 
-        "Accompagnement", "Sauce & Condiment", "Soupe & Velouté"
-    ];
-    
-    const categoriesPatisserie = [
-        "Gâteau classique", "Tarte & Tourte", "Biscuit & Cookie", 
-        "Dessert à la cuillère", "Petit-déjeuner", "Confiserie"
-    ];
-
-    const opts = u === "cuisine" ? categoriesCuisine : categoriesPatisserie;
-
-    s.innerHTML = opts.map(o => `<option value="${o.toLowerCase()}">${o}</option>`).join('');
+// --- GESTION DES ONGLETS ET MODALE ---
+window.changerOnglet = function(page, el) {
+    document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    if (el) el.classList.add('active');
 };
 
-// Important : Lancer la fonction une fois au chargement pour remplir le menu
+window.ouvrirRecette = function(id) {
+    const r = toutesLesRecettes.find(item => item.id === id);
+    if (!r) return;
+
+    const contenu = document.getElementById("contenuRecette");
+    contenu.innerHTML = `
+        <h2 style="font-family:'Playfair Display'; margin-bottom:15px;">${r.nom}</h2>
+        <img src="${r.imageLien || ''}" style="width:100%; border-radius:15px; margin-bottom:20px; display:${r.imageLien ? 'block' : 'none'}">
+        <div style="display:flex; gap:10px; margin-bottom:20px;">
+            <span class="tag">${r.univers}</span>
+            <span class="tag" style="background:#f0ebe3; color:#3d2b1f;">${r.sousCategorie}</span>
+        </div>
+        <h4>📝 Ingrédients</h4>
+        <p style="white-space: pre-line; margin-bottom:20px;">${r.ingredients}</p>
+        <h4>👨‍🍳 Préparation</h4>
+        <p style="white-space: pre-line;">${r.etapes}</p>
+    `;
+    document.getElementById("modalRecette").style.display = "block";
+};
+
+window.fermerRecette = () => document.getElementById("modalRecette").style.display = "none";
+
+// --- AUTHENTIFICATION ---
+window.connexionGoogle = () => signInWithPopup(auth, provider);
+window.deconnexion = () => signOut(auth);
+
+onAuthStateChanged(auth, (user) => {
+    const btn = document.getElementById("authBtn");
+    if (user) {
+        btn.innerHTML = `👋 ${user.displayName}`;
+        btn.onclick = window.deconnexion;
+    } else {
+        btn.innerHTML = "🔑 Connexion";
+        btn.onclick = window.connexionGoogle;
+    }
+    window.chargerRecettes();
+});
+
+// --- LANCEMENT ---
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(window.majSousCategories, 500);
-});
-
-window.majSousCategories();
-// --- (Garder le début du script avec les imports et l'initialisation) ---
-
-// --- GESTION DES CATÉGORIES ---
-window.majSousCategories = function() {
-    const u = document.getElementById("univers").value;
-    const s = document.getElementById("sousCategorie");
-    if (!s) return;
-
-    // Voici les nouvelles catégories ajoutées pour tes parents
-    const categoriesCuisine = [
-        "Apéritif", 
-        "Entrée", 
-        "Plat de résistance", 
-        "Accompagnement", 
-        "Sauce & Condiment",
-        "Soupe & Velouté"
-    ];
-    
-    const categoriesPatisserie = [
-        "Gâteau classique", 
-        "Tarte & Tourte", 
-        "Biscuit & Cookie", 
-        "Dessert à la cuillère", 
-        "Petit-déjeuner", 
-        "Confiserie"
-    ];
-
-    const opts = u === "cuisine" ? categoriesCuisine : categoriesPatisserie;
-
-    // On génère les options proprement
-    s.innerHTML = opts.map(o => `<option value="${o.toLowerCase()}">${o}</option>`).join('');
-};
-
-// --- MODIFICATION DE LA FONCTION AJOUTER ---
-// Assure-toi que cette partie récupère bien la sous-catégorie
-const ajouterRecetteOriginal = window.ajouterRecette; 
-window.ajouterRecette = async function() {
-    const nom = document.getElementById("nom").value;
-    const univers = document.getElementById("univers").value;
-    const sousCategorie = document.getElementById("sousCategorie").value;
-    
-    // Logique d'ajout (simplifiée pour l'exemple, garde ta logique de validation)
-    if (!nom) { alert("Le nom est obligatoire !"); return; }
-    
-    // ... reste de ton code d'ajout vers Firebase ...
-    // N'oublie pas d'inclure 'sousCategorie' dans l'objet envoyé à Firestore
-};
-
-// --- INITIALISATION ---
-// On force l'affichage des catégories dès le chargement
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        if(typeof window.majSousCategories === 'function') {
-            window.majSousCategories();
-        }
-    }, 500);
-});
-
-// --- EXPORTS GLOBAUX ---
-// On vérifie une dernière fois que tout est accessible
-window.ajouterRecette = window.ajouterRecette;
-window.supprimerRecette = window.supprimerRecette;
-window.majSousCategories = window.majSousCategories;
-// (Ajoute ici toutes les autres fonctions comme ouvrirRecette, etc.)
-// --- EXPORTS POUR LE HTML (Fix pour le mode module) ---
-window.ajouterRecette = ajouterRecette;
-window.supprimerRecette = supprimerRecette;
-window.rechercherParNom = rechercherParNom;
-window.filtrerParCategorie = filtrerParCategorie;
-window.majSousCategories = majSousCategories;
-window.ouvrirRecette = ouvrirRecette;
-window.fermerRecette = fermerRecette;
-window.changerOnglet = changerOnglet;
-window.connexionGoogle = connexionGoogle;
-window.deconnexion = deconnexion;
-
-// Lancer le chargement initial
-onAuthStateChanged(auth, (user) => {
-    gererConnexion(user);
-    chargerRecettes();
 });
