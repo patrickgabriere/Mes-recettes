@@ -461,49 +461,49 @@
     <!-- ONGLET AJOUTER -->
     <div id="page-ajouter" class="section-page">
     <div class="form-container">
-        <h2 class="form-title">🖋️ Nouvelle Recette</h2>
-        
-        <div class="input-group">
-            <label>Nom de la recette</label>
-            <input type="text" id="nom" placeholder="Ex: Gratin de macaronis à la Lyonnaise">
-        </div>
-
-        <div class="input-group">
-            <label>Ingrédients (un par ligne ou séparés par des virgules)</label>
-            <textarea id="ingredients" placeholder="Ex: 250g de macaronis, 70g de beurre..."></textarea>
-        </div>
-
-        <div class="input-group">
-            <label>Étapes de préparation</label>
-            <textarea id="etapes" placeholder="Ex: Préchauffer le four, Cuire les pâtes..."></textarea>
-        </div>
-        
-        <div class="row-select">
-            <div class="input-group">
-                <label>Univers</label>
-                <select id="univers" onchange="window.majSousCategories()">
-                    <option value="cuisine">🍳 Cuisine (Salé)</option>
-                    <option value="pâtisserie">🍰 Pâtisserie (Sucré)</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>Catégorie précise</label>
-                <select id="sousCategorie"></select>
-            </div>
-        </div>
-        
-        <div class="input-group">
-            <label>Lien d'une image (optionnel)</label>
-            <input type="text" id="imageLien" placeholder="https://lien-de-l-image.jpg">
-        </div>
-        
-        <div class="checkbox-row">
-            <input type="checkbox" id="public" checked>
-            <label for="public">🔓 Partager avec la communauté</label>
-        </div>
-        
-        <button class="btn-save" onclick="window.ajouterRecette()">Enregistrer dans le Grimoire</button>
+    <h2 class="form-title">🖋️ Nouvelle Recette</h2>
+    
+    <div class="input-group">
+        <label>Nom de la recette</label>
+        <input type="text" id="nom" placeholder="Ex: Gratin de macaronis de Mamie">
     </div>
+
+    <div class="input-group">
+        <label>Ingrédients</label>
+        <textarea id="ingredients" placeholder="250g de pâtes, 50g de fromage..."></textarea>
+    </div>
+
+    <div class="input-group">
+        <label>Étapes de préparation</label>
+        <textarea id="etapes" placeholder="1. Cuire les pâtes... 2. Faire la sauce..."></textarea>
+    </div>
+    
+    <div class="row-select">
+        <div class="input-group">
+            <label>Univers</label>
+            <select id="univers" onchange="window.majSousCategories()">
+                <option value="cuisine">🍳 Cuisine (Salé)</option>
+                <option value="pâtisserie">🍰 Pâtisserie (Sucré)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>Catégorie précise</label>
+            <select id="sousCategorie">
+                </select>
+        </div>
+    </div>
+    
+    <div class="input-group">
+        <label>Lien d'une image (URL)</label>
+        <input type="text" id="imageLien" placeholder="https://exemple.com/image.jpg">
+    </div>
+    
+    <div class="checkbox-row">
+        <input type="checkbox" id="public" checked>
+        <label for="public">🔓 Partager avec la communauté</label>
+    </div>
+    <button class="btn-save" onclick="window.ajouterRecette()">Enregistrer dans le Grimoire</button>
+</div>
 </div>
     </div>
 
