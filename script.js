@@ -2,40 +2,34 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebas
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-// --- INITIALISATION ---
+// --- 1. INITIALISATION ---
 const app = initializeApp(window.firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 let toutesLesRecettes = [];
-let modeEdition = null;
 
-// --- GESTION DES SOUS-CATÉGORIES ---
-window.majSousCategories = function() {
-    const u = document.getElementById("univers").value;
-    const s = document.getElementById("sousCategorie");
-    if (!s) return;
-
-    const categories = {
-        "cuisine": ["Apéritif", "Entrée", "Plat de résistance", "Accompagnement", "Sauce & Condiment", "Soupe & Velouté"],
-        "pâtisserie": ["Gâteau classique", "Tarte & Tourte", "Biscuit & Cookie", "Dessert à la cuillère", "Petit-déjeuner", "Confiserie"]
-    };
-
-    const opts = categories[u] || [];
-    s.innerHTML = opts.map(o => `<option value="${o.toLowerCase()}">${o}</option>`).join("");
-};
-
-// --- CHARGEMENT DES RECETTES ---
+// --- 2. CHARGEMENT DES DONNÉES (Le plus important) ---
 window.chargerRecettes = async function() {
-    const snapshot = await getDocs(collection(db, "recettes"));
-    toutesLesRecettes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    afficherRecettes(toutesLesRecettes);
+    console.log("Tentative de chargement des recettes...");
+    try {
+        const querySnapshot = await getDocs(collection(db, "recettes"));
+        toutesLesRecettes = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+        console.log("Recettes récupérées :", toutesLesRecettes.length);
+        afficherRecettes(toutesLesRecettes);
+    } catch (error) {
+        console.error("Erreur Firebase :", error);
+    }
 };
 
 function afficherRecettes(liste) {
     const cuisineDiv = document.getElementById("liste-cuisine");
     const patisserieDiv = document.getElementById("liste-patisserie");
+    
     if (!cuisineDiv || !patisserieDiv) return;
 
     cuisineDiv.innerHTML = "";
@@ -53,12 +47,30 @@ function afficherRecettes(liste) {
             </div>
         `;
 
-        if (r.univers === "pâtisserie") patisserieDiv.appendChild(card);
-        else cuisineDiv.appendChild(card);
+        if (r.univers === "pâtisserie") {
+            patisserieDiv.appendChild(card);
+        } else {
+            cuisineDiv.appendChild(card);
+        }
     });
 }
 
-// --- AJOUTER UNE RECETTE ---
+// --- 3. GESTION DES SOUS-CATÉGORIES ---
+window.majSousCategories = function() {
+    const u = document.getElementById("univers").value;
+    const s = document.getElementById("sousCategorie");
+    if (!s) return;
+
+    const categories = {
+        "cuisine": ["Apéritif", "Entrée", "Plat de résistance", "Accompagnement", "Sauce & Condiment", "Soupe & Velouté"],
+        "pâtisserie": ["Gâteau classique", "Tarte & Tourte", "Biscuit & Cookie", "Dessert à la cuillère", "Petit-déjeuner", "Confiserie"]
+    };
+
+    const opts = categories[u] || [];
+    s.innerHTML = opts.map(o => `<option value="${o.toLowerCase()}">${o}</option>`).join("");
+};
+
+// --- 4. AJOUTER UNE RECETTE ---
 window.ajouterRecette = async function() {
     const nom = document.getElementById("nom").value;
     const ingredients = document.getElementById("ingredients").value;
@@ -68,54 +80,25 @@ window.ajouterRecette = async function() {
     const imageLien = document.getElementById("imageLien").value;
 
     if (!nom || !ingredients || !etapes) {
-        alert("Merci de remplir le nom, les ingrédients et les étapes.");
+        alert("Remplis au moins le nom, les ingrédients et les étapes !");
         return;
     }
 
     try {
         await addDoc(collection(db, "recettes"), {
-            nom,
-            ingredients,
-            etapes,
-            univers,
-            sousCategorie,
-            imageLien,
-            auteur: auth.currentUser ? auth.currentUser.displayName : "Anonyme",
-            uid: auth.currentUser ? auth.currentUser.uid : null,
-            date: new Date()
+            nom, ingredients, etapes, univers, sousCategorie, imageLien,
+            date: new Date(),
+            auteur: auth.currentUser ? auth.currentUser.displayName : "Anonyme"
         });
-
-        alert("Recette ajoutée au Grimoire !");
-        document.querySelectorAll("input, textarea").forEach(i => i.value = "");
-        window.majSousCategories();
+        alert("Recette ajoutée !");
         window.chargerRecettes();
         window.changerOnglet('accueil', document.querySelector('.tab'));
     } catch (e) {
-        alert("Erreur lors de l'enregistrement : " + e.message);
+        alert("Erreur d'ajout : " + e.message);
     }
 };
 
-// --- RECHERCHE ET FILTRES ---
-window.rechercherParNom = function() {
-    const texte = document.getElementById("recherche").value.toLowerCase();
-    const resultats = toutesLesRecettes.filter(r => r.nom.toLowerCase().includes(texte));
-    afficherRecettes(resultats);
-};
-
-window.filtrerParCategorie = function(cat) {
-    if (!cat) {
-        afficherRecettes(toutesLesRecettes);
-        return;
-    }
-    const recherche = cat.toLowerCase();
-    const resultats = toutesLesRecettes.filter(r => 
-        (r.univers && r.univers.toLowerCase() === recherche) || 
-        (r.sousCategorie && r.sousCategorie.toLowerCase() === recherche)
-    );
-    afficherRecettes(resultats);
-};
-
-// --- GESTION DES ONGLETS ET MODALE ---
+// --- 5. INTERFACE (Onglets, Modale, Recherche) ---
 window.changerOnglet = function(page, el) {
     document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -126,50 +109,39 @@ window.changerOnglet = function(page, el) {
 window.ouvrirRecette = function(id) {
     const r = toutesLesRecettes.find(item => item.id === id);
     if (!r) return;
-
-    const contenu = document.getElementById("contenuRecette");
-    contenu.innerHTML = `
-        <h2 style="font-family:'Playfair Display'; margin-bottom:15px;">${r.nom}</h2>
-        <img src="${r.imageLien || ''}" style="width:100%; border-radius:15px; margin-bottom:20px; display:${r.imageLien ? 'block' : 'none'}">
-        <div style="display:flex; gap:10px; margin-bottom:20px;">
-            <span class="tag">${r.univers}</span>
-            <span class="tag" style="background:#f0ebe3; color:#3d2b1f;">${r.sousCategorie}</span>
-        </div>
-        <h4>📝 Ingrédients</h4>
-        <p style="white-space: pre-line; margin-bottom:20px;">${r.ingredients}</p>
-        <h4>👨‍🍳 Préparation</h4>
-        <p style="white-space: pre-line;">${r.etapes}</p>
+    document.getElementById("contenuRecette").innerHTML = `
+        <h2>${r.nom}</h2>
+        <p><strong>Ingrédients :</strong><br>${r.ingredients}</p>
+        <p><strong>Préparation :</strong><br>${r.etapes}</p>
     `;
     document.getElementById("modalRecette").style.display = "block";
 };
 
 window.fermerRecette = () => document.getElementById("modalRecette").style.display = "none";
 
-// --- AUTHENTIFICATION ---
+window.rechercherParNom = function() {
+    const texte = document.getElementById("recherche").value.toLowerCase();
+    const resultats = toutesLesRecettes.filter(r => r.nom.toLowerCase().includes(texte));
+    afficherRecettes(resultats);
+};
+
+// --- 6. AUTHENTIFICATION & DÉMARRAGE ---
 window.connexionGoogle = () => signInWithPopup(auth, provider);
 window.deconnexion = () => signOut(auth);
 
-// --- GESTION DE L'ÉTAT DE CONNEXION ---
 onAuthStateChanged(auth, (user) => {
     const btn = document.getElementById("authBtn");
-    
-    if (!btn) return; // Sécurité si le bouton n'est pas trouvé
-
     if (user) {
-        // L'utilisateur est connecté
         btn.innerHTML = `👋 ${user.displayName}`;
-        btn.onclick = () => window.deconnexion(); // On utilise une fonction fléchée pour être sûr
+        btn.onclick = window.deconnexion;
     } else {
-        // L'utilisateur n'est pas connecté
         btn.innerHTML = "🔑 Connexion";
-        btn.onclick = () => window.connexionGoogle();
+        btn.onclick = window.connexionGoogle;
     }
-
-    // On lance le chargement des recettes dans TOUS les cas (connecté ou non)
-    window.chargerRecettes();
+    window.chargerRecettes(); // On lance le chargement ici
 });
 
-// --- LANCEMENT ---
+// Initialiser le menu au chargement
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(window.majSousCategories, 500);
 });
