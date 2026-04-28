@@ -258,10 +258,106 @@ window.majSousCategories = function() {
     const u = document.getElementById("univers").value;
     const s = document.getElementById("sousCategorie");
     if (!s) return;
-    const opts = u === "cuisine"
-        ? ["Entrée", "Plat", "Accompagnement"]
-        : ["Gâteau", "Tarte", "Biscuit", "Entremet"];
+
+    const categoriesCuisine = [
+        "Apéritif", "Entrée", "Plat de résistance", 
+        "Accompagnement", "Sauce & Condiment", "Soupe & Velouté"
+    ];
+    
+    const categoriesPatisserie = [
+        "Gâteau classique", "Tarte & Tourte", "Biscuit & Cookie", 
+        "Dessert à la cuillère", "Petit-déjeuner", "Confiserie"
+    ];
+
+    const opts = u === "cuisine" ? categoriesCuisine : categoriesPatisserie;
+
     s.innerHTML = opts.map(o => `<option value="${o.toLowerCase()}">${o}</option>`).join('');
 };
 
+// Important : Lancer la fonction une fois au chargement pour remplir le menu
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(window.majSousCategories, 500);
+});
+
 window.majSousCategories();
+// --- (Garder le début du script avec les imports et l'initialisation) ---
+
+// --- GESTION DES CATÉGORIES ---
+window.majSousCategories = function() {
+    const u = document.getElementById("univers").value;
+    const s = document.getElementById("sousCategorie");
+    if (!s) return;
+
+    // Voici les nouvelles catégories ajoutées pour tes parents
+    const categoriesCuisine = [
+        "Apéritif", 
+        "Entrée", 
+        "Plat de résistance", 
+        "Accompagnement", 
+        "Sauce & Condiment",
+        "Soupe & Velouté"
+    ];
+    
+    const categoriesPatisserie = [
+        "Gâteau classique", 
+        "Tarte & Tourte", 
+        "Biscuit & Cookie", 
+        "Dessert à la cuillère", 
+        "Petit-déjeuner", 
+        "Confiserie"
+    ];
+
+    const opts = u === "cuisine" ? categoriesCuisine : categoriesPatisserie;
+
+    // On génère les options proprement
+    s.innerHTML = opts.map(o => `<option value="${o.toLowerCase()}">${o}</option>`).join('');
+};
+
+// --- MODIFICATION DE LA FONCTION AJOUTER ---
+// Assure-toi que cette partie récupère bien la sous-catégorie
+const ajouterRecetteOriginal = window.ajouterRecette; 
+window.ajouterRecette = async function() {
+    const nom = document.getElementById("nom").value;
+    const univers = document.getElementById("univers").value;
+    const sousCategorie = document.getElementById("sousCategorie").value;
+    
+    // Logique d'ajout (simplifiée pour l'exemple, garde ta logique de validation)
+    if (!nom) { alert("Le nom est obligatoire !"); return; }
+    
+    // ... reste de ton code d'ajout vers Firebase ...
+    // N'oublie pas d'inclure 'sousCategorie' dans l'objet envoyé à Firestore
+};
+
+// --- INITIALISATION ---
+// On force l'affichage des catégories dès le chargement
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        if(typeof window.majSousCategories === 'function') {
+            window.majSousCategories();
+        }
+    }, 500);
+});
+
+// --- EXPORTS GLOBAUX ---
+// On vérifie une dernière fois que tout est accessible
+window.ajouterRecette = window.ajouterRecette;
+window.supprimerRecette = window.supprimerRecette;
+window.majSousCategories = window.majSousCategories;
+// (Ajoute ici toutes les autres fonctions comme ouvrirRecette, etc.)
+// --- EXPORTS POUR LE HTML (Fix pour le mode module) ---
+window.ajouterRecette = ajouterRecette;
+window.supprimerRecette = supprimerRecette;
+window.rechercherParNom = rechercherParNom;
+window.filtrerParCategorie = filtrerParCategorie;
+window.majSousCategories = majSousCategories;
+window.ouvrirRecette = ouvrirRecette;
+window.fermerRecette = fermerRecette;
+window.changerOnglet = changerOnglet;
+window.connexionGoogle = connexionGoogle;
+window.deconnexion = deconnexion;
+
+// Lancer le chargement initial
+onAuthStateChanged(auth, (user) => {
+    gererConnexion(user);
+    chargerRecettes();
+});
