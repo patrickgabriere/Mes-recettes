@@ -149,15 +149,23 @@ window.fermerRecette = () => document.getElementById("modalRecette").style.displ
 window.connexionGoogle = () => signInWithPopup(auth, provider);
 window.deconnexion = () => signOut(auth);
 
+// --- GESTION DE L'ÉTAT DE CONNEXION ---
 onAuthStateChanged(auth, (user) => {
     const btn = document.getElementById("authBtn");
+    
+    if (!btn) return; // Sécurité si le bouton n'est pas trouvé
+
     if (user) {
+        // L'utilisateur est connecté
         btn.innerHTML = `👋 ${user.displayName}`;
-        btn.onclick = window.deconnexion;
+        btn.onclick = () => window.deconnexion(); // On utilise une fonction fléchée pour être sûr
     } else {
+        // L'utilisateur n'est pas connecté
         btn.innerHTML = "🔑 Connexion";
-        btn.onclick = window.connexionGoogle;
+        btn.onclick = () => window.connexionGoogle();
     }
+
+    // On lance le chargement des recettes dans TOUS les cas (connecté ou non)
     window.chargerRecettes();
 });
 
