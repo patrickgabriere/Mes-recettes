@@ -36,8 +36,8 @@ window.ajouterChamp = (id, cl) => {
 };
 
 const sousCatMapping = {
-    cuisine: ["Plat", "Entrée", "Apéro", "Sauce", "Accompagnement"],
-    pâtisserie: ["Gâteau", "Biscuit", "Crème/Mousse", "Tarte", "Viennoiserie"]
+    cuisine: ["Entrée", "Soupe", "Plat", "Accompagnement", "Sauce", "Apéro", "Salade"],
+    pâtisserie: ["Gâteau", "Tarte", "Biscuit", "Viennoiserie", "Crème/Mousse", "Confiture", "Pain"]
 };
 
 window.majSousCategories = () => {
