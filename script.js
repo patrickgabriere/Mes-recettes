@@ -125,7 +125,7 @@ window.filtrerRecettes = (type) => {
     grille.innerHTML = res.map(r => {
         // --- LE CHANGEMENT EST ICI ---
         // Cette ligne magique nettoie le nom de la recette pour Unsplash
-        const motCleImage = encodeURIComponent(r.nom.replace(/'/g, ' '));
+        const motCleImage = r.nom.replace(/'/g, ' ');
         
         return `
             <div class="recette-card" onclick="window.ouvrirRecette('${r.id}')">
