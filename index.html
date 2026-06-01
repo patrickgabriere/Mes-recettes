@@ -405,27 +405,46 @@ header {
 
 /* ========== FILTERS ========== */
 .univers-filter {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
 }
 
-.btn-filter {
-    padding: 7px 14px;
+.select-filtre-wrap {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    max-width: 320px;
+}
+
+.select-filtre-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--brown-light);
+    pointer-events: none;
+    font-size: 1rem;
+}
+
+.select-filtre {
+    width: 100%;
+    padding: 13px 44px 13px 16px;
+    border-radius: var(--radius);
     border: 2px solid var(--gray-mid);
     background: white;
-    border-radius: 30px;
-    cursor: pointer;
+    color: var(--brown);
+    font-size: 1rem;
     font-weight: 500;
-    font-size: 0.8rem;
-    color: var(--brown-light);
-    transition: var(--transition);
-    white-space: nowrap;
     font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: border-color var(--transition);
+    outline: none;
 }
-.btn-filter:hover { border-color: var(--orange); color: var(--orange); }
-.btn-filter.active { background: var(--orange); color: white; border-color: var(--orange); }
+
+.select-filtre:focus { border-color: var(--orange); }
+.select-filtre:hover { border-color: var(--brown-light); }
 
 /* ========== RECIPE GRID ========== */
 .recettes-grid {
