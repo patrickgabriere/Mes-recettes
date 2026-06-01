@@ -81,6 +81,7 @@ window.ajouterChamp = (id, cl, placeholder = "Ajouter un élément...") => {
     d.className = "field-row";
     d.innerHTML = `
         <input type="text" class="${cl}" placeholder="${placeholder}">
+        <button class="btn-mic-field" onclick="window.demarrerVocalChamp(null, this)" title="Dicter">🎙️</button>
         <button onclick="this.parentElement.remove()" class="btn-remove-field" title="Supprimer">×</button>
     `;
     c.appendChild(d);
@@ -416,6 +417,84 @@ window.ajouterNote = async (recetteId) => {
         `).join('');
         showToast("Note ajoutée !", "success");
     } catch (e) { showToast("Erreur lors de l'ajout de la note", "error"); }
+};
+
+// =============================================
+// RECONNAISSANCE VOCALE
+// =============================================
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let reconnaissance = null;
+
+function creerReconnaissance() {
+    if (!SpeechRecognition) {
+        showToast("La reconnaissance vocale n'est pas disponible sur ce navigateur.", "error");
+        return null;
+    }
+    const r = new SpeechRecognition();
+    r.lang = 'fr-FR';
+    r.interimResults = false;
+    r.maxAlternatives = 1;
+    return r;
+}
+
+// Recherche vocale (barre de recherche)
+window.demarrerVocal = (inputId, type) => {
+    const input = document.getElementById(inputId);
+    const btn = input.parentElement.querySelector('.btn-mic-search');
+    if (!btn) return;
+
+    if (reconnaissance) { reconnaissance.stop(); return; }
+
+    const r = creerReconnaissance();
+    if (!r) return;
+    reconnaissance = r;
+
+    btn.classList.add('recording');
+    btn.textContent = '⏹️';
+
+    r.onresult = (e) => {
+        const texte = e.results[0][0].transcript;
+        input.value = texte;
+        window.filtrerRecettes(type);
+        showToast(`🎙️ "${texte}"`, "success");
+    };
+    r.onerror = () => showToast("Impossible de reconnaître la voix. Réessaie !", "error");
+    r.onend = () => {
+        reconnaissance = null;
+        btn.classList.remove('recording');
+        btn.textContent = '🎙️';
+    };
+    r.start();
+};
+
+// Dictée vocale (champ de formulaire)
+window.demarrerVocalChamp = (inputId, btnEl) => {
+    const input = inputId
+        ? document.getElementById(inputId)
+        : btnEl.previousElementSibling;
+    const btn = btnEl || (inputId ? document.querySelector(`[onclick*="${inputId}"]`) : null);
+
+    if (reconnaissance) { reconnaissance.stop(); return; }
+
+    const r = creerReconnaissance();
+    if (!r) return;
+    reconnaissance = r;
+
+    if (btn) { btn.classList.add('recording'); btn.textContent = '⏹️'; }
+
+    r.onresult = (e) => {
+        const texte = e.results[0][0].transcript;
+        // Capitalise la première lettre
+        input.value = texte.charAt(0).toUpperCase() + texte.slice(1);
+        input.focus();
+    };
+    r.onerror = () => showToast("Impossible de reconnaître la voix. Réessaie !", "error");
+    r.onend = () => {
+        reconnaissance = null;
+        if (btn) { btn.classList.remove('recording'); btn.textContent = '🎙️'; }
+    };
+    r.start();
 };
 
 // =============================================
