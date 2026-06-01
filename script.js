@@ -8,7 +8,7 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 const CLAUDE_PROXY = "https://grimoire-proxy.patrick-gabriere.workers.dev";
-const MODEL = "claude-sonnet-4-20250514";
+const MODEL = "claude-haiku-4-5";
 
 let toutesLesRecettes = [];
 let frigoImageBase64 = null;
@@ -498,10 +498,10 @@ window.demarrerVocalChamp = (inputId, btnEl) => {
 };
 
 // =============================================
-// CLAUDE — GÉNÉRIQUE
+//  — GÉNÉRIQUE
 // =============================================
 
-async function appellerClaude(prompt, btnId, zoneId, labelEnCours, labelFini) {
+async function appeller(prompt, btnId, zoneId, labelEnCours, labelFini) {
     const btn = document.getElementById(btnId);
     const rendu = document.getElementById(zoneId);
     if (!btn || !rendu) return;
@@ -512,7 +512,7 @@ async function appellerClaude(prompt, btnId, zoneId, labelEnCours, labelFini) {
     rendu.innerHTML = `<span class="ia-loading"><span class="spinner"></span> Magie en cours…</span>`;
 
     try {
-        const response = await fetch(CLAUDE_PROXY, {
+        const response = await fetch(_PROXY, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ model: MODEL, max_tokens: 1000, messages: [{ role: "user", content: prompt }] })
@@ -523,7 +523,7 @@ async function appellerClaude(prompt, btnId, zoneId, labelEnCours, labelFini) {
         rendu.style.whiteSpace = "pre-line";
         rendu.textContent = data.content[0].text;
     } catch (error) {
-        console.error("Erreur Claude:", error);
+        console.error("Erreur :", error);
         rendu.innerHTML = `<span style="color:#c0392b;">⚠️ Oups, le grimoire a eu un souci. Réessaye !</span>`;
     } finally {
         btn.innerHTML = labelFini;
@@ -533,7 +533,7 @@ async function appellerClaude(prompt, btnId, zoneId, labelEnCours, labelFini) {
 
 window.genererListeCourses = () => {
     const r = window._recetteCourante; if (!r) return;
-    appellerClaude(
+    appeller(
         `Tu es l'assistant culinaire du "Grimoire des Parents".\nGénère une liste de courses organisée par rayons.\n\nRecette : ${r.nom}\n${r.portions ? `Portions : ${r.portions} personnes\n` : ''}Ingrédients : ${r.ingredients}\n\nRègles :\n1. Organise par rayons avec émoji (🥦 Fruits & Légumes, 🥖 Épicerie, 🥛 Frais, 🥩 Boucherie, 🧴 Condiments…)\n2. Un ingrédient par ligne avec émoji\n3. Pas de doublons\n4. Commence directement, sans intro.`,
         "btnGenererListe", "zoneRenduListe", "Génération en cours…", "✨ Régénérer la liste de courses (IA)"
     );
@@ -541,7 +541,7 @@ window.genererListeCourses = () => {
 
 window.genererConseils = () => {
     const r = window._recetteCourante; if (!r) return;
-    appellerClaude(
+    appeller(
         `Tu es un chef bienveillant qui aide des parents à cuisiner.\n\nRecette : ${r.nom} (${r.univers} - ${r.sousCategorie})\n${r.portions ? `Portions : ${r.portions}\n` : ''}Ingrédients : ${r.ingredients}\nÉtapes : ${r.etapes}\n\nDonne 4 à 6 conseils pratiques (astuces, variantes, conservation, accompagnements).\nFormat : une ligne par conseil avec émoji, sans intro.`,
         "btnConseils", "zoneRenduConseils", "Analyse en cours…", "🌿 Obtenir des conseils de préparation (IA)"
     );
@@ -550,7 +550,7 @@ window.genererConseils = () => {
 window.genererSimilaires = () => {
     const r = window._recetteCourante; if (!r) return;
     const nomsExistants = toutesLesRecettes.map(x => x.nom).join(', ');
-    appellerClaude(
+    appeller(
         `Tu es un chef passionné de cuisine familiale.\nSuggère 4 recettes similaires à : ${r.nom} (${r.univers} - ${r.sousCategorie})\nIngrédients principaux : ${r.ingredients}\nÀ éviter (déjà dans le grimoire) : ${nomsExistants || 'aucune'}\n\nFormat : 🍽️ **Nom** — Description courte. 4 suggestions, sans intro.`,
         "btnSimilaires", "zoneRenduSimilaires", "Recherche en cours…", "🍽️ Suggérer des recettes similaires (IA)"
     );
@@ -583,7 +583,7 @@ window.analyserFrigo = async () => {
     btn.disabled = true;
 
     try {
-        const response = await fetch(CLAUDE_PROXY, {
+        const response = await fetch(_PROXY, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
