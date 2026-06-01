@@ -115,23 +115,28 @@ window.filtrerRecettes = (type) => {
     const uid = auth.currentUser ? auth.currentUser.uid : null;
     const txt = document.getElementById(type === 'commu' ? 'rechercheCommu' : 'recherchePerso').value.toLowerCase();
     const fCat = filtreActif[type];
-
+    
     let res = toutesLesRecettes.filter(r => type === 'commu' ? r.estPublic : r.auteurId === uid);
-    if (txt) res = res.filter(r => r.nom.toLowerCase().includes(txt) || r.ingredients.toLowerCase().includes(txt));
-    if (fCat !== "tous") res = res.filter(r => r.sousCategorie === fCat);
-
+    
+    if(txt) res = res.filter(r => r.nom.toLowerCase().includes(txt) || r.ingredients.toLowerCase().includes(txt));
+    if(fCat !== "tous") res = res.filter(r => r.sousCategorie === fCat);
+    
     const grille = document.getElementById('grille-' + type);
-    grille.innerHTML = res.map(r => `
+    grille.innerHTML = res.map(r => {
+        // --- LE CHANGEMENT EST ICI ---
+        // Cette ligne magique nettoie le nom de la recette pour Unsplash
         const motCleImage = encodeURIComponent(r.nom.replace(/'/g, ' '));
+        
         return `
-        <div class="recette-card" onclick="window.ouvrirRecette('${r.id}')">
-            <img class="recette-img" src="${r.image || 'https://source.unsplash.com/featured/?' + motCleImage}" alt="${r.nom}">
-            <div class="recette-info">
-                <div class="recette-title">${r.nom}</div>
-                <div class="recette-badge">${r.sousCategorie.toUpperCase()}</div>
+            <div class="recette-card" onclick="window.ouvrirRecette('${r.id}')">
+                <img class="recette-img" src="${r.image || 'https://source.unsplash.com/featured/?' + motCleImage}" alt="${r.nom}">
+                <div class="recette-info">
+                    <div class="recette-title">${r.nom}</div>
+                    <div class="recette-badge">${r.sousCategorie.toUpperCase()}</div>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 };
 
 // =============================================
