@@ -210,20 +210,26 @@ window.genererFiltres = (type) => {
     const uid = auth.currentUser ? auth.currentUser.uid : null;
     const recs = toutesLesRecettes.filter(r => type === 'commu' ? r.estPublic : r.auteurId === uid);
     const cats = [...new Set(recs.map(r => r.sousCategorie).filter(Boolean))];
-    const categories = ["Tous", ...cats.map(c => c.charAt(0).toUpperCase() + c.slice(1))];
+    const categories = ["tous", ...cats.map(c => c.toLowerCase())];
 
-    zone.innerHTML = categories.map(c => {
-        const val = c.toLowerCase();
-        const cl = val === filtreActif[type] ? 'active' : '';
+    const options = categories.map(val => {
+        const label = val === 'tous' ? 'Toutes les catégories' : val.charAt(0).toUpperCase() + val.slice(1);
         const emoji = val === 'tous' ? '🍴' : getEmojiCategorie(val);
-        return `<button class="btn-filter ${cl}" onclick="window.setFiltre('${type}','${val}',this)">${emoji} ${c}</button>`;
+        const selected = val === filtreActif[type] ? 'selected' : '';
+        return `<option value="${val}" ${selected}>${emoji} ${label}</option>`;
     }).join('');
+
+    zone.innerHTML = `
+        <div class="select-filtre-wrap">
+            <select class="select-filtre" onchange="window.setFiltre('${type}', this.value)">
+                ${options}
+            </select>
+        </div>
+    `;
 };
 
-window.setFiltre = (type, cat, el) => {
+window.setFiltre = (type, cat) => {
     filtreActif[type] = cat;
-    el.parentElement.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
     window.filtrerRecettes(type);
 };
 
