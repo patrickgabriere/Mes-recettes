@@ -8,7 +8,7 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 const CLAUDE_PROXY = "https://grimoire-proxy.patrick-gabriere.workers.dev";
-const MODEL = "claude-sonnet-4-6";
+const MODEL = "claude-sonnet-4-20250514";
 
 let toutesLesRecettes = [];
 let frigoImageBase64 = null;
@@ -30,6 +30,20 @@ function showToast(msg, type = "") {
 // =============================================
 // IMAGE — Emojis propres (fiable à 100%)
 // =============================================
+
+// Drapeaux et couleurs par origine
+const ORIGINE_FLAG = {
+    "française":     "🇫🇷", "italienne":    "🇮🇹", "espagnole":     "🇪🇸",
+    "mexicaine":     "🇲🇽", "japonaise":    "🇯🇵", "chinoise":      "🇨🇳",
+    "indienne":      "🇮🇳", "américaine":   "🇺🇸", "grecque":       "🇬🇷",
+    "marocaine":     "🇲🇦", "libanaise":    "🇱🇧", "thaïlandaise":  "🇹🇭",
+    "vietnamienne":  "🇻🇳", "coréenne":     "🇰🇷", "portugaise":    "🇵🇹",
+    "brésilienne":   "🇧🇷", "autre":        "🌐"
+};
+
+function getFlagOrigine(origine) {
+    return ORIGINE_FLAG[origine?.toLowerCase()] || "";
+}
 
 const EMOJI_CAT = {
     soupe: "🥣", plat: "🍽️", accompagnement: "🥗", "entrée": "🥗",
@@ -160,6 +174,7 @@ window.ajouterRecette = async () => {
             auteurId: auth.currentUser ? auth.currentUser.uid : "anonyme",
             auteurNom: auth.currentUser ? auth.currentUser.displayName : "Anonyme",
             estPublic: document.getElementById("public").checked,
+            origine: document.getElementById("origineRecette")?.value || "",
             notes: [],
             createdAt: Date.now()
         });
@@ -171,6 +186,7 @@ window.ajouterRecette = async () => {
         document.getElementById("portions").value = "";
         document.getElementById("zone-ingredients").innerHTML = `<div class="field-row"><input type="text" class="ingredient-item" placeholder="Ex: 200g de farine"></div>`;
         document.getElementById("zone-etapes").innerHTML = `<div class="field-row"><input type="text" class="etape-item" placeholder="Ex: Préchauffer le four à 180°C"></div>`;
+        const origEl = document.getElementById("origineRecette"); if (origEl) origEl.value = "";
         await chargerRecettes();
         window.changerOnglet('mes-recettes', document.querySelectorAll('.tab')[1]);
     } catch (e) {
@@ -205,32 +221,55 @@ onAuthStateChanged(auth, async (user) => {
 // =============================================
 
 let filtreActif = { commu: "tous", perso: "tous" };
+let filtreOrigine = { commu: "", perso: "" };
 
 window.genererFiltres = (type) => {
     const zone = document.getElementById('filtres-' + type);
     const uid = auth.currentUser ? auth.currentUser.uid : null;
     const recs = toutesLesRecettes.filter(r => type === 'commu' ? r.estPublic : r.auteurId === uid);
+
+    // Filtre catégorie
     const cats = [...new Set(recs.map(r => r.sousCategorie).filter(Boolean))];
     const categories = ["tous", ...cats.map(c => c.toLowerCase())];
-
-    const options = categories.map(val => {
+    const optionsCat = categories.map(val => {
         const label = val === 'tous' ? 'Toutes les catégories' : val.charAt(0).toUpperCase() + val.slice(1);
         const emoji = val === 'tous' ? '🍴' : getEmojiCategorie(val);
         const selected = val === filtreActif[type] ? 'selected' : '';
         return `<option value="${val}" ${selected}>${emoji} ${label}</option>`;
     }).join('');
 
+    // Filtre origine
+    const origines = [...new Set(recs.map(r => r.origine).filter(Boolean))];
+    const optionsOri = ['', ...origines.map(o => o.toLowerCase())].map(val => {
+        const label = val === '' ? '🌍 Toutes les origines' : `${getFlagOrigine(val)} ${val.charAt(0).toUpperCase() + val.slice(1)}`;
+        const selected = val === (filtreOrigine[type] || '') ? 'selected' : '';
+        return `<option value="${val}" ${selected}>${label}</option>`;
+    }).join('');
+
     zone.innerHTML = `
-        <div class="select-filtre-wrap">
-            <select class="select-filtre" onchange="window.setFiltre('${type}', this.value)">
-                ${options}
-            </select>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <div class="select-filtre-wrap">
+                <select class="select-filtre" onchange="window.setFiltre('${type}', this.value)">
+                    ${optionsCat}
+                </select>
+            </div>
+            ${origines.length > 0 ? `
+            <div class="select-filtre-wrap">
+                <select class="select-filtre" onchange="window.setFiltreOrigine('${type}', this.value)">
+                    ${optionsOri}
+                </select>
+            </div>` : ''}
         </div>
     `;
 };
 
 window.setFiltre = (type, cat) => {
     filtreActif[type] = cat;
+    window.filtrerRecettes(type);
+};
+
+window.setFiltreOrigine = (type, origine) => {
+    filtreOrigine[type] = origine;
     window.filtrerRecettes(type);
 };
 
@@ -246,6 +285,8 @@ window.filtrerRecettes = (type) => {
         (r.ingredients || "").toLowerCase().includes(txt)
     );
     if (fCat !== "tous") res = res.filter(r => r.sousCategorie?.toLowerCase() === fCat);
+    const fOri = filtreOrigine[type] || "";
+    if (fOri) res = res.filter(r => r.origine?.toLowerCase() === fOri);
 
     const grille = document.getElementById('grille-' + type);
 
@@ -284,6 +325,7 @@ window.filtrerRecettes = (type) => {
                         <span class="recette-badge" style="background:${bgColor};color:${accentColor};">${emoji} ${r.sousCategorie?.toUpperCase() || ''}</span>
                         ${tempsHtml}${portionsHtml}
                     </div>
+                    ${r.origine ? `<span class="recette-time">${getFlagOrigine(r.origine)} ${r.origine.charAt(0).toUpperCase() + r.origine.slice(1)}</span>` : ''}
                     ${r.auteurNom && type === 'commu' ? `<div class="card-author">par ${r.auteurNom}</div>` : ''}
                 </div>
             </div>
@@ -313,6 +355,7 @@ window.ouvrirRecette = (id) => {
         r.tempsCuisson ? `<span class="meta-chip">🔥 Cuisson: ${r.tempsCuisson}min</span>` : '',
         tempsTotal ? `<span class="meta-chip gold">⏰ Total: ${tempsTotal}min</span>` : '',
         r.portions ? `<span class="meta-chip">👥 ${r.portions} portions</span>` : '',
+        r.origine ? `<span class="meta-chip">${getFlagOrigine(r.origine)} ${r.origine.charAt(0).toUpperCase() + r.origine.slice(1)}</span>` : '',
     ].filter(Boolean).join('');
 
     document.getElementById("contenuRecetteHeader").innerHTML = `
@@ -498,10 +541,10 @@ window.demarrerVocalChamp = (inputId, btnEl) => {
 };
 
 // =============================================
-//  — GÉNÉRIQUE
+// CLAUDE — GÉNÉRIQUE
 // =============================================
 
-async function appeller(prompt, btnId, zoneId, labelEnCours, labelFini) {
+async function appellerClaude(prompt, btnId, zoneId, labelEnCours, labelFini) {
     const btn = document.getElementById(btnId);
     const rendu = document.getElementById(zoneId);
     if (!btn || !rendu) return;
@@ -523,7 +566,7 @@ async function appeller(prompt, btnId, zoneId, labelEnCours, labelFini) {
         rendu.style.whiteSpace = "pre-line";
         rendu.textContent = data.content[0].text;
     } catch (error) {
-        console.error("Erreur :", error);
+        console.error("Erreur Claude:", error);
         rendu.innerHTML = `<span style="color:#c0392b;">⚠️ Oups, le grimoire a eu un souci. Réessaye !</span>`;
     } finally {
         btn.innerHTML = labelFini;
@@ -533,7 +576,7 @@ async function appeller(prompt, btnId, zoneId, labelEnCours, labelFini) {
 
 window.genererListeCourses = () => {
     const r = window._recetteCourante; if (!r) return;
-    appeller(
+    appellerClaude(
         `Tu es l'assistant culinaire du "Grimoire des Parents".\nGénère une liste de courses organisée par rayons.\n\nRecette : ${r.nom}\n${r.portions ? `Portions : ${r.portions} personnes\n` : ''}Ingrédients : ${r.ingredients}\n\nRègles :\n1. Organise par rayons avec émoji (🥦 Fruits & Légumes, 🥖 Épicerie, 🥛 Frais, 🥩 Boucherie, 🧴 Condiments…)\n2. Un ingrédient par ligne avec émoji\n3. Pas de doublons\n4. Commence directement, sans intro.`,
         "btnGenererListe", "zoneRenduListe", "Génération en cours…", "✨ Régénérer la liste de courses (IA)"
     );
@@ -541,7 +584,7 @@ window.genererListeCourses = () => {
 
 window.genererConseils = () => {
     const r = window._recetteCourante; if (!r) return;
-    appeller(
+    appellerClaude(
         `Tu es un chef bienveillant qui aide des parents à cuisiner.\n\nRecette : ${r.nom} (${r.univers} - ${r.sousCategorie})\n${r.portions ? `Portions : ${r.portions}\n` : ''}Ingrédients : ${r.ingredients}\nÉtapes : ${r.etapes}\n\nDonne 4 à 6 conseils pratiques (astuces, variantes, conservation, accompagnements).\nFormat : une ligne par conseil avec émoji, sans intro.`,
         "btnConseils", "zoneRenduConseils", "Analyse en cours…", "🌿 Obtenir des conseils de préparation (IA)"
     );
@@ -550,7 +593,7 @@ window.genererConseils = () => {
 window.genererSimilaires = () => {
     const r = window._recetteCourante; if (!r) return;
     const nomsExistants = toutesLesRecettes.map(x => x.nom).join(', ');
-    appeller(
+    appellerClaude(
         `Tu es un chef passionné de cuisine familiale.\nSuggère 4 recettes similaires à : ${r.nom} (${r.univers} - ${r.sousCategorie})\nIngrédients principaux : ${r.ingredients}\nÀ éviter (déjà dans le grimoire) : ${nomsExistants || 'aucune'}\n\nFormat : 🍽️ **Nom** — Description courte. 4 suggestions, sans intro.`,
         "btnSimilaires", "zoneRenduSimilaires", "Recherche en cours…", "🍽️ Suggérer des recettes similaires (IA)"
     );
