@@ -381,10 +381,10 @@ header {
 
 .search-wrapper input {
     width: 100%;
-    padding: 14px 18px 14px 46px;
+    padding: 16px 60px 16px 50px;
     border-radius: var(--radius);
-    border: 2px solid var(--gray);
-    font-size: 0.95rem;
+    border: 2px solid var(--gray-mid);
+    font-size: 1.05rem;
     outline: none;
     background: #fafaf8;
     transition: border-color var(--transition);
@@ -393,14 +393,43 @@ header {
 }
 
 .search-wrapper input:focus { border-color: var(--orange); background: white; }
+.search-wrapper input::placeholder { color: #9a8878; }
+
 .search-icon {
     position: absolute;
     left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    color: #b0a090;
-    font-size: 1.1rem;
+    color: var(--brown-light);
+    font-size: 1.2rem;
     pointer-events: none;
+}
+
+.btn-mic-search {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: var(--gray);
+    color: var(--brown-light);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+.btn-mic-search:hover { background: var(--orange); color: white; }
+.btn-mic-search.recording { background: #c0392b; color: white; animation: pulse-mic 1s infinite; }
+
+@keyframes pulse-mic {
+    0%, 100% { transform: translateY(-50%) scale(1); }
+    50% { transform: translateY(-50%) scale(1.12); }
 }
 
 /* ========== FILTERS ========== */
@@ -989,30 +1018,29 @@ header {
 }
 
 .form-label {
-    font-size: 0.88rem;
+    font-size: 1rem;
     font-weight: 700;
-    color: var(--brown-light);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 10px;
+    color: var(--brown);
+    letter-spacing: 0.3px;
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 
 .field-row {
     display: flex;
     gap: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     align-items: center;
 }
 
 .field-row input {
     flex: 1;
-    padding: 13px 16px;
+    padding: 15px 16px;
     border-radius: var(--radius-sm);
-    border: 2px solid var(--gray);
-    font-size: 0.92rem;
+    border: 2px solid var(--gray-mid);
+    font-size: 1rem;
     outline: none;
     font-family: 'DM Sans', sans-serif;
     color: var(--brown);
@@ -1020,35 +1048,54 @@ header {
     background: #fafaf8;
 }
 .field-row input:focus { border-color: var(--orange); background: white; }
+.field-row input::placeholder { color: #9a8878; }
 
 .btn-remove-field {
     background: none;
     border: none;
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     cursor: pointer;
     color: var(--gray-mid);
     padding: 6px;
     border-radius: 50%;
     transition: var(--transition);
     flex-shrink: 0;
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 .btn-remove-field:hover { color: #c0392b; background: #fef2f2; }
 
+.btn-mic-field {
+    background: var(--gray);
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: var(--brown-light);
+    border-radius: 50%;
+    transition: var(--transition);
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-mic-field:hover { background: var(--orange); color: white; }
+.btn-mic-field.recording { background: #c0392b; color: white; animation: pulse-mic 1s infinite; }
+
 .btn-add-champ {
     background: none;
     border: 2px dashed var(--orange);
     color: var(--orange);
-    padding: 10px;
+    padding: 13px;
     border-radius: var(--radius-sm);
     cursor: pointer;
     width: 100%;
     font-weight: 600;
-    font-size: 0.88rem;
+    font-size: 1rem;
     transition: var(--transition);
     font-family: 'DM Sans', sans-serif;
 }
@@ -1061,10 +1108,10 @@ header {
 }
 
 select {
-    padding: 13px 16px;
+    padding: 15px 16px;
     border-radius: var(--radius-sm);
-    border: 2px solid var(--gray);
-    font-size: 0.92rem;
+    border: 2px solid var(--gray-mid);
+    font-size: 1rem;
     outline: none;
     background: #fafaf8;
     color: var(--brown);
@@ -1260,7 +1307,8 @@ select:focus { border-color: var(--orange); }
     <div id="page-commu" class="section-page active">
         <div class="search-wrapper">
             <span class="search-icon">🔍</span>
-            <input type="text" id="rechercheCommu" placeholder="Rechercher une recette publique..." oninput="window.filtrerRecettes('commu')">
+            <input type="text" id="rechercheCommu" placeholder="Rechercher une recette..." oninput="window.filtrerRecettes('commu')">
+            <button class="btn-mic-search" onclick="window.demarrerVocal('rechercheCommu', 'commu')" title="Recherche vocale">🎙️</button>
         </div>
         <div class="univers-filter" id="filtres-commu"></div>
         <div class="recettes-grid" id="grille-commu"></div>
@@ -1271,6 +1319,7 @@ select:focus { border-color: var(--orange); }
         <div class="search-wrapper">
             <span class="search-icon">🔍</span>
             <input type="text" id="recherchePerso" placeholder="Rechercher dans mes recettes..." oninput="window.filtrerRecettes('perso')">
+            <button class="btn-mic-search" onclick="window.demarrerVocal('recherchePerso', 'perso')" title="Recherche vocale">🎙️</button>
         </div>
         <div class="univers-filter" id="filtres-perso"></div>
         <div class="recettes-grid" id="grille-perso"></div>
@@ -1311,7 +1360,10 @@ select:focus { border-color: var(--orange); }
 
         <div class="form-section">
             <div class="form-label">📝 Nom de la recette</div>
-            <input type="text" id="nomRecette" class="input-full" placeholder="Ex: Gratin de mamie au reblochon">
+            <div class="field-row">
+                <input type="text" id="nomRecette" class="input-full" placeholder="Ex: Gratin de mamie au reblochon" style="flex:1;padding:15px 16px;border-radius:var(--radius-sm);border:2px solid var(--gray-mid);font-size:1rem;outline:none;font-family:'DM Sans',sans-serif;color:var(--brown);background:#fafaf8;width:100%;">
+                <button class="btn-mic-field" onclick="window.demarrerVocalChamp('nomRecette', null)" title="Dicter le nom">🎙️</button>
+            </div>
         </div>
 
         <div class="form-section">
@@ -1328,6 +1380,7 @@ select:focus { border-color: var(--orange); }
             <div id="zone-ingredients">
                 <div class="field-row">
                     <input type="text" class="ingredient-item" placeholder="Ex: 200g de farine">
+                    <button class="btn-mic-field" onclick="window.demarrerVocalChamp(null, this)" title="Dicter l'ingrédient">🎙️</button>
                 </div>
             </div>
             <button class="btn-add-champ" onclick="window.ajouterChamp('zone-ingredients', 'ingredient-item', 'Ex: 1 pincée de sel')">🌿 Ajouter un ingrédient</button>
@@ -1338,6 +1391,7 @@ select:focus { border-color: var(--orange); }
             <div id="zone-etapes">
                 <div class="field-row">
                     <input type="text" class="etape-item" placeholder="Ex: Préchauffer le four à 180°C">
+                    <button class="btn-mic-field" onclick="window.demarrerVocalChamp(null, this)" title="Dicter l'étape">🎙️</button>
                 </div>
             </div>
             <button class="btn-add-champ" onclick="window.ajouterChamp('zone-etapes', 'etape-item', 'Ex: Mélanger les ingrédients')">📜 Ajouter une étape</button>
