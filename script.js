@@ -7,27 +7,61 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
-// Claude proxy (Cloudflare Worker)
 const CLAUDE_PROXY = "https://grimoire-proxy.patrick-gabriere.workers.dev";
-const MODEL = "claude-sonnet-4-20250514"; // Modèle unifié partout
+const MODEL = "claude-sonnet-4-20250514";
 
 let toutesLesRecettes = [];
 let frigoImageBase64 = null;
-let isLoading = false;
 
 // =============================================
-// TOAST NOTIFICATIONS
+// TOAST
 // =============================================
 
 function showToast(msg, type = "") {
     const t = document.getElementById("toast");
-    t.textContent = "";
     t.className = "toast" + (type ? " " + type : "");
     const icon = type === "success" ? "✅ " : type === "error" ? "❌ " : "ℹ️ ";
     t.textContent = icon + msg;
     t.classList.add("show");
     clearTimeout(window._toastTimer);
     window._toastTimer = setTimeout(() => t.classList.remove("show"), 3500);
+}
+
+// =============================================
+// IMAGE — Emojis propres (fiable à 100%)
+// =============================================
+
+const EMOJI_CAT = {
+    soupe: "🥣", plat: "🍽️", accompagnement: "🥗", "entrée": "🥗",
+    sauce: "🫕", apéro: "🥂", salade: "🥙", gâteau: "🎂",
+    tarte: "🥧", biscuit: "🍪", viennoiserie: "🥐", "crème/mousse": "🍮",
+    confiture: "🫙", pain: "🍞"
+};
+
+// Couleurs de fond par catégorie — chaque carte a une belle couleur cohérente
+const BG_CAT = {
+    soupe:        ["#FFF3E0", "#E65100"],
+    plat:         ["#FBE9E7", "#BF360C"],
+    accompagnement:["#E8F5E9", "#2E7D32"],
+    "entrée":     ["#E3F2FD", "#1565C0"],
+    sauce:        ["#FCE4EC", "#880E4F"],
+    apéro:        ["#F3E5F5", "#6A1B9A"],
+    salade:       ["#E8F5E9", "#1B5E20"],
+    gâteau:       ["#FFF8E1", "#F57F17"],
+    tarte:        ["#FFF3E0", "#E65100"],
+    biscuit:      ["#EFEBE9", "#4E342E"],
+    viennoiserie: ["#FFF8E1", "#F9A825"],
+    "crème/mousse":["#F3E5F5", "#4A148C"],
+    confiture:    ["#FCE4EC", "#C62828"],
+    pain:         ["#EFEBE9", "#5D4037"],
+};
+
+function getEmojiCategorie(cat) {
+    return EMOJI_CAT[cat?.toLowerCase()] || "🍴";
+}
+
+function getBgCategorie(cat) {
+    return BG_CAT[cat?.toLowerCase()] || ["#F5F0EB", "#6B4C3B"];
 }
 
 // =============================================
@@ -65,35 +99,6 @@ window.majSousCategories = () => {
 };
 
 // =============================================
-// IMAGE HELPER — Pexels (Unsplash source. cassé)
-// =============================================
-
-function getImageUrl(recette) {
-    if (recette.image && recette.image.trim()) return recette.image;
-    // Pexels : images libres sans quota
-    const queries = {
-        soupe: "soup bowl", plat: "dinner plate food", accompagnement: "side dish",
-        entrée: "appetizer food", sauce: "sauce cooking", apéro: "appetizer snack",
-        salade: "salad bowl", gâteau: "cake dessert", tarte: "pie tart pastry",
-        biscuit: "cookies biscuits", viennoiserie: "croissant pastry", "crème/mousse": "mousse dessert",
-        confiture: "jam preserve", pain: "bread loaf"
-    };
-    const q = encodeURIComponent(queries[recette.sousCategorie] || recette.nom.split(' ').slice(0,2).join(' '));
-    // Utilise picsum avec seed basé sur le nom pour une image stable et reproductible
-    const seed = recette.nom.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    return `https://picsum.photos/seed/${seed}/400/300`;
-}
-
-function getEmojiCategorie(sousCategorie) {
-    const map = {
-        soupe: "🥣", plat: "🍽️", accompagnement: "🥗", entrée: "🥗", sauce: "🫕",
-        apéro: "🥂", salade: "🥙", gâteau: "🎂", tarte: "🥧", biscuit: "🍪",
-        viennoiserie: "🥐", "crème/mousse": "🍮", confiture: "🫙", pain: "🍞"
-    };
-    return map[sousCategorie?.toLowerCase()] || "🍴";
-}
-
-// =============================================
 // FIREBASE — CHARGEMENT
 // =============================================
 
@@ -117,8 +122,8 @@ function afficherSkeletons(n = 6) {
         <div class="skeleton-card">
             <div class="skeleton skeleton-img"></div>
             <div style="padding:16px;">
-                <div class="skeleton skeleton-line tall" style="margin-left:0; margin-right:0; width:80%;"></div>
-                <div class="skeleton skeleton-line short" style="margin-left:0; margin-right:0; margin-top:10px;"></div>
+                <div class="skeleton skeleton-line tall" style="margin-left:0;margin-right:0;width:80%;"></div>
+                <div class="skeleton skeleton-line short" style="margin-left:0;margin-right:0;margin-top:10px;"></div>
             </div>
         </div>
     `).join('');
@@ -158,7 +163,6 @@ window.ajouterRecette = async () => {
             createdAt: Date.now()
         });
         showToast("Recette ajoutée au Grimoire !", "success");
-        // Reset form
         document.getElementById("nomRecette").value = "";
         document.getElementById("imageLien").value = "";
         document.getElementById("tempsPrep").value = "";
@@ -166,7 +170,6 @@ window.ajouterRecette = async () => {
         document.getElementById("portions").value = "";
         document.getElementById("zone-ingredients").innerHTML = `<div class="field-row"><input type="text" class="ingredient-item" placeholder="Ex: 200g de farine"></div>`;
         document.getElementById("zone-etapes").innerHTML = `<div class="field-row"><input type="text" class="etape-item" placeholder="Ex: Préchauffer le four à 180°C"></div>`;
-        // Recharger sans reload complet
         await chargerRecettes();
         window.changerOnglet('mes-recettes', document.querySelectorAll('.tab')[1]);
     } catch (e) {
@@ -206,11 +209,13 @@ window.genererFiltres = (type) => {
     const zone = document.getElementById('filtres-' + type);
     const uid = auth.currentUser ? auth.currentUser.uid : null;
     const recs = toutesLesRecettes.filter(r => type === 'commu' ? r.estPublic : r.auteurId === uid);
-    const categories = ["Tous", ...new Set(recs.map(r => r.sousCategorie).filter(Boolean).map(c => c.charAt(0).toUpperCase() + c.slice(1)))];
+    const cats = [...new Set(recs.map(r => r.sousCategorie).filter(Boolean))];
+    const categories = ["Tous", ...cats.map(c => c.charAt(0).toUpperCase() + c.slice(1))];
+
     zone.innerHTML = categories.map(c => {
         const val = c.toLowerCase();
         const cl = val === filtreActif[type] ? 'active' : '';
-        const emoji = getEmojiCategorie(val);
+        const emoji = val === 'tous' ? '🍴' : getEmojiCategorie(val);
         return `<button class="btn-filter ${cl}" onclick="window.setFiltre('${type}','${val}',this)">${emoji} ${c}</button>`;
     }).join('');
 };
@@ -249,25 +254,28 @@ window.filtrerRecettes = (type) => {
     }
 
     grille.innerHTML = res.map(r => {
-        const imgUrl = getImageUrl(r);
         const emoji = getEmojiCategorie(r.sousCategorie);
+        const [bgColor, accentColor] = getBgCategorie(r.sousCategorie);
         const temps = [];
-        if (r.tempsPrep) temps.push(`⏱ Prép: ${r.tempsPrep}min`);
-        if (r.tempsCuisson) temps.push(`🔥 Cuisson: ${r.tempsCuisson}min`);
+        if (r.tempsPrep) temps.push(`⏱ ${r.tempsPrep}min`);
+        if (r.tempsCuisson) temps.push(`🔥 ${r.tempsCuisson}min`);
         const tempsHtml = temps.length ? `<span class="recette-time">${temps.join(' · ')}</span>` : '';
-        const portionsHtml = r.portions ? `<span class="recette-time">👥 ${r.portions} pers.</span>` : '';
+        const portionsHtml = r.portions ? `<span class="recette-time">👥 ${r.portions}p</span>` : '';
+
+        // Si une vraie image est fournie, on l'utilise ; sinon emoji sur fond coloré
+        const imageHtml = (r.image && r.image.trim())
+            ? `<img class="recette-img" src="${r.image}" alt="${r.nom}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+               <div class="recette-img-placeholder" style="display:none;background:${bgColor};font-size:4rem;">${emoji}</div>`
+            : `<div class="recette-img-placeholder" style="background:${bgColor};font-size:4rem;">${emoji}</div>`;
 
         return `
             <div class="recette-card" onclick="window.ouvrirRecette('${r.id}')">
-                <img class="recette-img" src="${imgUrl}" alt="${r.nom}"
-                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div class="recette-img-placeholder" style="display:none;">${emoji}</div>
+                ${imageHtml}
                 <div class="recette-info">
                     <div class="recette-title">${r.nom}</div>
                     <div class="recette-meta">
-                        <span class="recette-badge">${emoji} ${r.sousCategorie?.toUpperCase() || ''}</span>
-                        ${tempsHtml}
-                        ${portionsHtml}
+                        <span class="recette-badge" style="background:${bgColor};color:${accentColor};">${emoji} ${r.sousCategorie?.toUpperCase() || ''}</span>
+                        ${tempsHtml}${portionsHtml}
                     </div>
                     ${r.auteurNom && type === 'commu' ? `<div class="card-author">par ${r.auteurNom}</div>` : ''}
                 </div>
@@ -277,7 +285,7 @@ window.filtrerRecettes = (type) => {
 };
 
 // =============================================
-// MODAL DÉTAIL RECETTE
+// MODAL
 // =============================================
 
 window.ouvrirRecette = (id) => {
@@ -287,11 +295,13 @@ window.ouvrirRecette = (id) => {
     const estAuteur = auth.currentUser && r.auteurId === auth.currentUser.uid;
     window._recetteCourante = r;
 
-    // Header
+    const emoji = getEmojiCategorie(r.sousCategorie);
+    const [bgColor, accentColor] = getBgCategorie(r.sousCategorie);
     const tempsTotal = (r.tempsPrep || 0) + (r.tempsCuisson || 0);
+
     const chips = [
         r.univers ? `<span class="meta-chip">${r.univers === 'pâtisserie' ? '🥐' : '🍳'} ${r.univers}</span>` : '',
-        r.sousCategorie ? `<span class="meta-chip orange">${getEmojiCategorie(r.sousCategorie)} ${r.sousCategorie}</span>` : '',
+        r.sousCategorie ? `<span class="meta-chip orange">${emoji} ${r.sousCategorie}</span>` : '',
         r.tempsPrep ? `<span class="meta-chip">⏱ Prép: ${r.tempsPrep}min</span>` : '',
         r.tempsCuisson ? `<span class="meta-chip">🔥 Cuisson: ${r.tempsCuisson}min</span>` : '',
         tempsTotal ? `<span class="meta-chip gold">⏰ Total: ${tempsTotal}min</span>` : '',
@@ -300,72 +310,51 @@ window.ouvrirRecette = (id) => {
 
     document.getElementById("contenuRecetteHeader").innerHTML = `
         <div class="modal-title">${r.nom}</div>
-        <div class="modal-meta-row">${chips || '<span class="meta-chip">🍽️ Recette</span>'}</div>
+        <div class="modal-meta-row">${chips || `<span class="meta-chip">🍽️ Recette</span>`}</div>
     `;
 
-    // Body
-    const ingredientsList = (r.ingredients || "").split('\n').filter(Boolean)
-        .map(i => `<li>${i}</li>`).join('');
-
-    const etapesList = (r.etapes || "").split('\n').filter(Boolean)
-        .map(e => `<li>${e}</li>`).join('');
+    const ingredientsList = (r.ingredients || "").split('\n').filter(Boolean).map(i => `<li>${i}</li>`).join('');
+    const etapesList = (r.etapes || "").split('\n').filter(Boolean).map(e => `<li>${e}</li>`).join('');
 
     const notesList = (r.notes || []).map(n => `
         <div class="note-item">
             ${n.texte}
             <div class="note-author">— ${n.auteur || 'Anonyme'}</div>
         </div>
-    `).join('') || '<p style="color:#b0a090; font-size:0.85rem; margin-bottom:8px;">Pas encore de notes. Sois le premier !</p>';
-
-    const peutAjouterNote = !!auth.currentUser;
+    `).join('') || '<p style="color:#b0a090;font-size:0.85rem;margin-bottom:8px;">Pas encore de notes. Sois le premier !</p>';
 
     let bodyHtml = `
         <div class="modal-section-title">🍓 Ingrédients</div>
         <ul class="list-ingredients">${ingredientsList || '<li>Non renseignés</li>'}</ul>
 
-        ${etapesList ? `
-        <div class="modal-section-title">🍳 Préparation</div>
-        <ol class="ol-etapes">${etapesList}</ol>
-        ` : ''}
+        ${etapesList ? `<div class="modal-section-title">🍳 Préparation</div><ol class="ol-etapes">${etapesList}</ol>` : ''}
 
-        <!-- NOTES -->
         <div class="notes-zone">
             <div class="notes-title">📝 Notes & Astuces</div>
             <div class="notes-list" id="notes-list">${notesList}</div>
-            ${peutAjouterNote ? `
+            ${auth.currentUser ? `
             <div class="note-input-row">
                 <textarea id="noteInput" placeholder="Partage une astuce, une variante..."></textarea>
-                <button onclick="window.ajouterNote('${r.id}')" class="btn-ia btn-ia-purple" style="width:auto; padding:10px 14px;">✉️</button>
-            </div>
-            ` : `<p style="font-size:0.82rem; color:#b0a090;">Connecte-toi pour laisser une note.</p>`}
+                <button onclick="window.ajouterNote('${r.id}')" class="btn-ia btn-ia-purple" style="width:auto;padding:10px 14px;">✉️</button>
+            </div>` : `<p style="font-size:0.82rem;color:#b0a090;">Connecte-toi pour laisser une note.</p>`}
         </div>
 
-        <!-- IA BOXES -->
         <div class="ia-box ia-box-purple">
             <p class="ia-box-title">🛒 Liste de courses</p>
-            <button class="btn-ia btn-ia-purple" id="btnGenererListe" onclick="window.genererListeCourses()">
-                ✨ Générer ma liste de courses triée (IA)
-            </button>
+            <button class="btn-ia btn-ia-purple" id="btnGenererListe" onclick="window.genererListeCourses()">✨ Générer ma liste de courses triée (IA)</button>
             <div id="zoneRenduListe" class="liste-rendu"></div>
         </div>
-
         <div class="ia-box ia-box-green">
             <p class="ia-box-title">👨‍🍳 Conseils du chef</p>
-            <button class="btn-ia btn-ia-green" id="btnConseils" onclick="window.genererConseils()">
-                🌿 Obtenir des conseils de préparation (IA)
-            </button>
+            <button class="btn-ia btn-ia-green" id="btnConseils" onclick="window.genererConseils()">🌿 Obtenir des conseils de préparation (IA)</button>
             <div id="zoneRenduConseils" class="liste-rendu"></div>
         </div>
-
         <div class="ia-box ia-box-orange">
             <p class="ia-box-title">🔍 Recettes similaires</p>
-            <button class="btn-ia btn-ia-orange" id="btnSimilaires" onclick="window.genererSimilaires()">
-                🍽️ Suggérer des recettes similaires (IA)
-            </button>
+            <button class="btn-ia btn-ia-orange" id="btnSimilaires" onclick="window.genererSimilaires()">🍽️ Suggérer des recettes similaires (IA)</button>
             <div id="zoneRenduSimilaires" class="liste-rendu"></div>
         </div>
 
-        <!-- ACTIONS -->
         <button class="btn-print" onclick="window.print()">🖨️ Imprimer cette recette</button>
     `;
 
@@ -384,10 +373,7 @@ window.fermerRecette = () => {
     window._recetteCourante = null;
 };
 
-// Fermer avec Escape
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') window.fermerRecette();
-});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') window.fermerRecette(); });
 
 window.supprimerRecette = async (id) => {
     if (!confirm("Supprimer définitivement cette recette ?")) return;
@@ -400,9 +386,7 @@ window.supprimerRecette = async (id) => {
         window.filtrerRecettes('commu');
         window.filtrerRecettes('perso');
         showToast("Recette supprimée", "success");
-    } catch (e) {
-        showToast("Erreur lors de la suppression", "error");
-    }
+    } catch (e) { showToast("Erreur lors de la suppression", "error"); }
 };
 
 // =============================================
@@ -418,27 +402,18 @@ window.ajouterNote = async (recetteId) => {
     const note = { texte, auteur: auth.currentUser.displayName, ts: Date.now() };
     try {
         await updateDoc(doc(db, "recettes", recetteId), { notes: arrayUnion(note) });
-        // Mise à jour locale
         const r = toutesLesRecettes.find(x => x.id === recetteId);
-        if (r) { r.notes = [...(r.notes || []), note]; }
-        window._recetteCourante = r;
+        if (r) r.notes = [...(r.notes || []), note];
         input.value = "";
-        // Refresh notes list
-        const notesList = (r.notes || []).map(n => `
-            <div class="note-item">
-                ${n.texte}
-                <div class="note-author">— ${n.auteur || 'Anonyme'}</div>
-            </div>
+        document.getElementById("notes-list").innerHTML = (r.notes || []).map(n => `
+            <div class="note-item">${n.texte}<div class="note-author">— ${n.auteur || 'Anonyme'}</div></div>
         `).join('');
-        document.getElementById("notes-list").innerHTML = notesList;
         showToast("Note ajoutée !", "success");
-    } catch (e) {
-        showToast("Erreur lors de l'ajout de la note", "error");
-    }
+    } catch (e) { showToast("Erreur lors de l'ajout de la note", "error"); }
 };
 
 // =============================================
-// APPEL CLAUDE — GÉNÉRIQUE
+// CLAUDE — GÉNÉRIQUE
 // =============================================
 
 async function appellerClaude(prompt, btnId, zoneId, labelEnCours, labelFini) {
@@ -455,19 +430,13 @@ async function appellerClaude(prompt, btnId, zoneId, labelEnCours, labelFini) {
         const response = await fetch(CLAUDE_PROXY, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                model: MODEL,
-                max_tokens: 1000,
-                messages: [{ role: "user", content: prompt }]
-            })
+            body: JSON.stringify({ model: MODEL, max_tokens: 1000, messages: [{ role: "user", content: prompt }] })
         });
-
         if (!response.ok) throw new Error(`Erreur serveur: ${response.status}`);
         const data = await response.json();
         rendu.innerHTML = "";
         rendu.style.whiteSpace = "pre-line";
         rendu.textContent = data.content[0].text;
-
     } catch (error) {
         console.error("Erreur Claude:", error);
         rendu.innerHTML = `<span style="color:#c0392b;">⚠️ Oups, le grimoire a eu un souci. Réessaye !</span>`;
@@ -477,97 +446,38 @@ async function appellerClaude(prompt, btnId, zoneId, labelEnCours, labelFini) {
     }
 }
 
-// =============================================
-// IA 1 — LISTE DE COURSES
-// =============================================
-
 window.genererListeCourses = () => {
-    const r = window._recetteCourante;
-    if (!r) return;
-
-    const tempsInfo = [r.tempsPrep && `Préparation : ${r.tempsPrep}min`, r.tempsCuisson && `Cuisson : ${r.tempsCuisson}min`]
-        .filter(Boolean).join(', ');
-
-    const prompt = `Tu es l'assistant culinaire du "Grimoire des Parents".
-Génère une liste de courses claire et organisée par rayons pour cette recette.
-
-Recette : ${r.nom}
-${tempsInfo ? `Temps : ${tempsInfo}` : ''}
-${r.portions ? `Portions : ${r.portions} personnes` : ''}
-Ingrédients : ${r.ingredients}
-
-Règles :
-1. Organise par rayons avec un émoji (🥦 Fruits & Légumes, 🥖 Épicerie sèche, 🥛 Crèmerie/Frais, 🥩 Boucherie/Poissonnerie, 🧴 Condiments, etc.)
-2. Un ingrédient par ligne avec un petit émoji devant
-3. Supprime les doublons
-4. Commence directement par les rayons, sans introduction ni conclusion`;
-
-    appellerClaude(prompt, "btnGenererListe", "zoneRenduListe",
-        "Génération en cours…", "✨ Régénérer la liste de courses (IA)");
+    const r = window._recetteCourante; if (!r) return;
+    appellerClaude(
+        `Tu es l'assistant culinaire du "Grimoire des Parents".\nGénère une liste de courses organisée par rayons.\n\nRecette : ${r.nom}\n${r.portions ? `Portions : ${r.portions} personnes\n` : ''}Ingrédients : ${r.ingredients}\n\nRègles :\n1. Organise par rayons avec émoji (🥦 Fruits & Légumes, 🥖 Épicerie, 🥛 Frais, 🥩 Boucherie, 🧴 Condiments…)\n2. Un ingrédient par ligne avec émoji\n3. Pas de doublons\n4. Commence directement, sans intro.`,
+        "btnGenererListe", "zoneRenduListe", "Génération en cours…", "✨ Régénérer la liste de courses (IA)"
+    );
 };
-
-// =============================================
-// IA 2 — CONSEILS DU CHEF
-// =============================================
 
 window.genererConseils = () => {
-    const r = window._recetteCourante;
-    if (!r) return;
-
-    const prompt = `Tu es un chef cuisinier bienveillant qui aide des parents à cuisiner pour leur famille.
-Donne des conseils pratiques pour réussir cette recette.
-
-Recette : ${r.nom}
-Catégorie : ${r.univers} - ${r.sousCategorie}
-${r.portions ? `Portions : ${r.portions} personnes` : ''}
-Ingrédients : ${r.ingredients}
-Étapes : ${r.etapes}
-
-Donne 4 à 6 conseils concrets :
-- Astuces pour ne pas rater
-- Variantes possibles
-- Conseils de conservation
-- Accompagnements suggérés si pertinent
-Format : une ligne par conseil avec un émoji, sans introduction ni conclusion.`;
-
-    appellerClaude(prompt, "btnConseils", "zoneRenduConseils",
-        "Analyse en cours…", "🌿 Obtenir des conseils de préparation (IA)");
+    const r = window._recetteCourante; if (!r) return;
+    appellerClaude(
+        `Tu es un chef bienveillant qui aide des parents à cuisiner.\n\nRecette : ${r.nom} (${r.univers} - ${r.sousCategorie})\n${r.portions ? `Portions : ${r.portions}\n` : ''}Ingrédients : ${r.ingredients}\nÉtapes : ${r.etapes}\n\nDonne 4 à 6 conseils pratiques (astuces, variantes, conservation, accompagnements).\nFormat : une ligne par conseil avec émoji, sans intro.`,
+        "btnConseils", "zoneRenduConseils", "Analyse en cours…", "🌿 Obtenir des conseils de préparation (IA)"
+    );
 };
-
-// =============================================
-// IA 3 — RECETTES SIMILAIRES
-// =============================================
 
 window.genererSimilaires = () => {
-    const r = window._recetteCourante;
-    if (!r) return;
-
+    const r = window._recetteCourante; if (!r) return;
     const nomsExistants = toutesLesRecettes.map(x => x.nom).join(', ');
-
-    const prompt = `Tu es un chef passionné de cuisine familiale.
-Suggère 4 recettes similaires à celle-ci que la famille pourrait aimer.
-
-Recette de référence : ${r.nom} (${r.univers} - ${r.sousCategorie})
-Ingrédients principaux : ${r.ingredients}
-Recettes déjà dans le grimoire (à éviter) : ${nomsExistants || 'aucune'}
-
-Pour chaque suggestion :
-🍽️ **Nom de la recette** — Courte description en 1 phrase et pourquoi c'est similaire.
-
-Format : 4 suggestions, directement sans introduction.`;
-
-    appellerClaude(prompt, "btnSimilaires", "zoneRenduSimilaires",
-        "Recherche en cours…", "🍽️ Suggérer des recettes similaires (IA)");
+    appellerClaude(
+        `Tu es un chef passionné de cuisine familiale.\nSuggère 4 recettes similaires à : ${r.nom} (${r.univers} - ${r.sousCategorie})\nIngrédients principaux : ${r.ingredients}\nÀ éviter (déjà dans le grimoire) : ${nomsExistants || 'aucune'}\n\nFormat : 🍽️ **Nom** — Description courte. 4 suggestions, sans intro.`,
+        "btnSimilaires", "zoneRenduSimilaires", "Recherche en cours…", "🍽️ Suggérer des recettes similaires (IA)"
+    );
 };
 
 // =============================================
-// IA 4 — PHOTO DU FRIGO
+// FRIGO
 // =============================================
 
 window.previsualiserFrigo = (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (e) => {
         const preview = document.getElementById("frigoPreview");
@@ -583,55 +493,27 @@ window.previsualiserFrigo = (event) => {
 
 window.analyserFrigo = async () => {
     if (!frigoImageBase64) return;
-
     const btn = document.getElementById("btnAnalyseFrigo");
     btn.innerHTML = `<span class="spinner"></span> Analyse du frigo en cours…`;
     btn.disabled = true;
-
-    const nomsRecettes = toutesLesRecettes.map(r => r.nom).join(', ');
-
-    const prompt = `Tu es l'assistant culinaire du "Grimoire des Parents", une app de recettes familiales.
-Analyse cette photo de frigo et réponds en JSON valide UNIQUEMENT, sans texte autour, sans balises markdown.
-
-Format attendu :
-{
-  "ingredients": ["ingrédient 1", "ingrédient 2"],
-  "recettes": [
-    { "emoji": "🍳", "titre": "Nom de la recette", "description": "Courte description et ingrédients utilisés" }
-  ]
-}
-
-Règles :
-- Liste tous les ingrédients visibles dans le frigo
-- Propose 3 à 5 recettes réalisables avec ces ingrédients
-- Donne la priorité aux recettes de type : ${nomsRecettes || 'cuisine familiale française'}
-- Reste simple et familial`;
 
     try {
         const response = await fetch(CLAUDE_PROXY, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                model: MODEL,
-                max_tokens: 1000,
-                messages: [{
-                    role: "user",
-                    content: [
-                        { type: "image", source: { type: "base64", media_type: "image/jpeg", data: frigoImageBase64 } },
-                        { type: "text", text: prompt }
-                    ]
-                }]
+                model: MODEL, max_tokens: 1000,
+                messages: [{ role: "user", content: [
+                    { type: "image", source: { type: "base64", media_type: "image/jpeg", data: frigoImageBase64 } },
+                    { type: "text", text: `Analyse ce frigo. Réponds en JSON UNIQUEMENT (sans markdown).\n{"ingredients":["..."],"recettes":[{"emoji":"🍳","titre":"...","description":"..."}]}\nPropose 3-5 recettes familiales réalisables avec ces ingrédients.` }
+                ]}]
             })
         });
-
-        if (!response.ok) throw new Error(`Erreur serveur: ${response.status}`);
+        if (!response.ok) throw new Error();
         const data = await response.json();
-        const texte = data.content[0].text;
-        const json = JSON.parse(texte.replace(/```json|```/g, '').trim());
+        const json = JSON.parse(data.content[0].text.replace(/```json|```/g, '').trim());
         afficherResultatsFrigo(json);
-
-    } catch (error) {
-        console.error("Erreur analyse frigo:", error);
+    } catch (e) {
         showToast("Impossible d'analyser la photo. Vérifie ta connexion !", "error");
     } finally {
         btn.innerHTML = "✨ Ré-analyser le frigo (IA)";
@@ -640,23 +522,15 @@ Règles :
 };
 
 function afficherResultatsFrigo(json) {
-    const zoneIngredients = document.getElementById("frigo-ingredients");
-    const tagsEl = document.getElementById("frigo-tags");
-    tagsEl.innerHTML = json.ingredients.map(i => `<span class="tag-ingredient">🌿 ${i}</span>`).join('');
-    zoneIngredients.style.display = "block";
-
-    const zoneRecettes = document.getElementById("frigo-recettes");
-    const listeEl = document.getElementById("frigo-recettes-liste");
-    listeEl.innerHTML = json.recettes.map(r => `
+    document.getElementById("frigo-tags").innerHTML = json.ingredients.map(i => `<span class="tag-ingredient">🌿 ${i}</span>`).join('');
+    document.getElementById("frigo-ingredients").style.display = "block";
+    document.getElementById("frigo-recettes-liste").innerHTML = json.recettes.map(r => `
         <div class="frigo-recette-card">
             <div class="emoji">${r.emoji}</div>
-            <div>
-                <div class="titre">${r.titre}</div>
-                <div class="sous">${r.description}</div>
-            </div>
+            <div><div class="titre">${r.titre}</div><div class="sous">${r.description}</div></div>
         </div>
     `).join('');
-    zoneRecettes.style.display = "block";
+    document.getElementById("frigo-recettes").style.display = "block";
 }
 
 // =============================================
@@ -666,27 +540,22 @@ function afficherResultatsFrigo(json) {
 window.majSousCategories();
 
 let deferredPrompt;
-const installContainer = document.getElementById('pwa-install-container');
-const installBtn = document.getElementById('btn-pwa-install');
-
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.warn("SW Error:", err));
-    });
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
-
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    if (installContainer) installContainer.style.display = 'flex';
+    const c = document.getElementById('pwa-install-container');
+    if (c) c.style.display = 'flex';
 });
-
+const installBtn = document.getElementById('btn-pwa-install');
 if (installBtn) {
     installBtn.addEventListener('click', async () => {
         if (!deferredPrompt) return;
         deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
+        await deferredPrompt.userChoice;
         deferredPrompt = null;
-        if (installContainer) installContainer.style.display = 'none';
+        document.getElementById('pwa-install-container').style.display = 'none';
     });
 }
