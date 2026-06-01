@@ -539,23 +539,114 @@ function afficherResultatsFrigo(json) {
 
 window.majSousCategories();
 
-let deferredPrompt;
+// =============================================
+// PWA — Installation douce (Android + iPhone)
+// =============================================
+
+let deferredPrompt = null;
+
+// Détection iPhone/iPad
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+// Détection si déjà installée (mode standalone)
+const isInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+// Service Worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
+
+// Android : capturer l'événement natif
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
+    // On affiche la bannière discrète en haut (pas la modale)
     const c = document.getElementById('pwa-install-container');
-    if (c) c.style.display = 'flex';
+    if (c && !isInstalled) c.style.display = 'flex';
 });
+
+// Bouton bannière Android
 const installBtn = document.getElementById('btn-pwa-install');
 if (installBtn) {
     installBtn.addEventListener('click', async () => {
         if (!deferredPrompt) return;
+        document.getElementById('pwa-install-container').style.display = 'none';
         deferredPrompt.prompt();
         await deferredPrompt.userChoice;
         deferredPrompt = null;
-        document.getElementById('pwa-install-container').style.display = 'none';
     });
 }
+
+// Contenu des étapes selon le type de téléphone
+const STEPS_ANDROID = [
+    "Appuie sur les <strong>trois petits points</strong> ⋮ en haut à droite de Chrome",
+    "Puis sur <strong>« Ajouter à l'écran d'accueil »</strong>",
+    "Et enfin <strong>Installer</strong> — c'est tout !"
+];
+const STEPS_IOS = [
+    "Appuie sur le bouton <strong>Partager</strong> ⬆ en bas de Safari",
+    "Fais défiler et appuie sur <strong>« Sur l'écran d'accueil »</strong>",
+    "Puis <strong>Ajouter</strong> en haut à droite — et voilà !"
+];
+
+function remplirEtapesInstall() {
+    const liste = document.getElementById('install-steps-list');
+    const btn = document.getElementById('install-btn-main');
+    if (!liste) return;
+    const steps = isIOS ? STEPS_IOS : STEPS_ANDROID;
+    liste.innerHTML = steps.map((s, i) => `
+        <li>
+            <span class="step-dot">${i + 1}</span>
+            <span>${s}</span>
+        </li>
+    `).join('');
+    // Sur iOS pas d'événement natif, le bouton explique juste (déjà visible dans les étapes)
+    if (isIOS && btn) {
+        btn.style.display = 'none'; // les étapes suffisent, pas de bouton
+    }
+}
+
+window.actionInstall = async () => {
+    if (deferredPrompt) {
+        // Android avec prompt natif disponible
+        document.getElementById('modal-install').style.display = 'none';
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+    }
+    // Sur iOS : rien à faire, les étapes visuelles guident l'utilisateur
+};
+
+window.fermerModalInstall = (definitivement = false) => {
+    document.getElementById('modal-install').style.display = 'none';
+    if (definitivement) {
+        // On se souvient du refus pour ne pas re-afficher à chaque visite
+        try { localStorage.setItem('grimoire-install-refused', '1'); } catch(e) {}
+    }
+};
+
+// Afficher la modale douce après 4s si :
+// - pas déjà installée
+// - pas déjà refusée
+// - première ou deuxième visite (pas toutes les visites)
+function tenterAfficherModalInstall() {
+    if (isInstalled) return; // Déjà installée, on ne dérange pas
+
+    try {
+        if (localStorage.getItem('grimoire-install-refused')) return; // Refus mémorisé
+
+        const visites = parseInt(localStorage.getItem('grimoire-visites') || '0') + 1;
+        localStorage.setItem('grimoire-visites', visites);
+
+        // On propose seulement à la 1ère et 3ème visite, pas à chaque fois
+        if (visites !== 1 && visites !== 3) return;
+    } catch(e) {}
+
+    remplirEtapesInstall();
+    setTimeout(() => {
+        const modal = document.getElementById('modal-install');
+        if (modal) modal.style.display = 'block';
+    }, 4000); // 4 secondes après le chargement, pas agressif
+}
+
+// On attend que les recettes soient chargées avant de proposer
+window.addEventListener('load', tenterAfficherModalInstall);
