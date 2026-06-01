@@ -122,8 +122,9 @@ window.filtrerRecettes = (type) => {
 
     const grille = document.getElementById('grille-' + type);
     grille.innerHTML = res.map(r => `
+        const motCleImage = encodeURIComponent(r.nom.replace(/'/g, ' '));
         <div class="recette-card" onclick="window.ouvrirRecette('${r.id}')">
-            <img class="recette-img" src="${r.image || 'https://source.unsplash.com/featured/?' + encodeURIComponent(r.nom)}" alt="${r.nom}">
+            <img class="recette-img" src="${r.image || 'https://source.unsplash.com/featured/?' + motCleImage}" alt="${r.nom}">
             <div class="recette-info">
                 <div class="recette-title">${r.nom}</div>
                 <div class="recette-badge">${r.sousCategorie.toUpperCase()}</div>
