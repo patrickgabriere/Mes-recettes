@@ -512,7 +512,7 @@ async function appeller(prompt, btnId, zoneId, labelEnCours, labelFini) {
     rendu.innerHTML = `<span class="ia-loading"><span class="spinner"></span> Magie en cours…</span>`;
 
     try {
-        const response = await fetch(_PROXY, {
+        const response = await fetch(CLAUDE_PROXY, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ model: MODEL, max_tokens: 1000, messages: [{ role: "user", content: prompt }] })
