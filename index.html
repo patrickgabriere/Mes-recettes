@@ -255,22 +255,19 @@ header {
 /* ========== FILTERS ========== */
 .univers-filter {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 28px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    scrollbar-width: none;
 }
-.univers-filter::-webkit-scrollbar { display: none; }
 
 .btn-filter {
-    padding: 8px 18px;
+    padding: 7px 14px;
     border: 2px solid var(--gray-mid);
     background: white;
     border-radius: 30px;
     cursor: pointer;
     font-weight: 500;
-    font-size: 0.83rem;
+    font-size: 0.8rem;
     color: var(--brown-light);
     transition: var(--transition);
     white-space: nowrap;
