@@ -8,7 +8,7 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 const CLAUDE_PROXY = "https://grimoire-proxy.patrick-gabriere.workers.dev";
-const MODEL = "claude-haiku-4-5";
+const MODEL = "const MODEL = "claude-sonnet-4-6";
 
 let toutesLesRecettes = [];
 let frigoImageBase64 = null;
