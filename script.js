@@ -583,7 +583,7 @@ window.analyserFrigo = async () => {
     btn.disabled = true;
 
     try {
-        const response = await fetch(_PROXY, {
+        const response = await fetch(CLAUDE_PROXY, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
