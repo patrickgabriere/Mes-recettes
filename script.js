@@ -8,7 +8,7 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 const CLAUDE_PROXY = "https://grimoire-proxy.patrick-gabriere.workers.dev";
-const MODEL = "claude-haiku-4-5";
+const MODEL = "claude-haiku-4-5-20251001";
 
 // =============================================
 // SCANNER RECETTE PAPIER — IA
@@ -1358,3 +1358,32 @@ function tenterAfficherModalInstall() {
 
 // On attend que les recettes soient chargées avant de proposer
 window.addEventListener('load', tenterAfficherModalInstall);
+
+// =============================================
+// PWA
+// =============================================
+let deferredPrompt;
+const installContainer = document.getElementById('pwa-install-container');
+const installBtn = document.getElementById('btn-pwa-install');
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log("SW Error:", err));
+    });
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (installContainer) installContainer.style.display = 'block';
+});
+
+if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        if (installContainer) installContainer.style.display = 'none';
+    });
+}
