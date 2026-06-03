@@ -550,6 +550,7 @@ window.ouvrirRecette = (id) => {
             <div id="zoneRenduSimilaires" class="liste-rendu"></div>
         </div>
 
+        <button id="btn-lecture" class="btn-lecture" onclick="window.toggleLecture()">🔊 Lire les étapes à voix haute</button>
         <button class="btn-print" onclick="window.print()">🖨️ Imprimer cette recette</button>
     `;
 
@@ -566,6 +567,41 @@ window.fermerRecette = () => {
     document.getElementById("modalRecette").style.display = "none";
     document.body.style.overflow = "";
     window._recetteCourante = null;
+    window.stopperLecture();
+};
+
+// =============================================
+// LECTURE VOCALE
+// =============================================
+
+let _syntheseVocale = window.speechSynthesis;
+let _lectureEnCours = false;
+
+window.stopperLecture = () => {
+    if (_syntheseVocale) _syntheseVocale.cancel();
+    _lectureEnCours = false;
+    const btn = document.getElementById("btn-lecture");
+    if (btn) { btn.textContent = "🔊 Lire les étapes à voix haute"; btn.classList.remove("lecture-active"); }
+};
+
+window.toggleLecture = () => {
+    if (_lectureEnCours) { window.stopperLecture(); return; }
+    const r = window._recetteCourante;
+    if (!r) return;
+    const etapes = (r.etapes || "").split("\n").filter(Boolean);
+    if (!etapes.length) { showToast("Pas d'étapes à lire !", "error"); return; }
+
+    _lectureEnCours = true;
+    const btn = document.getElementById("btn-lecture");
+    if (btn) { btn.textContent = "⏹ Arrêter la lecture"; btn.classList.add("lecture-active"); }
+
+    const texte = "Recette : " + r.nom + ". " + etapes.map((e, i) => `Étape ${i+1} : ${e}`).join(". ");
+    const utterance = new SpeechSynthesisUtterance(texte);
+    utterance.lang = "fr-FR";
+    utterance.rate = 0.9;
+    utterance.onend = () => window.stopperLecture();
+    utterance.onerror = () => window.stopperLecture();
+    _syntheseVocale.speak(utterance);
 };
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') window.fermerRecette(); });
