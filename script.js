@@ -9,6 +9,54 @@ const provider = new GoogleAuthProvider();
 
 const CLAUDE_PROXY = "https://grimoire-proxy.patrick-gabriere.workers.dev";
 const MODEL = "claude-sonnet-4-20250514";
+const UNSPLASH_KEY = "aJKziiIrqJf56a0HgZ0XeqBRmycg716cCNPxB5vt7Ig";
+
+// =============================================
+// IMAGE AUTO (Unsplash)
+// =============================================
+
+window.chercherImageAuto = async () => {
+    const nom = document.getElementById("nomRecette").value.trim();
+    if (!nom) { showToast("Entre d'abord le nom de la recette !", "error"); return; }
+    const btn = document.getElementById("btnAutoImg");
+    btn.textContent = "⏳";
+    btn.disabled = true;
+    try {
+        const query = encodeURIComponent(nom + " food recipe");
+        const res = await fetch(`https://api.unsplash.com/search/photos?query=${query}&per_page=1&orientation=landscape&client_id=${UNSPLASH_KEY}`);
+        const data = await res.json();
+        if (data.results && data.results.length > 0) {
+            const url = data.results[0].urls.regular;
+            document.getElementById("imageLien").value = url;
+            document.getElementById("img-preview").src = url;
+            document.getElementById("preview-image").style.display = "block";
+            showToast("Image trouvée !", "success");
+        } else {
+            showToast("Aucune image trouvée, essaie un autre nom", "error");
+        }
+    } catch(e) {
+        showToast("Erreur lors de la recherche d'image", "error");
+    } finally {
+        btn.textContent = "🔍 Auto";
+        btn.disabled = false;
+    }
+};
+
+// Prévisualisation quand on colle un lien manuellement
+document.addEventListener("DOMContentLoaded", () => {
+    const input = document.getElementById("imageLien");
+    if (input) {
+        input.addEventListener("input", () => {
+            const url = input.value.trim();
+            if (url.startsWith("http")) {
+                document.getElementById("img-preview").src = url;
+                document.getElementById("preview-image").style.display = "block";
+            } else {
+                document.getElementById("preview-image").style.display = "none";
+            }
+        });
+    }
+});
 
 let toutesLesRecettes = [];
 let frigoImageBase64 = null;
@@ -128,8 +176,10 @@ async function chargerRecettes() {
         toutesLesRecettes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         window.genererFiltres('commu');
         window.genererFiltres('perso');
+        window.genererFiltres('favoris');
         window.filtrerRecettes('commu');
         window.filtrerRecettes('perso');
+        window.filtrerRecettes('favoris');
     } catch (e) {
         console.error("Erreur chargement:", e);
         showToast("Impossible de charger les recettes", "error");
@@ -244,8 +294,8 @@ window.toggleFavori = async (id, e) => {
         modalBtn.textContent = mesFavoris.has(id) ? "⭐ Favori" : "☆ Ajouter aux favoris";
         modalBtn.classList.toggle("fav-actif", mesFavoris.has(id));
     }
-    // Rafraîchir si on est sur le filtre favoris
-    if (filtreActif.perso === "favoris") window.filtrerRecettes("perso");
+    // Rafraîchir l'onglet favoris
+    window.filtrerRecettes('favoris');
 };
 
 onAuthStateChanged(auth, async (user) => {
@@ -264,16 +314,13 @@ onAuthStateChanged(auth, async (user) => {
 // FILTRES & AFFICHAGE
 // =============================================
 
-let filtreActif = { commu: "tous", perso: "tous" };
-let filtreOrigine = { commu: "tous", perso: "tous" };
+let filtreActif = { commu: "tous", perso: "tous", favoris: "tous" };
+let filtreOrigine = { commu: "tous", perso: "tous", favoris: "tous" };
 
 window.genererFiltres = (type) => {
     const zone = document.getElementById('filtres-' + type);
     const uid = auth.currentUser ? auth.currentUser.uid : null;
     const recs = toutesLesRecettes.filter(r => type === 'commu' ? r.estPublic : r.auteurId === uid);
-
-    // Filtre favoris (uniquement pour "perso")
-    const favoriOption = type === 'perso' ? `<option value="favoris" ${filtreActif[type] === 'favoris' ? 'selected' : ''}>⭐ Mes favoris</option>` : '';
 
     // Filtre catégorie
     const cats = [...new Set(recs.map(r => r.sousCategorie).filter(Boolean))];
@@ -284,7 +331,7 @@ window.genererFiltres = (type) => {
         const selected = val === filtreActif[type] ? 'selected' : '';
         return `<option value="${val}" ${selected}>${emoji} ${label}</option>`;
     }).join('');
-    const optionsCatAvecFavoris = favoriOption + optionsCat;
+
 
     // Filtre origine
     const originesDispo = [...new Set(recs.map(r => r.origine).filter(Boolean))];
@@ -298,7 +345,7 @@ window.genererFiltres = (type) => {
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <div class="select-filtre-wrap">
                 <select class="select-filtre" onchange="window.setFiltre('${type}', this.value)">
-                    ${optionsCatAvecFavoris}
+                    ${optionsCat}
                 </select>
             </div>
             <div class="select-filtre-wrap">
@@ -327,23 +374,30 @@ window.filtrerRecettes = (type) => {
     const fCat = filtreActif[type];
     const fOri = filtreOrigine[type];
 
-    let res = toutesLesRecettes.filter(r => type === 'commu' ? r.estPublic : r.auteurId === uid);
+    let res;
+    if (type === 'favoris') {
+        res = toutesLesRecettes.filter(r => mesFavoris.has(r.id));
+    } else {
+        res = toutesLesRecettes.filter(r => type === 'commu' ? r.estPublic : r.auteurId === uid);
+    }
     if (txt) res = res.filter(r =>
         r.nom.toLowerCase().includes(txt) ||
         (r.ingredients || "").toLowerCase().includes(txt)
     );
-    if (fCat === "favoris") { res = res.filter(r => mesFavoris.has(r.id)); }
-    else if (fCat !== "tous") res = res.filter(r => r.sousCategorie?.toLowerCase() === fCat);
+    if (fCat !== "tous") res = res.filter(r => r.sousCategorie?.toLowerCase() === fCat);
     if (fOri !== "tous") res = res.filter(r => r.origine === fOri);
 
     const grille = document.getElementById('grille-' + type);
 
     if (!res.length) {
+        const emptyIcon = type === 'commu' ? '🌍' : type === 'favoris' ? '⭐' : '📚';
+        const emptyTitle = type === 'commu' ? 'Aucune recette publique' : type === 'favoris' ? 'Pas encore de favoris' : 'Pas encore de recettes';
+        const emptyMsg = type === 'commu' ? 'Aucune recette ne correspond à ta recherche.' : type === 'favoris' ? 'Clique sur ☆ sur une recette pour l'ajouter ici !' : 'Commence par en ajouter une !';
         grille.innerHTML = `
             <div class="empty-state" style="grid-column:1/-1;">
-                <div class="empty-state-icon">${type === 'commu' ? '🌍' : '📚'}</div>
-                <h3>${type === 'commu' ? 'Aucune recette publique' : 'Pas encore de recettes'}</h3>
-                <p>${type === 'commu' ? 'Aucune recette ne correspond à ta recherche.' : 'Commence par en ajouter une !'}</p>
+                <div class="empty-state-icon">${emptyIcon}</div>
+                <h3>${emptyTitle}</h3>
+                <p>${emptyMsg}</p>
             </div>
         `;
         return;
@@ -524,8 +578,10 @@ window.supprimerRecette = async (id) => {
         toutesLesRecettes = toutesLesRecettes.filter(r => r.id !== id);
         window.genererFiltres('commu');
         window.genererFiltres('perso');
+        window.genererFiltres('favoris');
         window.filtrerRecettes('commu');
         window.filtrerRecettes('perso');
+        window.filtrerRecettes('favoris');
         showToast("Recette supprimée", "success");
     } catch (e) { showToast("Erreur lors de la suppression", "error"); }
 };
