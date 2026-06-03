@@ -363,7 +363,35 @@ window.ouvrirRecette = (id) => {
         <div class="modal-meta-row">${chips || `<span class="meta-chip">🍽️ Recette</span>`}</div>
     `;
 
-    const ingredientsList = (r.ingredients || "").split('\n').filter(Boolean).map(i => `<li>${i}</li>`).join('');
+    const portionsBase = parseInt(r.portions) || 4;
+    window._portionsBase = portionsBase;
+    window._portionsCourantes = portionsBase;
+    window._ingredientsBase = (r.ingredients || "").split('\n').filter(Boolean);
+
+    const renderIngredients = (facteur) => {
+        return window._ingredientsBase.map(ligne => {
+            // Cherche un nombre (entier ou décimal) au début ou dans la ligne
+            const match = ligne.match(/(\d+(?:[.,]\d+)?)/);
+            if (match) {
+                const valBase = parseFloat(match[1].replace(',', '.'));
+                const valNew = valBase * facteur;
+                // Affichage propre : entier si possible, sinon 1 décimale
+                const valAff = Number.isInteger(valNew) ? valNew : Math.round(valNew * 10) / 10;
+                const ligneMod = ligne.replace(match[1], `<strong>${valAff}</strong>`);
+                return `<li>${ligneMod}</li>`;
+            }
+            return `<li>${ligne}</li>`;
+        }).join('');
+    };
+
+    window.ajusterPortions = (delta) => {
+        const nouvelles = Math.max(1, window._portionsCourantes + delta);
+        window._portionsCourantes = nouvelles;
+        const facteur = nouvelles / window._portionsBase;
+        document.getElementById('portions-count').textContent = nouvelles;
+        document.getElementById('ingredients-liste').innerHTML = renderIngredients(facteur);
+    };
+
     const etapesList = (r.etapes || "").split('\n').filter(Boolean).map(e => `<li>${e}</li>`).join('');
 
     const notesList = (r.notes || []).map(n => `
@@ -374,8 +402,15 @@ window.ouvrirRecette = (id) => {
     `).join('') || '<p style="color:#b0a090;font-size:0.85rem;margin-bottom:8px;">Pas encore de notes. Sois le premier !</p>';
 
     let bodyHtml = `
-        <div class="modal-section-title">🍓 Ingrédients</div>
-        <ul class="list-ingredients">${ingredientsList || '<li>Non renseignés</li>'}</ul>
+        <div class="modal-section-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <span>🍓 Ingrédients</span>
+            <div class="portions-widget">
+                <button class="portions-btn" onclick="window.ajusterPortions(-1)">−</button>
+                <span class="portions-label"><span id="portions-count">${portionsBase}</span> portion${portionsBase > 1 ? 's' : ''}</span>
+                <button class="portions-btn" onclick="window.ajusterPortions(+1)">+</button>
+            </div>
+        </div>
+        <ul class="list-ingredients" id="ingredients-liste">${renderIngredients(1)}</ul>
 
         ${etapesList ? `<div class="modal-section-title">🍳 Préparation</div><ol class="ol-etapes">${etapesList}</ol>` : ''}
 
