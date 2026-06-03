@@ -769,6 +769,65 @@ let _etapeIndex = 0;
 let _lectureEnCours = false;
 let _lectureAuto = false;
 let _reconnaissanceCuisine = null;
+let _timerInterval = null;
+let _timerSecondes = 0;
+
+// Détecte la durée en minutes dans une étape
+function _detecterDuree(texte) {
+    const m = texte.match(/(\d+)\s*min(?:ute)?s?/i);
+    if (m) return parseInt(m[1]) * 60;
+    const h = texte.match(/(\d+)\s*heure?s?/i);
+    if (h) return parseInt(h[1]) * 3600;
+    const s = texte.match(/(\d+)\s*sec(?:onde)?s?/i);
+    if (s) return parseInt(s[1]);
+    return 0;
+}
+
+function _afficherTimer(secondes) {
+    const el = document.getElementById('panneau-timer');
+    if (!el) return;
+    if (secondes <= 0) { el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    const m = Math.floor(secondes / 60);
+    const s = secondes % 60;
+    el.textContent = `⏱ ${m}:${s.toString().padStart(2, '0')}`;
+    el.style.color = secondes <= 30 ? '#e8672a' : '#3d2b1f';
+}
+
+function _demarrerTimer(secondes) {
+    _arreterTimer();
+    if (!secondes) return;
+    _timerSecondes = secondes;
+    _afficherTimer(_timerSecondes);
+    _timerInterval = setInterval(() => {
+        _timerSecondes--;
+        _afficherTimer(_timerSecondes);
+        if (_timerSecondes <= 0) {
+            _arreterTimer();
+            // Alarme sonore
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            [0, 0.3, 0.6].forEach(t => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.frequency.value = 880;
+                gain.gain.setValueAtTime(0.5, ctx.currentTime + t);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + t + 0.4);
+                osc.start(ctx.currentTime + t);
+                osc.stop(ctx.currentTime + t + 0.4);
+            });
+            // Message vocal
+            const fin = new SpeechSynthesisUtterance('Le timer est terminé !');
+            fin.lang = 'fr-FR';
+            _synth.speak(fin);
+        }
+    }, 1000);
+}
+
+function _arreterTimer() {
+    if (_timerInterval) { clearInterval(_timerInterval); _timerInterval = null; }
+    _afficherTimer(0);
+}
 
 // Mots-clés reconnus pour chaque commande — variantes orthographiques incluses
 const CMDS = {
@@ -800,6 +859,9 @@ function _updatePanneau() {
     if (nomEl) nomEl.textContent = r.nom;
     if (numEl) numEl.textContent = idx + 1;
     if (contEl) contEl.textContent = _etapesCuisine[idx] || '';
+    // Lancer le timer si durée détectée
+    const duree = _detecterDuree(_etapesCuisine[idx] || '');
+    _demarrerTimer(duree);
     if (labelEl) labelEl.textContent = `Étape ${idx + 1} / ${total}`;
     if (fillEl) fillEl.style.width = `${((idx + 1) / total) * 100}%`;
     if (prevBtn) prevBtn.disabled = idx === 0;
@@ -913,6 +975,7 @@ window.repeterEtape = () => { _synth.cancel(); _lireEtape(); };
 
 window.stopperLecture = () => {
     _synth.cancel();
+    _arreterTimer();
     _lectureEnCours = false;
     _lectureAuto = false;
     const panneau = document.getElementById('panneau-lecture');
@@ -1350,3 +1413,10 @@ function tenterAfficherModalInstall() {
 
 // On attend que les recettes soient chargées avant de proposer
 window.addEventListener('load', tenterAfficherModalInstall);
+
+// Relancer le timer manuellement depuis le bouton
+window._demarrerTimerManuel = () => {
+    const duree = _detecterDuree(_etapesCuisine[_etapeIndex] || '');
+    if (duree) { _demarrerTimer(duree); }
+    else { showToast("Pas de durée détectée dans cette étape", ""); }
+};
