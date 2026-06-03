@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, arrayUnion, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const app = initializeApp(window.firebaseConfig);
@@ -12,6 +12,7 @@ const MODEL = "claude-sonnet-4-20250514";
 
 let toutesLesRecettes = [];
 let frigoImageBase64 = null;
+let mesFavoris = new Set(); // IDs des recettes favorites
 
 // =============================================
 // TOAST
@@ -205,7 +206,47 @@ window.connexionGoogle = () => signInWithPopup(auth, provider).catch(e => {
     showToast("Erreur de connexion Google", "error");
 });
 
-window.deconnexion = () => signOut(auth).then(() => showToast("Déconnecté !"));
+window.deconnexion = () => signOut(auth).then(() => { mesFavoris.clear(); showToast("Déconnecté !"); });
+
+// =============================================
+// FAVORIS
+// =============================================
+
+async function chargerFavoris() {
+    const uid = auth.currentUser?.uid;
+    if (!uid) { mesFavoris.clear(); return; }
+    try {
+        const snap = await getDoc(doc(db, "favoris", uid));
+        mesFavoris = new Set(snap.exists() ? (snap.data().ids || []) : []);
+    } catch(e) { mesFavoris = new Set(); }
+}
+
+window.toggleFavori = async (id, e) => {
+    if (e) e.stopPropagation();
+    const uid = auth.currentUser?.uid;
+    if (!uid) { showToast("Connecte-toi pour ajouter des favoris !", "error"); return; }
+    if (mesFavoris.has(id)) {
+        mesFavoris.delete(id);
+        showToast("Retiré des favoris", "");
+    } else {
+        mesFavoris.add(id);
+        showToast("Ajouté aux favoris ⭐", "success");
+    }
+    await setDoc(doc(db, "favoris", uid), { ids: [...mesFavoris] });
+    // Mettre à jour les boutons visibles sans recharger
+    document.querySelectorAll(`.fav-btn[data-id="${id}"]`).forEach(btn => {
+        btn.textContent = mesFavoris.has(id) ? "⭐" : "☆";
+        btn.classList.toggle("fav-actif", mesFavoris.has(id));
+    });
+    // Mettre à jour le bouton dans la modal si ouverte
+    const modalBtn = document.getElementById("fav-btn-modal");
+    if (modalBtn && modalBtn.dataset.id === id) {
+        modalBtn.textContent = mesFavoris.has(id) ? "⭐ Favori" : "☆ Ajouter aux favoris";
+        modalBtn.classList.toggle("fav-actif", mesFavoris.has(id));
+    }
+    // Rafraîchir si on est sur le filtre favoris
+    if (filtreActif.perso === "favoris") window.filtrerRecettes("perso");
+};
 
 onAuthStateChanged(auth, async (user) => {
     document.getElementById("info-user").style.display = user ? "flex" : "none";
@@ -215,6 +256,7 @@ onAuthStateChanged(auth, async (user) => {
         const avatar = document.getElementById("avatar-user");
         if (user.photoURL) { avatar.src = user.photoURL; avatar.style.display = "block"; }
     }
+    await chargerFavoris();
     await chargerRecettes();
 });
 
@@ -230,6 +272,9 @@ window.genererFiltres = (type) => {
     const uid = auth.currentUser ? auth.currentUser.uid : null;
     const recs = toutesLesRecettes.filter(r => type === 'commu' ? r.estPublic : r.auteurId === uid);
 
+    // Filtre favoris (uniquement pour "perso")
+    const favoriOption = type === 'perso' ? `<option value="favoris" ${filtreActif[type] === 'favoris' ? 'selected' : ''}>⭐ Mes favoris</option>` : '';
+
     // Filtre catégorie
     const cats = [...new Set(recs.map(r => r.sousCategorie).filter(Boolean))];
     const categories = ["tous", ...cats.map(c => c.toLowerCase())];
@@ -239,6 +284,7 @@ window.genererFiltres = (type) => {
         const selected = val === filtreActif[type] ? 'selected' : '';
         return `<option value="${val}" ${selected}>${emoji} ${label}</option>`;
     }).join('');
+    const optionsCatAvecFavoris = favoriOption + optionsCat;
 
     // Filtre origine
     const originesDispo = [...new Set(recs.map(r => r.origine).filter(Boolean))];
@@ -252,7 +298,7 @@ window.genererFiltres = (type) => {
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <div class="select-filtre-wrap">
                 <select class="select-filtre" onchange="window.setFiltre('${type}', this.value)">
-                    ${optionsCat}
+                    ${optionsCatAvecFavoris}
                 </select>
             </div>
             <div class="select-filtre-wrap">
@@ -286,7 +332,8 @@ window.filtrerRecettes = (type) => {
         r.nom.toLowerCase().includes(txt) ||
         (r.ingredients || "").toLowerCase().includes(txt)
     );
-    if (fCat !== "tous") res = res.filter(r => r.sousCategorie?.toLowerCase() === fCat);
+    if (fCat === "favoris") { res = res.filter(r => mesFavoris.has(r.id)); }
+    else if (fCat !== "tous") res = res.filter(r => r.sousCategorie?.toLowerCase() === fCat);
     if (fOri !== "tous") res = res.filter(r => r.origine === fOri);
 
     const grille = document.getElementById('grille-' + type);
@@ -319,6 +366,7 @@ window.filtrerRecettes = (type) => {
 
         return `
             <div class="recette-card" onclick="window.ouvrirRecette('${r.id}')">
+                <button class="fav-btn ${mesFavoris.has(r.id) ? 'fav-actif' : ''}" data-id="${r.id}" onclick="window.toggleFavori('${r.id}', event)" title="Ajouter aux favoris">${mesFavoris.has(r.id) ? '⭐' : '☆'}</button>
                 ${imageHtml}
                 <div class="recette-info">
                     <div class="recette-title">${r.nom}</div>
@@ -358,9 +406,11 @@ window.ouvrirRecette = (id) => {
         r.portions ? `<span class="meta-chip">👥 ${r.portions} portions</span>` : '',
     ].filter(Boolean).join('');
 
+    const favActif = mesFavoris.has(r.id);
     document.getElementById("contenuRecetteHeader").innerHTML = `
         <div class="modal-title">${r.nom}</div>
         <div class="modal-meta-row">${chips || `<span class="meta-chip">🍽️ Recette</span>`}</div>
+        <button id="fav-btn-modal" class="btn-fav-modal ${favActif ? 'fav-actif' : ''}" data-id="${r.id}" onclick="window.toggleFavori('${r.id}', event)">${favActif ? '⭐ Favori' : '☆ Ajouter aux favoris'}</button>
     `;
 
     const portionsBase = parseInt(r.portions) || 4;
