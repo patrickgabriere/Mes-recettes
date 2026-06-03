@@ -568,6 +568,55 @@ header {
     margin-top: auto;
 }
 
+.card-origine {
+    font-size: 0.82rem;
+    color: var(--brown-light);
+    font-weight: 500;
+}
+
+/* Bouton favori sur les cartes */
+.fav-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.88);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transition: var(--transition);
+    backdrop-filter: blur(4px);
+}
+.fav-btn:hover { background: white; transform: scale(1.15); }
+.fav-btn.fav-actif { background: #fff8e1; }
+
+/* Bouton favori dans la modal */
+.btn-fav-modal {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 20px;
+    border: 2px solid var(--gold-light);
+    background: white;
+    color: var(--brown-light);
+    font-weight: 600;
+    font-size: 0.9rem;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-bottom: 4px;
+}
+.btn-fav-modal:hover { border-color: var(--gold); background: #fff8e1; }
+.btn-fav-modal.fav-actif { background: #fff8e1; border-color: var(--gold); color: var(--brown); }
+
 /* ========== EMPTY STATE ========== */
 .empty-state {
     text-align: center;
@@ -1243,130 +1292,6 @@ select:focus { border-color: var(--orange); }
     .ol-etapes li { font-size: 1rem; line-height: 1.7; }
     .list-ingredients li { font-size: 1rem; }
 }
-
-.btn-lecture {
-    display: block;
-    width: 100%;
-    padding: 14px;
-    margin: 12px 0 8px;
-    background: var(--brown);
-    color: white;
-    border: none;
-    border-radius: var(--radius);
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
-    font-family: 'DM Sans', sans-serif;
-}
-.btn-lecture:hover { background: var(--brown-light); }
-.btn-lecture.lecture-active { background: #c0392b; }
-
-/* ========== BOUTON IMAGE AUTO ========== */
-.btn-auto-img {
-    background: var(--brown);
-    color: white;
-    border: none;
-    padding: 0 18px;
-    border-radius: var(--radius-sm);
-    font-size: 0.88rem;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: var(--transition);
-    font-family: 'DM Sans', sans-serif;
-    height: 48px;
-}
-.btn-auto-img:hover { background: var(--brown-light); }
-.btn-auto-img:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.card-origine {
-    font-size: 0.75rem;
-    color: var(--brown-light);
-    margin-top: 4px;
-    opacity: 0.85;
-}
-
-/* ========== FAVORIS ========== */
-.fav-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(255,255,255,0.9);
-    border: none;
-    border-radius: 50%;
-    width: 34px;
-    height: 34px;
-    font-size: 1.1rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-    transition: var(--transition);
-    z-index: 2;
-}
-.fav-btn:hover { transform: scale(1.15); }
-.fav-btn.fav-actif { background: #fff8e1; }
-.recette-card { position: relative; }
-
-.btn-fav-modal {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--gray);
-    border: 1.5px solid var(--gray-mid);
-    color: var(--brown);
-    padding: 7px 16px;
-    border-radius: 20px;
-    font-size: 0.88rem;
-    font-weight: 500;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: var(--transition);
-    font-family: 'DM Sans', sans-serif;
-}
-.btn-fav-modal:hover { background: #fff8e1; border-color: var(--gold); }
-.btn-fav-modal.fav-actif { background: #fff8e1; border-color: var(--gold); color: #b8860b; }
-
-/* ========== WIDGET PORTIONS ========== */
-.portions-widget {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--gray);
-    border-radius: 30px;
-    padding: 6px 14px;
-    border: 1px solid var(--gray-mid);
-}
-.portions-btn {
-    background: var(--white);
-    border: 1.5px solid var(--gray-mid);
-    color: var(--brown);
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    font-size: 1.2rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    transition: var(--transition);
-    line-height: 1;
-}
-.portions-btn:hover {
-    background: var(--orange);
-    border-color: var(--orange);
-    color: white;
-}
-.portions-label {
-    font-size: 0.92rem;
-    font-weight: 600;
-    color: var(--brown);
-    min-width: 70px;
-    text-align: center;
-}
 </style>
 </head>
 <body>
@@ -1542,16 +1467,28 @@ select:focus { border-color: var(--orange); }
                 </select>
                 <select id="sousCategorie"></select>
             </div>
-            <div class="select-group" style="margin-bottom:12px;">
-                <select id="origine" style="width:100%"></select>
-            </div>
-            <div class="field-row" style="gap:10px;">
-                <input type="text" id="imageLien" class="input-full" placeholder="🖼️ Coller un lien image (optionnel)" style="flex:1;">
-                <button type="button" class="btn-auto-img" id="btnAutoImg" onclick="window.chercherImageAuto()" title="Trouver une image automatiquement">🔍 Auto</button>
-            </div>
-            <div id="preview-image" style="display:none;margin-top:8px;">
-                <img id="img-preview" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;border:2px solid var(--gray-mid);" alt="Aperçu">
-            </div>
+            <div class="form-label" style="margin-top:4px;">🌍 Origine culinaire</div>
+            <select id="origine" style="margin-bottom:12px;">
+                <option value="">— Non précisée —</option>
+                <option value="française">🇫🇷 Française</option>
+                <option value="italienne">🇮🇹 Italienne</option>
+                <option value="espagnole">🇪🇸 Espagnole</option>
+                <option value="mexicaine">🇲🇽 Mexicaine</option>
+                <option value="japonaise">🇯🇵 Japonaise</option>
+                <option value="chinoise">🇨🇳 Chinoise</option>
+                <option value="indienne">🇮🇳 Indienne</option>
+                <option value="américaine">🇺🇸 Américaine</option>
+                <option value="grecque">🇬🇷 Grecque</option>
+                <option value="marocaine">🇲🇦 Marocaine</option>
+                <option value="libanaise">🇱🇧 Libanaise</option>
+                <option value="thaïlandaise">🇹🇭 Thaïlandaise</option>
+                <option value="vietnamienne">🇻🇳 Vietnamienne</option>
+                <option value="coréenne">🇰🇷 Coréenne</option>
+                <option value="portugaise">🇵🇹 Portugaise</option>
+                <option value="brésilienne">🇧🇷 Brésilienne</option>
+                <option value="autre">🌐 Autre</option>
+            </select>
+            <input type="text" id="imageLien" class="input-full" placeholder="🖼️ Lien image (optionnel)">
         </div>
 
         <label class="public-toggle">
