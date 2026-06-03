@@ -1244,6 +1244,24 @@ select:focus { border-color: var(--orange); }
     .list-ingredients li { font-size: 1rem; }
 }
 
+/* ========== BOUTON IMAGE AUTO ========== */
+.btn-auto-img {
+    background: var(--brown);
+    color: white;
+    border: none;
+    padding: 0 18px;
+    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: var(--transition);
+    font-family: 'DM Sans', sans-serif;
+    height: 48px;
+}
+.btn-auto-img:hover { background: var(--brown-light); }
+.btn-auto-img:disabled { opacity: 0.6; cursor: not-allowed; }
+
 .card-origine {
     font-size: 0.75rem;
     color: var(--brown-light);
@@ -1385,6 +1403,7 @@ select:focus { border-color: var(--orange); }
 <div class="tabs">
     <button class="tab active" onclick="window.changerOnglet('commu', this)">🌍 Communauté</button>
     <button class="tab" onclick="window.changerOnglet('mes-recettes', this)">📚 Mes Recettes</button>
+    <button class="tab" onclick="window.changerOnglet('favoris', this)">⭐ Favoris</button>
     <button class="tab" onclick="window.changerOnglet('frigo', this)">🧊 Mon Frigo</button>
     <button class="tab" onclick="window.changerOnglet('ajouter', this)">➕ Ajouter</button>
 </div>
@@ -1411,6 +1430,17 @@ select:focus { border-color: var(--orange); }
         </div>
         <div class="univers-filter" id="filtres-perso"></div>
         <div class="recettes-grid" id="grille-perso"></div>
+    </div>
+
+    <!-- FAVORIS -->
+    <div id="page-favoris" class="section-page">
+        <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="rechercheFavoris" placeholder="Rechercher dans mes favoris..." oninput="window.filtrerRecettes('favoris')">
+            <button class="btn-mic-search" onclick="window.demarrerVocal('rechercheFavoris', 'favoris')" title="Recherche vocale">🎙️</button>
+        </div>
+        <div class="univers-filter" id="filtres-favoris"></div>
+        <div class="recettes-grid" id="grille-favoris"></div>
     </div>
 
     <!-- MON FRIGO -->
@@ -1497,7 +1527,13 @@ select:focus { border-color: var(--orange); }
             <div class="select-group" style="margin-bottom:12px;">
                 <select id="origine" style="width:100%"></select>
             </div>
-            <input type="text" id="imageLien" class="input-full" placeholder="🖼️ Lien image (optionnel)">
+            <div class="field-row" style="gap:10px;">
+                <input type="text" id="imageLien" class="input-full" placeholder="🖼️ Coller un lien image (optionnel)" style="flex:1;">
+                <button type="button" class="btn-auto-img" id="btnAutoImg" onclick="window.chercherImageAuto()" title="Trouver une image automatiquement">🔍 Auto</button>
+            </div>
+            <div id="preview-image" style="display:none;margin-top:8px;">
+                <img id="img-preview" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;border:2px solid var(--gray-mid);" alt="Aperçu">
+            </div>
         </div>
 
         <label class="public-toggle">
