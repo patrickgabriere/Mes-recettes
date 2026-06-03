@@ -143,14 +143,25 @@ const sousCatMapping = {
 };
 
 const ORIGINES = [
-    { val: "française",  emoji: "🇫🇷", label: "Française" },
-    { val: "italienne",  emoji: "🇮🇹", label: "Italienne" },
-    { val: "asiatique",  emoji: "🥢",  label: "Asiatique" },
-    { val: "mexicaine",  emoji: "🌮",  label: "Mexicaine" },
-    { val: "américaine", emoji: "🍔",  label: "Américaine" },
-    { val: "indienne",   emoji: "🍛",  label: "Indienne" },
-    { val: "méditerranéenne", emoji: "🫒", label: "Méditerranéenne" },
-    { val: "autre",      emoji: "🌍",  label: "Autre" },
+    { val: "française",     emoji: "🇫🇷", label: "Française" },
+    { val: "italienne",     emoji: "🇮🇹", label: "Italienne" },
+    { val: "espagnole",     emoji: "🇪🇸", label: "Espagnole" },
+    { val: "mexicaine",     emoji: "🇲🇽", label: "Mexicaine" },
+    { val: "japonaise",     emoji: "🇯🇵", label: "Japonaise" },
+    { val: "chinoise",      emoji: "🇨🇳", label: "Chinoise" },
+    { val: "indienne",      emoji: "🇮🇳", label: "Indienne" },
+    { val: "américaine",    emoji: "🇺🇸", label: "Américaine" },
+    { val: "grecque",       emoji: "🇬🇷", label: "Grecque" },
+    { val: "marocaine",     emoji: "🇲🇦", label: "Marocaine" },
+    { val: "libanaise",     emoji: "🇱🇧", label: "Libanaise" },
+    { val: "thaïlandaise",  emoji: "🇹🇭", label: "Thaïlandaise" },
+    { val: "vietnamienne",  emoji: "🇻🇳", label: "Vietnamienne" },
+    { val: "coréenne",      emoji: "🇰🇷", label: "Coréenne" },
+    { val: "portugaise",    emoji: "🇵🇹", label: "Portugaise" },
+    { val: "brésilienne",   emoji: "🇧🇷", label: "Brésilienne" },
+    { val: "asiatique",     emoji: "🥢",  label: "Asiatique" },
+    { val: "méditerranéenne",emoji: "🫒", label: "Méditerranéenne" },
+    { val: "autre",         emoji: "🌍",  label: "Autre" },
 ];
 
 window.majSousCategories = () => {
@@ -369,8 +380,9 @@ window.setFiltreOrigine = (type, val) => {
 
 window.filtrerRecettes = (type) => {
     const uid = auth.currentUser ? auth.currentUser.uid : null;
-    const inputId = type === 'commu' ? 'rechercheCommu' : 'recherchePerso';
-    const txt = document.getElementById(inputId).value.toLowerCase().trim();
+    const inputId = type === 'commu' ? 'rechercheCommu' : type === 'favoris' ? 'rechercheFavoris' : 'recherchePerso';
+    const inputEl = document.getElementById(inputId);
+    const txt = inputEl ? inputEl.value.toLowerCase().trim() : '';
     const fCat = filtreActif[type];
     const fOri = filtreOrigine[type];
 
