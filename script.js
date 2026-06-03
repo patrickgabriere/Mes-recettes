@@ -9,183 +9,6 @@ const provider = new GoogleAuthProvider();
 
 const CLAUDE_PROXY = "https://grimoire-proxy.patrick-gabriere.workers.dev";
 const MODEL = "claude-sonnet-4-20250514";
-
-// =============================================
-// SCANNER RECETTE PAPIER — IA
-// =============================================
-
-let _scanImageBase64 = null;
-let _scanMediaType = 'image/jpeg';
-
-window.previsualiserScan = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    _scanMediaType = file.type || 'image/jpeg';
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        _scanImageBase64 = e.target.result.split(',')[1];
-
-        // Afficher la prévisualisation
-        const wrap = document.getElementById('scanner-preview-wrap');
-        const img  = document.getElementById('scanner-preview-img');
-        const zone = document.getElementById('scanner-zone-drop');
-        const btn  = document.getElementById('btnScannerIA');
-        const res  = document.getElementById('scanner-resultat');
-
-        img.src = e.target.result;
-        wrap.style.display = 'block';
-        zone.style.display  = 'none';
-        btn.style.display   = 'flex';
-        res.style.display   = 'none';
-    };
-    reader.readAsDataURL(file);
-};
-
-window.scannerRecette = async () => {
-    if (!_scanImageBase64) return;
-
-    const btn = document.getElementById('btnScannerIA');
-    btn.innerHTML = '<span class="spinner"></span> Analyse de la photo en cours…';
-    btn.disabled = true;
-
-    const prompt = `Tu es un assistant qui extrait des recettes de cuisine depuis des photos de livres ou fiches recettes.
-Analyse cette image et extrais toutes les informations disponibles.
-Réponds UNIQUEMENT en JSON valide, sans markdown, sans texte autour.
-
-{
-  "nom": "Nom exact de la recette",
-  "tempsPrep": 20,
-  "tempsCuisson": 35,
-  "portions": 4,
-  "ingredients": ["200g de farine", "3 oeufs", "..."],
-  "etapes": ["Préchauffer le four à 180°C", "Mélanger les ingrédients secs", "..."],
-  "univers": "cuisine",
-  "sousCategorie": "plat",
-  "origine": "française"
-}
-
-Règles :
-- tempsPrep, tempsCuisson, portions sont des nombres entiers (0 si non trouvé)
-- ingredients : un ingrédient par entrée du tableau, avec quantité si précisée
-- etapes : une étape par entrée, phrase complète
-- univers : "cuisine" ou "pâtisserie"
-- sousCategorie : parmi entrée/soupe/plat/accompagnement/sauce/apéro/salade/gâteau/tarte/biscuit/viennoiserie/crème-mousse/confiture/pain
-- origine : langue/style détecté (française, italienne, etc.) ou "" si inconnu
-- Si une info est illisible ou absente, mets une valeur vide/zéro`;
-
-    try {
-        const response = await fetch(CLAUDE_PROXY, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                model: MODEL,
-                max_tokens: 1500,
-                messages: [{
-                    role: 'user',
-                    content: [
-                        {
-                            type: 'image',
-                            source: { type: 'base64', media_type: _scanMediaType, data: _scanImageBase64 }
-                        },
-                        { type: 'text', text: prompt }
-                    ]
-                }]
-            })
-        });
-
-        if (!response.ok) throw new Error('Erreur serveur: ' + response.status);
-        const data = await response.json();
-        const texte = data.content[0].text.replace(/```json|```/g, '').trim();
-        const recette = JSON.parse(texte);
-
-        _remplirFormulaire(recette);
-
-        // Afficher le message de succès
-        document.getElementById('scanner-resultat').style.display = 'block';
-        document.getElementById('scanner-resultat-texte').textContent =
-            `"${recette.nom}" détectée — ${recette.ingredients?.length || 0} ingrédient(s) et ${recette.etapes?.length || 0} étape(s) extraits. Vérifie et corrige si besoin !`;
-
-        showToast('Recette extraite avec succès ! 🎉', 'success');
-
-        // Scroll vers le formulaire
-        document.getElementById('nomRecette').scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-    } catch (e) {
-        console.error('Erreur scan:', e);
-        showToast("Impossible de lire la photo. Essaie avec une image plus nette !", 'error');
-    } finally {
-        btn.innerHTML = '✨ Ré-analyser la photo';
-        btn.disabled = false;
-    }
-};
-
-function _remplirFormulaire(r) {
-    // Nom
-    const nomEl = document.getElementById('nomRecette');
-    if (nomEl) nomEl.value = r.nom || '';
-
-    // Temps & portions
-    const prepEl = document.getElementById('tempsPrep');
-    const cuisEl = document.getElementById('tempsCuisson');
-    const portEl = document.getElementById('portions');
-    if (prepEl) prepEl.value = r.tempsPrep || '';
-    if (cuisEl) cuisEl.value = r.tempsCuisson || '';
-    if (portEl) portEl.value = r.portions || '';
-
-    // Ingrédients
-    const zoneIng = document.getElementById('zone-ingredients');
-    if (zoneIng && r.ingredients?.length) {
-        zoneIng.innerHTML = r.ingredients.map(ing => `
-            <div class="field-row">
-                <input type="text" class="ingredient-item" value="${_escHtml(ing)}" placeholder="Ingrédient">
-                <button class="btn-mic-field" onclick="window.demarrerVocalChamp(null, this)" title="Dicter">🎙️</button>
-                <button onclick="this.parentElement.remove()" class="btn-remove-field" title="Supprimer">×</button>
-            </div>
-        `).join('');
-    }
-
-    // Étapes
-    const zoneEta = document.getElementById('zone-etapes');
-    if (zoneEta && r.etapes?.length) {
-        zoneEta.innerHTML = r.etapes.map(eta => `
-            <div class="field-row">
-                <input type="text" class="etape-item" value="${_escHtml(eta)}" placeholder="Étape">
-                <button class="btn-mic-field" onclick="window.demarrerVocalChamp(null, this)" title="Dicter">🎙️</button>
-                <button onclick="this.parentElement.remove()" class="btn-remove-field" title="Supprimer">×</button>
-            </div>
-        `).join('');
-    }
-
-    // Univers & sous-catégorie
-    const univEl = document.getElementById('univers');
-    if (univEl && r.univers) {
-        univEl.value = r.univers;
-        window.majSousCategories();
-    }
-    const sousEl = document.getElementById('sousCategorie');
-    if (sousEl && r.sousCategorie) {
-        // Trouver l'option la plus proche
-        const opts = Array.from(sousEl.options);
-        const match = opts.find(o => o.value === r.sousCategorie.toLowerCase().replace('/', '-'));
-        if (match) sousEl.value = match.value;
-    }
-
-    // Origine
-    const oriEl = document.getElementById('origine');
-    if (oriEl && r.origine) {
-        const opts = Array.from(oriEl.options);
-        const match = opts.find(o => o.value === r.origine.toLowerCase());
-        if (match) oriEl.value = match.value;
-    }
-}
-
-function _escHtml(str) {
-    return (str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-
 const UNSPLASH_KEY = "aJKziiIrqJf56a0HgZ0XeqBRmycg716cCNPxB5vt7Ig";
 
 // =============================================
@@ -659,7 +482,7 @@ window.ouvrirRecette = (id) => {
     const portionsBase = parseInt(r.portions) || 4;
     window._portionsBase = portionsBase;
     window._portionsCourantes = portionsBase;
-    window._ingredientsBase = (r.ingredients || "").split('\n').filter(Boolean);
+    window._ingredientsBase = (typeof r.ingredients === 'string' ? r.ingredients : Array.isArray(r.ingredients) ? r.ingredients.join('\n') : "").split('\n').filter(Boolean);
 
     // Mots-clés qui indiquent un ingrédient qu'on ne peut pas fractionner
     const INGREDIENTS_ENTIERS = ['oeuf','oeufs','oignon','oignons','gousse','gousses','carotte','carottes','pomme de terre','pommes de terre','citron','citrons','tomate','tomates','poivron','poivrons','échalote','échalotes','courgette','courgettes','aubergine','aubergines','banane','bananes','feuille','feuilles','tranche','tranches','morceau','morceaux'];
@@ -691,7 +514,7 @@ window.ouvrirRecette = (id) => {
         document.getElementById('ingredients-liste').innerHTML = renderIngredients(facteur);
     };
 
-    const etapesList = (r.etapes || "").split('\n').filter(Boolean).map(e => `<li>${e}</li>`).join('');
+    const etapesList = (typeof r.etapes === 'string' ? r.etapes : Array.isArray(r.etapes) ? r.etapes.join('\n') : "").split('\n').filter(Boolean).map(e => `<li>${e}</li>`).join('');
 
     const notesList = (r.notes || []).map(n => `
         <div class="note-item">
@@ -760,237 +583,38 @@ window.fermerRecette = () => {
 };
 
 // =============================================
-// MODE CUISINE — LECTURE ÉTAPE PAR ÉTAPE
+// LECTURE VOCALE
 // =============================================
 
-const _synth = window.speechSynthesis;
-let _etapesCuisine = [];
-let _etapeIndex = 0;
+let _syntheseVocale = window.speechSynthesis;
 let _lectureEnCours = false;
-let _lectureAuto = false;
-let _reconnaissanceCuisine = null;
-
-// Mots-clés reconnus pour chaque commande — variantes orthographiques incluses
-const CMDS = {
-    suivant:   ['suivant', 'suivan', 'suivante', 'prochain', 'prochaine', 'continuer', 'continue', 'next', 'apres', 'après'],
-    precedent: ['précédent', 'precedent', 'précédant', 'precedant', 'précédente', 'retour', 'avant', 'revenir', 'revien', 'previous', 'back'],
-    repeter:   ['répète', 'repete', 'répéter', 'repeter', 'encore', 'relire', 'redis', 'replay'],
-    pause:     ['pause', 'stop provisoire', 'attends', 'attendre'],
-    stop:      ['stop', 'arrête', 'arrete', 'terminer', 'terminer', 'fermer', 'quitter', 'fin'],
-};
-
-function _cmdMatch(texte, liste) {
-    return liste.some(mot => texte.includes(mot));
-}
-
-function _updatePanneau() {
-    const r = window._recetteCourante;
-    if (!r || !_etapesCuisine.length) return;
-    const total = _etapesCuisine.length;
-    const idx = _etapeIndex;
-
-    const nomEl = document.getElementById('panneau-nom-recette');
-    const numEl = document.getElementById('panneau-etape-num');
-    const contEl = document.getElementById('panneau-etape-contenu');
-    const labelEl = document.getElementById('panneau-step-label');
-    const fillEl = document.getElementById('panneau-progress-fill');
-    const prevBtn = document.getElementById('btn-panneau-prev');
-    const nextBtn = document.getElementById('btn-panneau-next');
-
-    if (nomEl) nomEl.textContent = r.nom;
-    if (numEl) numEl.textContent = idx + 1;
-    if (contEl) contEl.textContent = _etapesCuisine[idx] || '';
-    if (labelEl) labelEl.textContent = `Étape ${idx + 1} / ${total}`;
-    if (fillEl) fillEl.style.width = `${((idx + 1) / total) * 100}%`;
-    if (prevBtn) prevBtn.disabled = idx === 0;
-    if (nextBtn) nextBtn.disabled = idx === total - 1;
-
-    // Surbrillance dans la modal
-    document.querySelectorAll('.ol-etapes li').forEach((li, i) => {
-        li.classList.toggle('etape-active', i === idx);
-        if (i === idx) li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    });
-}
-
-function _lireEtape() {
-    if (!_synth || !_etapesCuisine.length) return;
-    _synth.cancel();
-
-    const texte = `Étape ${_etapeIndex + 1} : ${_etapesCuisine[_etapeIndex]}`;
-    const u = new SpeechSynthesisUtterance(texte);
-    u.lang = 'fr-FR';
-    u.rate = 0.88;
-    u.pitch = 1.0;
-
-    // Sélectionner une voix française disponible
-    const voixFr = _synth.getVoices().find(v => v.lang.startsWith('fr') && !v.name.includes('Compact'));
-    if (voixFr) u.voice = voixFr;
-
-    u.onend = () => {
-        if (_lectureAuto) {
-            if (_etapeIndex < _etapesCuisine.length - 1) {
-                setTimeout(() => { if (_lectureAuto) { _etapeIndex++; _updatePanneau(); _lireEtape(); } }, 2200);
-            } else {
-                // Fin recette
-                _lectureAuto = false;
-                _lectureEnCours = false;
-                _majBtnPlay();
-                setTimeout(() => {
-                    const fin = new SpeechSynthesisUtterance('Bravo ! Toutes les étapes sont terminées. Bon appétit !');
-                    fin.lang = 'fr-FR';
-                    if (voixFr) fin.voice = voixFr;
-                    _synth.speak(fin);
-                }, 500);
-            }
-        }
-    };
-    _synth.speak(u);
-    _lectureEnCours = true;
-    _majBtnPlay();
-}
-
-function _majBtnPlay() {
-    const btn = document.getElementById('btn-panneau-play');
-    if (btn) btn.textContent = _lectureAuto ? '⏸' : '▶';
-
-    const btnModal = document.getElementById('btn-lecture');
-    if (btnModal) {
-        if (_lectureEnCours || _lectureAuto) {
-            btnModal.textContent = '⏹ Arrêter la lecture';
-            btnModal.classList.add('lecture-active');
-        } else {
-            btnModal.textContent = '🔊 Mode cuisine — Lecture étape par étape';
-            btnModal.classList.remove('lecture-active');
-        }
-    }
-}
-
-// --- API publique ---
-
-window.toggleLecture = () => {
-    const r = window._recetteCourante;
-    if (!r) return;
-    _etapesCuisine = (r.etapes || '').split('\n').filter(Boolean);
-    if (!_etapesCuisine.length) { showToast("Pas d'étapes à lire !", 'error'); return; }
-
-    if (_lectureEnCours || _lectureAuto) { window.stopperLecture(); return; }
-
-    _etapeIndex = 0;
-    _lectureAuto = true;
-    const panneau = document.getElementById('panneau-lecture');
-    if (panneau) panneau.style.display = 'block';
-    _updatePanneau();
-    // Attendre les voix si pas encore chargées
-    if (_synth.getVoices().length === 0) {
-        _synth.addEventListener('voiceschanged', () => _lireEtape(), { once: true });
-    } else {
-        _lireEtape();
-    }
-    _demarrerEcouteCommandes();
-};
-
-window.toggleLecturePanneau = () => {
-    if (_lectureAuto) {
-        _lectureAuto = false; _synth.cancel(); _majBtnPlay();
-    } else {
-        _lectureAuto = true; _lireEtape();
-    }
-};
-
-window.etapeSuivante = () => {
-    if (_etapeIndex < _etapesCuisine.length - 1) {
-        _etapeIndex++; _synth.cancel(); _updatePanneau(); _lireEtape(); _lectureAuto = false;
-    } else { showToast('Dernière étape !', ''); }
-};
-
-window.etapePrecedente = () => {
-    if (_etapeIndex > 0) {
-        _etapeIndex--; _synth.cancel(); _updatePanneau(); _lireEtape(); _lectureAuto = false;
-    } else { showToast('Première étape !', ''); }
-};
-
-window.repeterEtape = () => { _synth.cancel(); _lireEtape(); };
 
 window.stopperLecture = () => {
-    _synth.cancel();
+    if (_syntheseVocale) _syntheseVocale.cancel();
     _lectureEnCours = false;
-    _lectureAuto = false;
-    const panneau = document.getElementById('panneau-lecture');
-    if (panneau) panneau.style.display = 'none';
-    document.querySelectorAll('.ol-etapes li').forEach(li => li.classList.remove('etape-active'));
-    _majBtnPlay();
-    _arreterEcouteCommandes();
+    const btn = document.getElementById("btn-lecture");
+    if (btn) { btn.textContent = "🔊 Lire les étapes à voix haute"; btn.classList.remove("lecture-active"); }
 };
 
-// --- Commandes vocales robustes ---
+window.toggleLecture = () => {
+    if (_lectureEnCours) { window.stopperLecture(); return; }
+    const r = window._recetteCourante;
+    if (!r) return;
+    const etapes = (typeof r.etapes === 'string' ? r.etapes : Array.isArray(r.etapes) ? r.etapes.join('\n') : "").split("\n").filter(Boolean);
+    if (!etapes.length) { showToast("Pas d'étapes à lire !", "error"); return; }
 
-function _demarrerEcouteCommandes() {
-    if (!SpeechRecognition || _reconnaissanceCuisine) return;
-    const r = new SpeechRecognition();
-    r.lang = 'fr-FR';
-    r.continuous = true;
-    r.interimResults = true; // Résultats intermédiaires pour réactivité immédiate
+    _lectureEnCours = true;
+    const btn = document.getElementById("btn-lecture");
+    if (btn) { btn.textContent = "⏹ Arrêter la lecture"; btn.classList.add("lecture-active"); }
 
-    r.onresult = (e) => {
-        // Prendre le dernier résultat (intermédiaire ou final)
-        const result = e.results[e.results.length - 1];
-        const texte = result[0].transcript.toLowerCase()
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // retirer accents pour comparaison
-            .trim();
-
-        // On traite même les résultats intermédiaires pour réactivité
-        if (_cmdMatch(texte, CMDS.suivant)) {
-            window.etapeSuivante();
-            showToast('⏭ Étape suivante', '');
-        } else if (_cmdMatch(texte, CMDS.precedent)) {
-            window.etapePrecedente();
-            showToast('⏮ Étape précédente', '');
-        } else if (_cmdMatch(texte, CMDS.repeter)) {
-            window.repeterEtape();
-            showToast('🔁 Je répète…', '');
-        } else if (_cmdMatch(texte, CMDS.pause)) {
-            _lectureAuto = false; _synth.cancel(); _majBtnPlay();
-            showToast('⏸ Pause', '');
-        } else if (_cmdMatch(texte, CMDS.stop)) {
-            window.stopperLecture();
-            showToast('⏹ Lecture arrêtée', '');
-        }
-    };
-
-    r.onerror = (e) => {
-        // Ignorer les erreurs no-speech (silence) — normales en cuisine
-        if (e.error === 'no-speech') return;
-        console.warn('Erreur reconnaissance cuisine:', e.error);
-    };
-
-    r.onend = () => {
-        // Relancer automatiquement si la lecture est toujours active
-        if ((_lectureAuto || _lectureEnCours) && _reconnaissanceCuisine) {
-            try { r.start(); } catch(err) {}
-        } else {
-            _reconnaissanceCuisine = null;
-        }
-    };
-
-    try {
-        r.start();
-        _reconnaissanceCuisine = r;
-        const hint = document.getElementById('panneau-vocal-hint');
-        if (hint) hint.style.opacity = '1';
-    } catch(e) {
-        _reconnaissanceCuisine = null;
-    }
-}
-
-function _arreterEcouteCommandes() {
-    if (_reconnaissanceCuisine) {
-        const r = _reconnaissanceCuisine;
-        _reconnaissanceCuisine = null; // mettre à null AVANT stop pour éviter le relancement dans onend
-        try { r.stop(); } catch(e) {}
-    }
-    const hint = document.getElementById('panneau-vocal-hint');
-    if (hint) hint.style.opacity = '0.4';
-}
+    const texte = "Recette : " + r.nom + ". " + etapes.map((e, i) => `Étape ${i+1} : ${e}`).join(". ");
+    const utterance = new SpeechSynthesisUtterance(texte);
+    utterance.lang = "fr-FR";
+    utterance.rate = 0.9;
+    utterance.onend = () => window.stopperLecture();
+    utterance.onerror = () => window.stopperLecture();
+    _syntheseVocale.speak(utterance);
+};
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') window.fermerRecette(); });
 
