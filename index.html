@@ -1250,6 +1250,45 @@ select:focus { border-color: var(--orange); }
     margin-top: 4px;
     opacity: 0.85;
 }
+
+/* ========== WIDGET PORTIONS ========== */
+.portions-widget {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--gray);
+    border-radius: 30px;
+    padding: 6px 14px;
+    border: 1px solid var(--gray-mid);
+}
+.portions-btn {
+    background: var(--white);
+    border: 1.5px solid var(--gray-mid);
+    color: var(--brown);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    transition: var(--transition);
+    line-height: 1;
+}
+.portions-btn:hover {
+    background: var(--orange);
+    border-color: var(--orange);
+    color: white;
+}
+.portions-label {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--brown);
+    min-width: 70px;
+    text-align: center;
+}
 </style>
 </head>
 <body>
