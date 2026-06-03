@@ -611,7 +611,23 @@ window.previsualiserFrigo = (event) => {
         const preview = document.getElementById("frigoPreview");
         preview.src = e.target.result;
         preview.style.display = "block";
-        frigoImageBase64 = e.target.result.split(',')[1];
+        // Compression de l'image avant envoi à Claude
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX = 1024;
+            let w = img.width, h = img.height;
+            if (w > MAX || h > MAX) {
+                if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+                else { w = Math.round(w * MAX / h); h = MAX; }
+            }
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+            const compressed = canvas.toDataURL('image/jpeg', 0.8);
+            frigoImageBase64 = compressed.split(',')[1];
+            window._frigoMimeType = "image/jpeg";
+        };
+        img.src = e.target.result;
         document.getElementById("frigo-ia-zone").style.display = "block";
         document.getElementById("frigo-ingredients").style.display = "none";
         document.getElementById("frigo-recettes").style.display = "none";
@@ -632,7 +648,7 @@ window.analyserFrigo = async () => {
             body: JSON.stringify({
                 model: MODEL, max_tokens: 1000,
                 messages: [{ role: "user", content: [
-                    { type: "image", source: { type: "base64", media_type: "image/jpeg", data: frigoImageBase64 } },
+                    { type: "image", source: { type: "base64", media_type: window._frigoMimeType || "image/jpeg", data: frigoImageBase64 } },
                     { type: "text", text: `Analyse ce frigo. Réponds en JSON UNIQUEMENT (sans markdown).\n{"ingredients":["..."],"recettes":[{"emoji":"🍳","titre":"...","description":"..."}]}\nPropose 3-5 recettes familiales réalisables avec ces ingrédients.` }
                 ]}]
             })
