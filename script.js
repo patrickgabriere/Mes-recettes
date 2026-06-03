@@ -392,7 +392,7 @@ window.filtrerRecettes = (type) => {
     if (!res.length) {
         const emptyIcon = type === 'commu' ? '🌍' : type === 'favoris' ? '⭐' : '📚';
         const emptyTitle = type === 'commu' ? 'Aucune recette publique' : type === 'favoris' ? 'Pas encore de favoris' : 'Pas encore de recettes';
-        const emptyMsg = type === 'commu' ? 'Aucune recette ne correspond à ta recherche.' : type === 'favoris' ? 'Clique sur ☆ sur une recette pour l'ajouter ici !' : 'Commence par en ajouter une !';
+        const emptyMsg = type === 'commu' ? 'Aucune recette ne correspond à ta recherche.' : type === 'favoris' ? "Clique sur ☆ sur une recette pour l'ajouter ici !" : 'Commence par en ajouter une !';
         grille.innerHTML = `
             <div class="empty-state" style="grid-column:1/-1;">
                 <div class="empty-state-icon">${emptyIcon}</div>
