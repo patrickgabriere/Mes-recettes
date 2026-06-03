@@ -8,7 +8,7 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 const CLAUDE_PROXY = "https://grimoire-proxy.patrick-gabriere.workers.dev";
-const MODEL = "claude-sonnet-4-20250514";
+const MODEL = "claude-haiku-4-5";
 
 // =============================================
 // SCANNER RECETTE PAPIER — IA
@@ -582,7 +582,7 @@ window.filtrerRecettes = (type) => {
         (r.ingredients || "").toLowerCase().includes(txt)
     );
     if (fCat !== "tous") res = res.filter(r => r.sousCategorie?.toLowerCase() === fCat);
-    if (fOri !== "tous") res = res.filter(r => r.origine === fOri);
+    if (fOri !== "tous") res = res.filter(r => r.origine === fOri || !r.origine);
 
     const grille = document.getElementById('grille-' + type);
 
