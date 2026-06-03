@@ -1251,6 +1251,48 @@ select:focus { border-color: var(--orange); }
     opacity: 0.85;
 }
 
+/* ========== FAVORIS ========== */
+.fav-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transition: var(--transition);
+    z-index: 2;
+}
+.fav-btn:hover { transform: scale(1.15); }
+.fav-btn.fav-actif { background: #fff8e1; }
+.recette-card { position: relative; }
+
+.btn-fav-modal {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--gray);
+    border: 1.5px solid var(--gray-mid);
+    color: var(--brown);
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: var(--transition);
+    font-family: 'DM Sans', sans-serif;
+}
+.btn-fav-modal:hover { background: #fff8e1; border-color: var(--gold); }
+.btn-fav-modal.fav-actif { background: #fff8e1; border-color: var(--gold); color: #b8860b; }
+
 /* ========== WIDGET PORTIONS ========== */
 .portions-widget {
     display: flex;
