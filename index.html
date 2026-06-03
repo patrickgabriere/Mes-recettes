@@ -1917,6 +1917,10 @@ select:focus { border-color: var(--orange); }
     </div>
     <div class="panneau-etape-num" id="panneau-etape-num">1</div>
     <div class="panneau-etape-contenu" id="panneau-etape-contenu"></div>
+    <div id="panneau-timer" style="display:none; text-align:center; font-size:2rem; font-weight:bold; margin:10px 0; color:#3d2b1f; background:#fdf6ec; border-radius:10px; padding:8px;"></div>
+    <div id="panneau-timer-ctrl" style="text-align:center; margin-bottom:8px;">
+        <button onclick="window._demarrerTimerManuel && window._demarrerTimerManuel()" style="background:none;border:1px solid #e8672a;color:#e8672a;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:0.85rem;">▶ Relancer timer</button>
+    </div>
     <div class="panneau-controls">
         <button class="panneau-btn sm" id="btn-panneau-prev" onclick="window.etapePrecedente()" title="Étape précédente">⏮</button>
         <button class="panneau-btn lg" id="btn-panneau-play" onclick="window.toggleLecturePanneau()" title="Lecture / Pause">▶</button>
