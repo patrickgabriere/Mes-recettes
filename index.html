@@ -474,7 +474,7 @@ header {
 
 .select-filtre:focus { border-color: var(--orange); }
 .select-filtre:hover { border-color: var(--brown-light); }
-<!-- Bloc de filtrage par origine -->
+
 /* ========== RECIPE GRID ========== */
 .recettes-grid {
     display: grid;
@@ -1243,6 +1243,13 @@ select:focus { border-color: var(--orange); }
     .ol-etapes li { font-size: 1rem; line-height: 1.7; }
     .list-ingredients li { font-size: 1rem; }
 }
+
+.card-origine {
+    font-size: 0.75rem;
+    color: var(--brown-light);
+    margin-top: 4px;
+    opacity: 0.85;
+}
 </style>
 </head>
 <body>
@@ -1406,27 +1413,9 @@ select:focus { border-color: var(--orange); }
                 </select>
                 <select id="sousCategorie"></select>
             </div>
-            <div class="form-label" style="margin-top:4px;">🌍 Origine culinaire</div>
-            <select id="origineRecette" style="margin-bottom:12px;">
-                <option value="">— Non précisée —</option>
-                <option value="française">🇫🇷 Française</option>
-                <option value="italienne">🇮🇹 Italienne</option>
-                <option value="espagnole">🇪🇸 Espagnole</option>
-                <option value="mexicaine">🇲🇽 Mexicaine</option>
-                <option value="japonaise">🇯🇵 Japonaise</option>
-                <option value="chinoise">🇨🇳 Chinoise</option>
-                <option value="indienne">🇮🇳 Indienne</option>
-                <option value="américaine">🇺🇸 Américaine</option>
-                <option value="grecque">🇬🇷 Grecque</option>
-                <option value="marocaine">🇲🇦 Marocaine</option>
-                <option value="libanaise">🇱🇧 Libanaise</option>
-                <option value="thaïlandaise">🇹🇭 Thaïlandaise</option>
-                <option value="vietnamienne">🇻🇳 Vietnamienne</option>
-                <option value="coréenne">🇰🇷 Coréenne</option>
-                <option value="portugaise">🇵🇹 Portugaise</option>
-                <option value="brésilienne">🇧🇷 Brésilienne</option>
-                <option value="autre">🌐 Autre</option>
-            </select>
+            <div class="select-group" style="margin-bottom:12px;">
+                <select id="origine" style="width:100%"></select>
+            </div>
             <input type="text" id="imageLien" class="input-full" placeholder="🖼️ Lien image (optionnel)">
         </div>
 
@@ -1465,30 +1454,6 @@ select:focus { border-color: var(--orange); }
         messagingSenderId: "532296769066",
         appId: "1:532296769066:web:ba4ecfe2ef713b194d2bb7"
     };
-    <!-- Bloc de filtrage par origine -->
-<div class="filter-container" style="margin: 10px 0;">
-  <label for="filterOrigine">Filtrer par origine :</label>
-  <select id="filterOrigine">
-    <option value="toutes">Toutes les origines</option>
-    <option value="française">🇫🇷 Française</option>
-    <option value="italienne">🇮🇹 Italienne</option>
-    <option value="espagnole">🇪🇸 Espagnole</option>
-    <option value="mexicaine">🇲🇽 Mexicaine</option>
-    <option value="japonaise">🇯🇵 Japonaise</option>
-    <option value="chinoise">🇨🇳 Chinoise</option>
-    <option value="indienne">🇮🇳 Indienne</option>
-    <option value="américaine">🇺🇸 Américaine</option>
-    <option value="grecque">🇬🇷 Grecque</option>
-    <option value="marocaine">🇲🇦 Marocaine</option>
-    <option value="libanaise">🇱🇧 Libanaise</option>
-    <option value="thaïlandaise">🇹🇭 Thaïlandaise</option>
-    <option value="vietnamienne">🇻🇳 Vietnamienne</option>
-    <option value="coréenne">🇰🇷 Coréenne</option>
-    <option value="portugaise">🇵🇹 Portugaise</option>
-    <option value="brésilienne">🇧🇷 Brésilienne</option>
-    <option value="autre">🌍 Autre</option>
-  </select>
-</div>
 </script>
 <script type="module" src="script.js"></script>
 </body>
