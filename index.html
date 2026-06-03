@@ -1455,6 +1455,181 @@ select:focus { border-color: var(--orange); }
     line-height: 1.5;
 }
 
+/* ========== MODE CUISINE — LECTURE ÉTAPE PAR ÉTAPE ========== */
+.btn-lecture {
+    width: 100%;
+    padding: 15px 18px;
+    background: linear-gradient(135deg, var(--brown) 0%, var(--brown-mid) 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: var(--transition);
+    margin-top: 20px;
+}
+.btn-lecture:hover { opacity: 0.9; }
+.btn-lecture.lecture-active {
+    background: linear-gradient(135deg, #c0392b 0%, #922b21 100%);
+}
+
+.etape-active {
+    background: #fff8e1 !important;
+    border-color: var(--gold) !important;
+    border-width: 2px !important;
+    font-weight: 600;
+}
+
+#panneau-lecture {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 4000;
+    background: linear-gradient(135deg, #1e0e06 0%, #2c1a0e 100%);
+    color: white;
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.4);
+    padding: 20px 20px 32px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+@media (min-width: 600px) {
+    #panneau-lecture {
+        bottom: 24px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        border-radius: 20px;
+        padding: 24px 28px;
+        width: 540px;
+    }
+}
+
+.panneau-drag {
+    width: 40px;
+    height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 4px;
+    margin: 0 auto 16px;
+}
+
+.panneau-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 10px;
+}
+
+.panneau-nom {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: rgba(255,255,255,0.75);
+    font-style: italic;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.panneau-step-label {
+    font-size: 0.82rem;
+    color: var(--gold-light);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.panneau-progress {
+    height: 4px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 4px;
+    margin-bottom: 18px;
+    overflow: hidden;
+}
+
+.panneau-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold) 0%, var(--orange) 100%);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+
+.panneau-etape-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 10px;
+}
+
+.panneau-etape-contenu {
+    font-size: 1.15rem;
+    line-height: 1.75;
+    color: white;
+    min-height: 80px;
+    margin-bottom: 20px;
+}
+
+.panneau-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.panneau-btn {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    flex-shrink: 0;
+}
+.panneau-btn:hover { background: rgba(255,255,255,0.2); }
+.panneau-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.panneau-btn.sm { width: 44px; height: 44px; font-size: 1.1rem; }
+.panneau-btn.lg {
+    width: 60px;
+    height: 60px;
+    font-size: 1.4rem;
+    background: var(--orange);
+}
+.panneau-btn.lg:hover { background: var(--orange-dark); }
+
+.panneau-commandes {
+    text-align: center;
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.5;
+}
+
+.btn-panneau-fermer {
+    background: rgba(255,255,255,0.08);
+    border: none;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.82rem;
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+}
+.btn-panneau-fermer:hover { background: rgba(255,255,255,0.15); color: white; }
+
 </style>
 </head>
 <body>
@@ -1699,6 +1874,32 @@ select:focus { border-color: var(--orange); }
             <div id="contenuRecetteHeader"></div>
         </div>
         <div class="modal-body" id="contenuRecette"></div>
+    </div>
+</div>
+
+<!-- PANNEAU MODE CUISINE — LECTURE ÉTAPE PAR ÉTAPE -->
+<div id="panneau-lecture">
+    <div class="panneau-drag"></div>
+    <div class="panneau-header">
+        <div class="panneau-nom" id="panneau-nom-recette"></div>
+        <div class="panneau-step-label" id="panneau-step-label">Étape 1 / 1</div>
+    </div>
+    <div class="panneau-progress">
+        <div class="panneau-progress-fill" id="panneau-progress-fill" style="width:0%"></div>
+    </div>
+    <div class="panneau-etape-num" id="panneau-etape-num">1</div>
+    <div class="panneau-etape-contenu" id="panneau-etape-contenu"></div>
+    <div class="panneau-controls">
+        <button class="panneau-btn sm" id="btn-panneau-prev" onclick="window.etapePrecedente()" title="Étape précédente">⏮</button>
+        <button class="panneau-btn lg" id="btn-panneau-play" onclick="window.toggleLecturePanneau()" title="Lecture / Pause">▶</button>
+        <button class="panneau-btn sm" id="btn-panneau-next" onclick="window.etapeSuivante()" title="Étape suivante">⏭</button>
+        <button class="panneau-btn sm" onclick="window.repeterEtape()" title="Répéter">🔁</button>
+    </div>
+    <div class="panneau-commandes">
+        🎙️ Commandes vocales : <strong>« suivant »</strong> · <strong>« précédent »</strong> · <strong>« répète »</strong> · <strong>« stop »</strong>
+    </div>
+    <div style="text-align:center;margin-top:12px;">
+        <button class="btn-panneau-fermer" onclick="window.stopperLecture()">✕ Fermer le mode cuisine</button>
     </div>
 </div>
 
