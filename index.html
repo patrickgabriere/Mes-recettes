@@ -1371,6 +1371,90 @@ select:focus { border-color: var(--orange); }
     .list-ingredients li { font-size: 1rem; }
     .section-title-form { font-size: 1.6rem; }
 }
+/* ========== SCANNER IA ========== */
+.scanner-box {
+    background: var(--gold-pale);
+    border: 2px dashed var(--gold);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.scanner-box-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--brown);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.scanner-box-sub {
+    font-size: 0.88rem;
+    color: var(--brown-light);
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+
+.scanner-zone-drop {
+    border: 2px dashed var(--gray-mid);
+    border-radius: var(--radius-sm);
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    background: white;
+    transition: var(--transition);
+    color: var(--brown-light);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+.scanner-zone-drop:hover { border-color: var(--orange); background: #fffaf6; }
+.scanner-zone-drop .drop-icon { font-size: 2.4rem; display: block; margin-bottom: 8px; }
+
+.scanner-preview-wrap { display: none; margin-bottom: 12px; }
+.scanner-preview-wrap img {
+    width: 100%;
+    max-height: 220px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--gold-light);
+}
+
+.btn-scanner-ia {
+    display: none;
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--brown) 0%, var(--brown-mid) 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: var(--transition);
+    margin-top: 12px;
+}
+.btn-scanner-ia:hover { opacity: 0.9; }
+.btn-scanner-ia:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.scanner-resultat {
+    display: none;
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: #e8f5e9;
+    border: 1px solid #a5d6a7;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    color: #2e7d32;
+    line-height: 1.5;
+}
+
 </style>
 </head>
 <body>
@@ -1497,6 +1581,31 @@ select:focus { border-color: var(--orange); }
     <!-- AJOUTER -->
     <div id="page-ajouter" class="section-page">
         <h2 class="section-title-form">✨ Nouvelle Formule Magique</h2>
+
+        <!-- SCANNER IA -->
+        <div class="scanner-box">
+            <div class="scanner-box-title">📸 Scanner une recette papier</div>
+            <div class="scanner-box-sub">Prends en photo une recette d'un livre ou d'une fiche — l'IA remplit le formulaire automatiquement !</div>
+
+            <div id="scanner-zone-drop" class="scanner-zone-drop" onclick="document.getElementById('scanner-input').click()">
+                <span class="drop-icon">📷</span>
+                Appuie ici pour prendre une photo<br>
+                <small>ou choisir une image depuis la galerie</small>
+            </div>
+            <input type="file" id="scanner-input" accept="image/*" capture="environment" style="display:none" onchange="window.previsualiserScan(event)">
+
+            <div id="scanner-preview-wrap" class="scanner-preview-wrap">
+                <img id="scanner-preview-img" src="" alt="Aperçu de la photo">
+            </div>
+
+            <button id="btnScannerIA" class="btn-scanner-ia" onclick="window.scannerRecette()">
+                ✨ Analyser la photo avec l'IA
+            </button>
+
+            <div id="scanner-resultat" class="scanner-resultat">
+                <span id="scanner-resultat-texte"></span>
+            </div>
+        </div>
 
         <div class="form-section">
             <div class="form-label">📝 Nom de la recette</div>
