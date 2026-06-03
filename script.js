@@ -368,15 +368,21 @@ window.ouvrirRecette = (id) => {
     window._portionsCourantes = portionsBase;
     window._ingredientsBase = (r.ingredients || "").split('\n').filter(Boolean);
 
+    // Mots-clés qui indiquent un ingrédient qu'on ne peut pas fractionner
+    const INGREDIENTS_ENTIERS = ['oeuf','oeufs','oignon','oignons','gousse','gousses','carotte','carottes','pomme de terre','pommes de terre','citron','citrons','tomate','tomates','poivron','poivrons','échalote','échalotes','courgette','courgettes','aubergine','aubergines','banane','bananes','feuille','feuilles','tranche','tranches','morceau','morceaux'];
+
     const renderIngredients = (facteur) => {
         return window._ingredientsBase.map(ligne => {
-            // Cherche un nombre (entier ou décimal) au début ou dans la ligne
             const match = ligne.match(/(\d+(?:[.,]\d+)?)/);
             if (match) {
                 const valBase = parseFloat(match[1].replace(',', '.'));
                 const valNew = valBase * facteur;
-                // Affichage propre : entier si possible, sinon 1 décimale
-                const valAff = Number.isInteger(valNew) ? valNew : Math.round(valNew * 10) / 10;
+                // Arrondi à l'entier si l'ingrédient est "comptable"
+                const ligneMin = ligne.toLowerCase();
+                const estEntier = INGREDIENTS_ENTIERS.some(mot => ligneMin.includes(mot));
+                const valAff = estEntier
+                    ? Math.max(1, Math.round(valNew))
+                    : (Number.isInteger(valNew) ? valNew : Math.round(valNew * 10) / 10);
                 const ligneMod = ligne.replace(match[1], `<strong>${valAff}</strong>`);
                 return `<li>${ligneMod}</li>`;
             }
