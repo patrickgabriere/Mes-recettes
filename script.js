@@ -583,38 +583,214 @@ window.fermerRecette = () => {
 };
 
 // =============================================
-// LECTURE VOCALE
+// MODE CUISINE — LECTURE ÉTAPE PAR ÉTAPE
 // =============================================
 
-let _syntheseVocale = window.speechSynthesis;
+const _synth = window.speechSynthesis;
+let _etapes = [];
+let _etapeIndex = 0;
 let _lectureEnCours = false;
+let _lectureAuto = false;  // true = lit automatiquement chaque étape
+let _reconnaissanceCuisine = null;
 
-window.stopperLecture = () => {
-    if (_syntheseVocale) _syntheseVocale.cancel();
-    _lectureEnCours = false;
-    const btn = document.getElementById("btn-lecture");
-    if (btn) { btn.textContent = "🔊 Lire les étapes à voix haute"; btn.classList.remove("lecture-active"); }
-};
-
-window.toggleLecture = () => {
-    if (_lectureEnCours) { window.stopperLecture(); return; }
+// --- Utilitaires UI panneau ---
+function _updatePanneau() {
     const r = window._recetteCourante;
     if (!r) return;
-    const etapes = (r.etapes || "").split("\n").filter(Boolean);
-    if (!etapes.length) { showToast("Pas d'étapes à lire !", "error"); return; }
+    const total = _etapes.length;
+    const idx = _etapeIndex;
 
+    document.getElementById('panneau-nom-recette').textContent = r.nom;
+    document.getElementById('panneau-etape-num').textContent = idx + 1;
+    document.getElementById('panneau-etape-contenu').textContent = _etapes[idx] || '';
+    document.getElementById('panneau-step-label').textContent = `Étape ${idx + 1} / ${total}`;
+    document.getElementById('panneau-progress-fill').style.width = `${((idx + 1) / total) * 100}%`;
+
+    // Boutons prev/next
+    document.getElementById('btn-panneau-prev').disabled = idx === 0;
+    document.getElementById('btn-panneau-next').disabled = idx === total - 1;
+
+    // Surbrillance dans la modal si ouverte
+    document.querySelectorAll('.ol-etapes li').forEach((li, i) => {
+        li.classList.toggle('etape-active', i === idx);
+        if (i === idx) li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+}
+
+function _lireEtapeActuelle() {
+    if (!_synth || !_etapes.length) return;
+    _synth.cancel();
+
+    const texte = `Étape ${_etapeIndex + 1} : ${_etapes[_etapeIndex]}`;
+    const u = new SpeechSynthesisUtterance(texte);
+    u.lang = 'fr-FR';
+    u.rate = 0.88;
+    u.pitch = 1;
+
+    // Choisir une voix française si disponible
+    const voix = _synth.getVoices().find(v => v.lang.startsWith('fr'));
+    if (voix) u.voice = voix;
+
+    u.onend = () => {
+        // En mode auto, passer à l'étape suivante après 2s
+        if (_lectureAuto && _etapeIndex < _etapes.length - 1) {
+            setTimeout(() => {
+                if (_lectureAuto) {
+                    _etapeIndex++;
+                    _updatePanneau();
+                    _lireEtapeActuelle();
+                }
+            }, 2000);
+        } else if (_lectureAuto && _etapeIndex === _etapes.length - 1) {
+            // Fin de la recette
+            _lectureAuto = false;
+            _lectureEnCours = false;
+            _majBtnPlay();
+            _synth.speak(new SpeechSynthesisUtterance('Bravo ! La recette est terminée. Bon appétit !'));
+        }
+    };
+
+    _synth.speak(u);
     _lectureEnCours = true;
-    const btn = document.getElementById("btn-lecture");
-    if (btn) { btn.textContent = "⏹ Arrêter la lecture"; btn.classList.add("lecture-active"); }
+    _majBtnPlay();
+}
 
-    const texte = "Recette : " + r.nom + ". " + etapes.map((e, i) => `Étape ${i+1} : ${e}`).join(". ");
-    const utterance = new SpeechSynthesisUtterance(texte);
-    utterance.lang = "fr-FR";
-    utterance.rate = 0.9;
-    utterance.onend = () => window.stopperLecture();
-    utterance.onerror = () => window.stopperLecture();
-    _syntheseVocale.speak(utterance);
+function _majBtnPlay() {
+    const btn = document.getElementById('btn-panneau-play');
+    if (!btn) return;
+    if (_lectureAuto) {
+        btn.textContent = '⏸';
+        btn.title = 'Pause';
+    } else {
+        btn.textContent = '▶';
+        btn.title = 'Lire cette étape';
+    }
+    // Bouton dans la modal
+    const btnModal = document.getElementById('btn-lecture');
+    if (btnModal) {
+        if (_lectureEnCours || _lectureAuto) {
+            btnModal.textContent = '⏹ Arrêter la lecture';
+            btnModal.classList.add('lecture-active');
+        } else {
+            btnModal.textContent = '🔊 Mode cuisine — Lecture étape par étape';
+            btnModal.classList.remove('lecture-active');
+        }
+    }
+}
+
+// --- API publique ---
+window.toggleLecture = () => {
+    const r = window._recetteCourante;
+    if (!r) return;
+    _etapes = (r.etapes || '').split('\n').filter(Boolean);
+    if (!_etapes.length) { showToast("Pas d'étapes à lire !", 'error'); return; }
+
+    if (_lectureEnCours || _lectureAuto) {
+        window.stopperLecture();
+        return;
+    }
+
+    // Ouvrir le panneau
+    _etapeIndex = 0;
+    _lectureAuto = true;
+    document.getElementById('panneau-lecture').style.display = 'block';
+    _updatePanneau();
+    _lireEtapeActuelle();
+    _demarrerEcouteCommandes();
 };
+
+window.toggleLecturePanneau = () => {
+    if (_lectureAuto) {
+        // Pause
+        _lectureAuto = false;
+        _synth.cancel();
+        _majBtnPlay();
+    } else {
+        // Reprendre / lire étape courante
+        _lectureAuto = true;
+        _lireEtapeActuelle();
+    }
+};
+
+window.etapeSuivante = () => {
+    if (_etapeIndex < _etapes.length - 1) {
+        _etapeIndex++;
+        _synth.cancel();
+        _updatePanneau();
+        if (_lectureAuto) _lireEtapeActuelle();
+        else {
+            // Lire quand même l'étape si on navigue manuellement
+            _lireEtapeActuelle();
+            _lectureAuto = false;
+        }
+    } else {
+        showToast('Dernière étape atteinte !', '');
+    }
+};
+
+window.etapePrecedente = () => {
+    if (_etapeIndex > 0) {
+        _etapeIndex--;
+        _synth.cancel();
+        _updatePanneau();
+        _lireEtapeActuelle();
+        _lectureAuto = false;
+    }
+};
+
+window.repeterEtape = () => {
+    _synth.cancel();
+    _lireEtapeActuelle();
+};
+
+window.stopperLecture = () => {
+    _synth.cancel();
+    _lectureEnCours = false;
+    _lectureAuto = false;
+    document.getElementById('panneau-lecture').style.display = 'none';
+    // Retirer surbrillance
+    document.querySelectorAll('.ol-etapes li').forEach(li => li.classList.remove('etape-active'));
+    _majBtnPlay();
+    _arreterEcouteCommandes();
+};
+
+// --- Commandes vocales pendant la cuisson ---
+function _demarrerEcouteCommandes() {
+    if (!SpeechRecognition || _reconnaissanceCuisine) return;
+    const r = new SpeechRecognition();
+    r.lang = 'fr-FR';
+    r.continuous = true;
+    r.interimResults = false;
+    r.onresult = (e) => {
+        const texte = e.results[e.results.length - 1][0].transcript.toLowerCase().trim();
+        if (texte.includes('suivant') || texte.includes('prochaine') || texte.includes('continuer')) {
+            window.etapeSuivante();
+        } else if (texte.includes('précédent') || texte.includes('retour') || texte.includes('avant')) {
+            window.etapePrecedente();
+        } else if (texte.includes('répète') || texte.includes('répéter') || texte.includes('encore')) {
+            window.repeterEtape();
+        } else if (texte.includes('stop') || texte.includes('arrête') || texte.includes('terminer')) {
+            window.stopperLecture();
+        } else if (texte.includes('pause')) {
+            _lectureAuto = false; _synth.cancel(); _majBtnPlay();
+        }
+    };
+    r.onerror = () => {};
+    r.onend = () => {
+        // Relancer en continu si lecture active
+        if (_lectureAuto || _lectureEnCours) {
+            try { r.start(); } catch(e) {}
+        }
+    };
+    try { r.start(); _reconnaissanceCuisine = r; } catch(e) {}
+}
+
+function _arreterEcouteCommandes() {
+    if (_reconnaissanceCuisine) {
+        try { _reconnaissanceCuisine.stop(); } catch(e) {}
+        _reconnaissanceCuisine = null;
+    }
+}
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') window.fermerRecette(); });
 
