@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, arrayUnion, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const app = initializeApp(window.firebaseConfig);
 const db = getFirestore(app);
@@ -439,7 +439,12 @@ window.ajouterRecette = async () => {
     }
 };
 
-window.connexionGoogle = () => signInWithPopup(auth, provider).catch(e => {
+window.connexionGoogle = () => {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (isMobile) {
+        signInWithRedirect(auth, provider).catch(e => showToast("Erreur connexion", "error"));
+    } else {
+        signInWithPopup(auth, provider).catch(e => {
     console.error(e);
     showToast("Erreur de connexion Google", "error");
 });
@@ -485,6 +490,9 @@ window.toggleFavori = async (id, e) => {
     // Rafraîchir l'onglet favoris
     window.filtrerRecettes('favoris');
 };
+
+// Gestion du retour après redirect mobile
+getRedirectResult(auth).catch(e => console.log("Redirect result error:", e));
 
 onAuthStateChanged(auth, async (user) => {
     document.getElementById("info-user").style.display = user ? "flex" : "none";
