@@ -8,7 +8,7 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 const CLAUDE_PROXY = "https://grimoire-proxy.patrick-gabriere.workers.dev";
-const MODEL = "claude-haiku-4-5";
+const MODEL = "claude-sonnet-4-20250514";
 
 let toutesLesRecettes = [];
 let frigoImageBase64 = null;
@@ -30,20 +30,6 @@ function showToast(msg, type = "") {
 // =============================================
 // IMAGE — Emojis propres (fiable à 100%)
 // =============================================
-
-// Drapeaux et couleurs par origine
-const ORIGINE_FLAG = {
-    "française":     "🇫🇷", "italienne":    "🇮🇹", "espagnole":     "🇪🇸",
-    "mexicaine":     "🇲🇽", "japonaise":    "🇯🇵", "chinoise":      "🇨🇳",
-    "indienne":      "🇮🇳", "américaine":   "🇺🇸", "grecque":       "🇬🇷",
-    "marocaine":     "🇲🇦", "libanaise":    "🇱🇧", "thaïlandaise":  "🇹🇭",
-    "vietnamienne":  "🇻🇳", "coréenne":     "🇰🇷", "portugaise":    "🇵🇹",
-    "brésilienne":   "🇧🇷", "autre":        "🌐"
-};
-
-function getFlagOrigine(origine) {
-    return ORIGINE_FLAG[origine?.toLowerCase()] || "";
-}
 
 const EMOJI_CAT = {
     soupe: "🥣", plat: "🍽️", accompagnement: "🥗", "entrée": "🥗",
@@ -107,10 +93,27 @@ const sousCatMapping = {
     pâtisserie: ["Gâteau", "Tarte", "Biscuit", "Viennoiserie", "Crème/Mousse", "Confiture", "Pain"]
 };
 
+const ORIGINES = [
+    { val: "française",  emoji: "🇫🇷", label: "Française" },
+    { val: "italienne",  emoji: "🇮🇹", label: "Italienne" },
+    { val: "asiatique",  emoji: "🥢",  label: "Asiatique" },
+    { val: "mexicaine",  emoji: "🌮",  label: "Mexicaine" },
+    { val: "américaine", emoji: "🍔",  label: "Américaine" },
+    { val: "indienne",   emoji: "🍛",  label: "Indienne" },
+    { val: "méditerranéenne", emoji: "🫒", label: "Méditerranéenne" },
+    { val: "autre",      emoji: "🌍",  label: "Autre" },
+];
+
 window.majSousCategories = () => {
     const u = document.getElementById("univers").value;
     const s = document.getElementById("sousCategorie");
     s.innerHTML = sousCatMapping[u].map(c => `<option value="${c.toLowerCase()}">${c}</option>`).join('');
+};
+
+window.majSelectOrigine = () => {
+    const s = document.getElementById("origine");
+    if (!s) return;
+    s.innerHTML = ORIGINES.map(o => `<option value="${o.val}">${o.emoji} ${o.label}</option>`).join("");
 };
 
 // =============================================
@@ -170,11 +173,11 @@ window.ajouterRecette = async () => {
             tempsPrep, tempsCuisson, portions,
             univers: document.getElementById("univers").value,
             sousCategorie: document.getElementById("sousCategorie").value,
+            origine: document.getElementById("origine") ? document.getElementById("origine").value : "française",
             image: document.getElementById("imageLien").value.trim() || "",
             auteurId: auth.currentUser ? auth.currentUser.uid : "anonyme",
             auteurNom: auth.currentUser ? auth.currentUser.displayName : "Anonyme",
             estPublic: document.getElementById("public").checked,
-            origine: document.getElementById("origineRecette")?.value || "",
             notes: [],
             createdAt: Date.now()
         });
@@ -186,7 +189,6 @@ window.ajouterRecette = async () => {
         document.getElementById("portions").value = "";
         document.getElementById("zone-ingredients").innerHTML = `<div class="field-row"><input type="text" class="ingredient-item" placeholder="Ex: 200g de farine"></div>`;
         document.getElementById("zone-etapes").innerHTML = `<div class="field-row"><input type="text" class="etape-item" placeholder="Ex: Préchauffer le four à 180°C"></div>`;
-        const origEl = document.getElementById("origineRecette"); if (origEl) origEl.value = "";
         await chargerRecettes();
         window.changerOnglet('mes-recettes', document.querySelectorAll('.tab')[1]);
     } catch (e) {
@@ -221,7 +223,7 @@ onAuthStateChanged(auth, async (user) => {
 // =============================================
 
 let filtreActif = { commu: "tous", perso: "tous" };
-let filtreOrigine = { commu: "", perso: "" };
+let filtreOrigine = { commu: "tous", perso: "tous" };
 
 window.genererFiltres = (type) => {
     const zone = document.getElementById('filtres-' + type);
@@ -239,26 +241,25 @@ window.genererFiltres = (type) => {
     }).join('');
 
     // Filtre origine
-    const origines = [...new Set(recs.map(r => r.origine).filter(Boolean))];
-    const optionsOri = ['', ...origines.map(o => o.toLowerCase())].map(val => {
-        const label = val === '' ? '🌍 Toutes les origines' : `${getFlagOrigine(val)} ${val.charAt(0).toUpperCase() + val.slice(1)}`;
-        const selected = val === (filtreOrigine[type] || '') ? 'selected' : '';
-        return `<option value="${val}" ${selected}>${label}</option>`;
-    }).join('');
+    const originesDispo = [...new Set(recs.map(r => r.origine).filter(Boolean))];
+    const optionsOrigine = [
+        `<option value="tous" ${filtreOrigine[type] === 'tous' ? 'selected' : ''}>🌍 Toutes les origines</option>`,
+        ...ORIGINES.filter(o => originesDispo.includes(o.val)).map(o =>
+            `<option value="${o.val}" ${filtreOrigine[type] === o.val ? 'selected' : ''}>${o.emoji} ${o.label}</option>`)
+    ].join('');
 
     zone.innerHTML = `
-        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <div class="select-filtre-wrap">
                 <select class="select-filtre" onchange="window.setFiltre('${type}', this.value)">
                     ${optionsCat}
                 </select>
             </div>
-            ${origines.length > 0 ? `
             <div class="select-filtre-wrap">
                 <select class="select-filtre" onchange="window.setFiltreOrigine('${type}', this.value)">
-                    ${optionsOri}
+                    ${optionsOrigine}
                 </select>
-            </div>` : ''}
+            </div>
         </div>
     `;
 };
@@ -268,8 +269,8 @@ window.setFiltre = (type, cat) => {
     window.filtrerRecettes(type);
 };
 
-window.setFiltreOrigine = (type, origine) => {
-    filtreOrigine[type] = origine;
+window.setFiltreOrigine = (type, val) => {
+    filtreOrigine[type] = val;
     window.filtrerRecettes(type);
 };
 
@@ -278,6 +279,7 @@ window.filtrerRecettes = (type) => {
     const inputId = type === 'commu' ? 'rechercheCommu' : 'recherchePerso';
     const txt = document.getElementById(inputId).value.toLowerCase().trim();
     const fCat = filtreActif[type];
+    const fOri = filtreOrigine[type];
 
     let res = toutesLesRecettes.filter(r => type === 'commu' ? r.estPublic : r.auteurId === uid);
     if (txt) res = res.filter(r =>
@@ -285,8 +287,7 @@ window.filtrerRecettes = (type) => {
         (r.ingredients || "").toLowerCase().includes(txt)
     );
     if (fCat !== "tous") res = res.filter(r => r.sousCategorie?.toLowerCase() === fCat);
-    const fOri = filtreOrigine[type] || "";
-    if (fOri) res = res.filter(r => r.origine?.toLowerCase() === fOri);
+    if (fOri !== "tous") res = res.filter(r => r.origine === fOri);
 
     const grille = document.getElementById('grille-' + type);
 
@@ -325,7 +326,7 @@ window.filtrerRecettes = (type) => {
                         <span class="recette-badge" style="background:${bgColor};color:${accentColor};">${emoji} ${r.sousCategorie?.toUpperCase() || ''}</span>
                         ${tempsHtml}${portionsHtml}
                     </div>
-                    ${r.origine ? `<span class="recette-time">${getFlagOrigine(r.origine)} ${r.origine.charAt(0).toUpperCase() + r.origine.slice(1)}</span>` : ''}
+                    ${r.origine ? (() => { const o = ORIGINES.find(x => x.val === r.origine); return o ? `<div class="card-origine">${o.emoji} ${o.label}</div>` : ''; })() : ''}
                     ${r.auteurNom && type === 'commu' ? `<div class="card-author">par ${r.auteurNom}</div>` : ''}
                 </div>
             </div>
@@ -355,7 +356,6 @@ window.ouvrirRecette = (id) => {
         r.tempsCuisson ? `<span class="meta-chip">🔥 Cuisson: ${r.tempsCuisson}min</span>` : '',
         tempsTotal ? `<span class="meta-chip gold">⏰ Total: ${tempsTotal}min</span>` : '',
         r.portions ? `<span class="meta-chip">👥 ${r.portions} portions</span>` : '',
-        r.origine ? `<span class="meta-chip">${getFlagOrigine(r.origine)} ${r.origine.charAt(0).toUpperCase() + r.origine.slice(1)}</span>` : '',
     ].filter(Boolean).join('');
 
     document.getElementById("contenuRecetteHeader").innerHTML = `
@@ -611,23 +611,7 @@ window.previsualiserFrigo = (event) => {
         const preview = document.getElementById("frigoPreview");
         preview.src = e.target.result;
         preview.style.display = "block";
-        // Compression de l'image avant envoi à Claude
-        const img = new Image();
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const MAX = 1024;
-            let w = img.width, h = img.height;
-            if (w > MAX || h > MAX) {
-                if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-                else { w = Math.round(w * MAX / h); h = MAX; }
-            }
-            canvas.width = w; canvas.height = h;
-            canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-            const compressed = canvas.toDataURL('image/jpeg', 0.8);
-            frigoImageBase64 = compressed.split(',')[1];
-            window._frigoMimeType = "image/jpeg";
-        };
-        img.src = e.target.result;
+        frigoImageBase64 = e.target.result.split(',')[1];
         document.getElementById("frigo-ia-zone").style.display = "block";
         document.getElementById("frigo-ingredients").style.display = "none";
         document.getElementById("frigo-recettes").style.display = "none";
@@ -648,7 +632,7 @@ window.analyserFrigo = async () => {
             body: JSON.stringify({
                 model: MODEL, max_tokens: 1000,
                 messages: [{ role: "user", content: [
-                    { type: "image", source: { type: "base64", media_type: window._frigoMimeType || "image/jpeg", data: frigoImageBase64 } },
+                    { type: "image", source: { type: "base64", media_type: "image/jpeg", data: frigoImageBase64 } },
                     { type: "text", text: `Analyse ce frigo. Réponds en JSON UNIQUEMENT (sans markdown).\n{"ingredients":["..."],"recettes":[{"emoji":"🍳","titre":"...","description":"..."}]}\nPropose 3-5 recettes familiales réalisables avec ces ingrédients.` }
                 ]}]
             })
@@ -682,6 +666,7 @@ function afficherResultatsFrigo(json) {
 // =============================================
 
 window.majSousCategories();
+window.majSelectOrigine();
 
 // =============================================
 // PWA — Installation douce (Android + iPhone)
