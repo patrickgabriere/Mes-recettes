@@ -691,18 +691,7 @@ window.ouvrirRecette = (id) => {
         document.getElementById('ingredients-liste').innerHTML = renderIngredients(facteur);
     };
 
-    const nettoyerMd = (txt) => {
-        let t = txt
-            .replace(/\*\*/g, '')
-            .replace(/\*/g, '')
-            .replace(/#{1,6}\s*/g, '')
-            .replace(/^\s*\d+[.)\-]\s*/, '')
-            .trim();
-        // Supprime "Titre : " en début d'étape (ex: "Préparation des oignons : ")
-        t = t.replace(/^[A-ZÀ-Ûa-zà-û][^:]{2,40}\s*:\s*/, '');
-        return t.charAt(0).toUpperCase() + t.slice(1);
-    };
-    const etapesList = (Array.isArray(r.etapes) ? r.etapes.join('\n') : (r.etapes || "")).split('\n').filter(Boolean).map(e => `<li>${nettoyerMd(e)}</li>`).join('');
+    const etapesList = (Array.isArray(r.etapes) ? r.etapes.join('\n') : (r.etapes || "")).split('\n').filter(Boolean).map(e => `<li>${e}</li>`).join('');
 
     const notesList = (r.notes || []).map(n => `
         <div class="note-item">
@@ -751,7 +740,10 @@ window.ouvrirRecette = (id) => {
         </div>
 
         <button id="btn-lecture" class="btn-lecture" onclick="window.toggleLecture()">🔊 Lire les étapes à voix haute</button>
-        <button class="btn-print" onclick="window.print()">🖨️ Imprimer cette recette</button>
+        <div style="display:flex;gap:10px;margin-top:8px;">
+            <button class="btn-print" onclick="window.imprimerRecette()" style="flex:1;">🖨️ Imprimer</button>
+            <button class="btn-share" id="btn-share" onclick="window.partagerRecette()" style="flex:1;">🔗 Partager</button>
+        </div>
     `;
 
     if (estAuteur) {
@@ -769,6 +761,77 @@ window.fermerRecette = () => {
     window._recetteCourante = null;
     window.stopperLecture();
 };
+
+// =============================================
+// IMPRESSION & PARTAGE
+// =============================================
+
+window.imprimerRecette = () => {
+    const r = window._recetteCourante;
+    if (!r) return;
+    const win = window.open('', '_blank');
+    const ing = (Array.isArray(r.ingredients) ? r.ingredients.join('\n') : (r.ingredients || ''))
+        .split('\n').filter(Boolean).map(i => `<li>${i}</li>`).join('');
+    const eta = (Array.isArray(r.etapes) ? r.etapes.join('\n') : (r.etapes || ''))
+        .split('\n').filter(Boolean).map((e, i) => {
+            let t = e.replace(/\*\*/g,'').replace(/\*/g,'').replace(/#{1,6}\s*/g,'').replace(/^\s*\d+[.)\-]\s*/,'').trim();
+            t = t.replace(/^[A-ZÀ-Ûa-zà-û][^:]{2,40}\s*:\s*/, '');
+            return `<li>${t.charAt(0).toUpperCase() + t.slice(1)}</li>`;
+        }).join('');
+    const temps = [r.tempsPrep ? `⏱ Préparation : ${r.tempsPrep} min` : '', r.tempsCuisson ? `🔥 Cuisson : ${r.tempsCuisson} min` : ''].filter(Boolean).join(' &nbsp;|&nbsp; ');
+    win.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+    <title>${r.nom}</title>
+    <style>
+        body { font-family: Georgia, serif; max-width: 700px; margin: 40px auto; color: #2c1a0e; line-height: 1.7; }
+        h1 { font-size: 2rem; margin-bottom: 6px; }
+        .meta { color: #7a5640; font-size: 0.9rem; margin-bottom: 24px; }
+        h2 { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #e8cf85; padding-bottom: 4px; margin: 24px 0 12px; }
+        ul, ol { padding-left: 20px; }
+        li { margin-bottom: 8px; }
+        .footer { margin-top: 40px; font-size: 0.8rem; color: #aaa; text-align: center; }
+    </style></head><body>
+    <h1>${r.nom}</h1>
+    <div class="meta">${temps}${r.portions ? ` &nbsp;|&nbsp; 👥 ${r.portions} portions` : ''}</div>
+    <h2>Ingrédients</h2><ul>${ing}</ul>
+    <h2>Préparation</h2><ol>${eta}</ol>
+    <div class="footer">Le Grimoire des Parents — patrickgabriere.github.io/Mes-recettes/</div>
+    </body></html>`);
+    win.document.close();
+    win.print();
+};
+
+window.partagerRecette = async () => {
+    const r = window._recetteCourante;
+    if (!r) return;
+    const url = `${window.location.origin}${window.location.pathname}?recette=${r.id}`;
+    if (navigator.share) {
+        try {
+            await navigator.share({ title: r.nom, text: `Découvre la recette : ${r.nom}`, url });
+            return;
+        } catch(e) {}
+    }
+    // Fallback : copier dans le presse-papier
+    try {
+        await navigator.clipboard.writeText(url);
+        showToast("Lien copié dans le presse-papier !", "success");
+    } catch(e) {
+        showToast("Lien : " + url, "");
+    }
+};
+
+// Ouvrir une recette directement si ?recette=ID dans l'URL
+window.addEventListener('load', () => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('recette');
+    if (id) {
+        const tryOpen = setInterval(() => {
+            if (toutesLesRecettes.length) {
+                clearInterval(tryOpen);
+                window.ouvrirRecette(id);
+            }
+        }, 300);
+    }
+});
 
 // =============================================
 // MODE CUISINE — LECTURE ÉTAPE PAR ÉTAPE
