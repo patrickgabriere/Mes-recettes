@@ -931,67 +931,14 @@ header {
 .note-item {
     background: white;
     border-radius: var(--radius-sm);
-    padding: 12px 14px;
-    margin-bottom: 10px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
     font-size: 0.88rem;
     color: var(--brown-light);
     border-left: 3px solid var(--gold-light);
     line-height: 1.5;
 }
-.note-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-}
-.note-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--orange), var(--gold));
-    color: white;
-    font-weight: 700;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-.note-author-name { font-weight: 600; font-size: 0.85rem; color: var(--brown); }
-.note-date { font-size: 0.75rem; color: #b0a090; }
-.note-texte { margin-bottom: 8px; }
 .note-author { font-size: 0.75rem; color: #b0a090; margin-top: 4px; }
-.note-like-btn {
-    background: none;
-    border: 1.5px solid var(--gray-mid);
-    border-radius: 20px;
-    padding: 3px 10px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    color: var(--brown-light);
-    transition: var(--transition);
-}
-.note-like-btn:hover { background: #fff3e0; border-color: var(--orange); }
-.badge-teste {
-    display: inline-block;
-    background: #e8f5e9;
-    color: #2e7d32;
-    font-size: 0.72rem;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-weight: 600;
-    margin-left: 6px;
-}
-.teste-toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 8px;
-    font-size: 0.88rem;
-    color: var(--brown-light);
-    cursor: pointer;
-}
-.teste-toggle input { width: 16px; height: 16px; cursor: pointer; }
 
 .note-input-row {
     display: flex;
@@ -1111,27 +1058,11 @@ header {
     align-items: center;
     gap: 8px;
     font-family: 'DM Sans', sans-serif;
+    margin-top: 20px;
+    width: 100%;
     justify-content: center;
 }
 .btn-print:hover { border-color: var(--brown); color: var(--brown); background: var(--cream-deep); transform: translateY(-1px); }
-
-.btn-share {
-    background: var(--brown);
-    border: 2px solid var(--brown);
-    color: white;
-    padding: 13px 18px;
-    border-radius: 50px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: 'DM Sans', sans-serif;
-    justify-content: center;
-}
-.btn-share:hover { background: var(--brown-mid); transform: translateY(-1px); }
 
 .btn-delete {
     margin-top: 12px;
@@ -1727,6 +1658,101 @@ select:focus { border-color: var(--orange); }
 }
 .btn-panneau-fermer:hover { background: rgba(255,255,255,0.15); color: white; }
 
+
+/* ========== PLANIFICATEUR ========== */
+.planning-grid {
+    display: grid;
+    grid-template-columns: 70px repeat(7, 1fr);
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+}
+.planning-header-cell {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--brown);
+    text-align: center;
+    padding: 8px 4px;
+    background: var(--cream-deep);
+    border-radius: 8px;
+}
+.planning-repas-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--brown-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+.planning-cell {
+    border-radius: 10px;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    font-size: 0.78rem;
+    text-align: center;
+    padding: 6px;
+}
+.planning-cell-empty {
+    background: var(--gray);
+    border: 2px dashed var(--gray-mid);
+    color: #c0b0a0;
+}
+.planning-cell-empty:hover { background: #f0e8dc; border-color: var(--gold); }
+.planning-add-icon { font-size: 1.5rem; line-height: 1; }
+.planning-cell-filled {
+    background: var(--cream-deep);
+    border: 2px solid var(--gold-light);
+    font-weight: 600;
+    color: var(--brown);
+    gap: 4px;
+}
+.planning-cell-filled img {
+    width: 100%;
+    height: 45px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+.planning-cell-filled:hover { border-color: var(--orange); transform: translateY(-2px); }
+.planning-remove {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    color: #c0392b;
+    font-weight: 700;
+}
+.planning-recette-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: var(--transition);
+    border: 1.5px solid var(--gray-mid);
+}
+.planning-recette-item:hover { background: var(--cream-deep); border-color: var(--gold); }
+.planning-recette-item img { width: 48px; height: 48px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+.planning-recette-emoji { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; }
+.planning-recette-item span { font-weight: 600; font-size: 0.9rem; color: var(--brown); }
 </style>
 </head>
 <body>
@@ -1782,6 +1808,7 @@ select:focus { border-color: var(--orange); }
     <button class="tab active" onclick="window.changerOnglet('commu', this)">🌍 Communauté</button>
     <button class="tab" onclick="window.changerOnglet('mes-recettes', this)">📚 Mes Recettes</button>
     <button class="tab" onclick="window.changerOnglet('favoris', this)">⭐ Favoris</button>
+    <button class="tab" onclick="window.changerOnglet('planning', this);window.afficherPlanning()">📅 Planning</button>
     <button class="tab" onclick="window.changerOnglet('frigo', this)">🧊 Mon Frigo</button>
     <button class="tab" onclick="window.changerOnglet('ajouter', this)">➕ Ajouter</button>
 </div>
@@ -1822,6 +1849,28 @@ select:focus { border-color: var(--orange); }
     </div>
 
     <!-- MON FRIGO -->
+    <!-- PLANNING -->
+    <div id="page-planning" class="section-page">
+        <div id="planning-grille"></div>
+        <div style="margin-top:16px;">
+            <button id="btn-courses-planning" class="btn-ia btn-ia-purple" onclick="window.genererListeCoursesPlanning()">🛒 Générer la liste de courses (IA)</button>
+            <div id="courses-planning-result" style="display:none;background:white;border-radius:12px;padding:16px;margin-top:12px;font-size:0.9rem;line-height:1.7;color:#3d2b1f;"></div>
+        </div>
+    </div>
+
+    <!-- MODAL SÉLECTEUR RECETTE PLANNING -->
+    <div id="modal-planning-select" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+        <div style="background:white;border-radius:20px;padding:24px;width:100%;max-width:500px;max-height:80vh;display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <h3 style="margin:0;font-family:Playfair Display,serif;">Choisir une recette</h3>
+                <button onclick="window.fermerPlanningSelect()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;">×</button>
+            </div>
+            <input type="text" id="planning-search" placeholder="🔍 Rechercher..." oninput="window.filtrerPlanningRecettes(this.value)"
+                style="border:1.5px solid #e0d5c5;border-radius:30px;padding:10px 16px;font-size:0.95rem;outline:none;">
+            <div id="planning-recettes-liste" style="overflow-y:auto;display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+    </div>
+
     <div id="page-frigo" class="section-page">
         <h2 style="font-family:'Playfair Display',serif; margin-bottom:8px; color:var(--brown); font-size:1.8rem;">🧊 Mon Frigo</h2>
         <p style="color:#9a8878; margin-bottom:28px; font-size:0.95rem; line-height:1.6;">Prends en photo ton frigo et l'IA te suggère des recettes avec ce que tu as !</p>
