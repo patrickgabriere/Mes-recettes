@@ -1,1969 +1,1539 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recipearl — Le Grimoire des Parents</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
-<style>
-:root {
-    --cream: #faf5ee;
-    --cream-deep: #f2e8d8;
-    --brown: #2c1a0e;
-    --brown-mid: #4a2f1e;
-    --brown-light: #7a5640;
-    --orange: #d95f20;
-    --orange-dark: #b8470f;
-    --orange-glow: rgba(217,95,32,0.18);
-    --gold: #c49a3c;
-    --gold-light: #e8cf85;
-    --gold-pale: #fdf5e0;
-    --gray: #ede5d8;
-    --gray-mid: #ccc0ae;
-    --white: #ffffff;
-    --shadow-sm: 0 2px 12px rgba(44,26,14,0.07);
-    --shadow-md: 0 8px 28px rgba(44,26,14,0.11);
-    --shadow-lg: 0 20px 50px rgba(44,26,14,0.18);
-    --shadow-card: 0 4px 20px rgba(44,26,14,0.09);
-    --radius: 16px;
-    --radius-sm: 10px;
-    --radius-xs: 6px;
-    --transition: 0.22s cubic-bezier(0.4,0,0.2,1);
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--cream);
-    background-image: radial-gradient(ellipse at 20% 0%, rgba(196,154,60,0.07) 0%, transparent 60%),
-                      radial-gradient(ellipse at 80% 100%, rgba(217,95,32,0.05) 0%, transparent 60%);
-    background-attachment: fixed;
-    color: var(--brown);
-    min-height: 100vh;
-    font-size: 18px;
-}
-
-/* ========== HEADER ========== */
-header {
-    background: linear-gradient(135deg, #1e0e06 0%, #2c1a0e 45%, #3d2415 100%);
-    padding: 0 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: white;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    height: 72px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.28);
-    border-bottom: 1px solid rgba(196,154,60,0.2);
-}
-
-.header-brand {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    text-decoration: none;
-    color: white;
-}
-
-.header-brand-icon {
-    width: 44px;
-    height: 44px;
-    background: linear-gradient(135deg, rgba(196,154,60,0.3), rgba(196,154,60,0.12));
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    border: 1px solid rgba(196,154,60,0.45);
-    box-shadow: 0 2px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
-}
-
-.header-brand h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.5rem;
-    letter-spacing: 0.3px;
-    font-weight: 700;
-}
-
-.header-brand span {
-    font-size: 0.75rem;
-    color: var(--gold-light);
-    font-weight: 400;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    display: block;
-    line-height: 1;
-}
-
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-#info-user {
-    display: none;
-    align-items: center;
-    gap: 10px;
-}
-
-.avatar {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    border: 2px solid var(--gold);
-    object-fit: cover;
-}
-
-#txt-user {
-    font-weight: 500;
-    color: var(--gold-light);
-    font-size: 0.9rem;
-}
-
-.btn-header {
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.22);
-    color: white;
-    padding: 8px 16px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 0.88rem;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: 'DM Sans', sans-serif;
-}
-
-.btn-header:hover { background: rgba(255,255,255,0.2); }
-.btn-header.orange { background: var(--orange); border-color: var(--orange-dark); }
-.btn-header.orange:hover { background: var(--orange-dark); }
-
-/* ========== PWA BANNER (Android - discret) ========== */
-#pwa-install-container {
-    display: none;
-    background: var(--cream);
-    border-bottom: 1px solid var(--gold-light);
-    padding: 10px 20px;
-    text-align: center;
-    color: var(--brown);
-    gap: 10px;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    font-size: 0.88rem;
-}
-
-#pwa-install-container p {
-    font-weight: 500;
-    font-size: 0.88rem;
-    margin: 0;
-    color: var(--brown-light);
-}
-
-.btn-pwa {
-    background: var(--orange);
-    color: white;
-    border: none;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: var(--transition);
-    font-family: 'DM Sans', sans-serif;
-}
-.btn-pwa:hover { background: var(--orange-dark); }
-
-.btn-pwa-close {
-    background: none;
-    border: none;
-    color: var(--gray-mid);
-    cursor: pointer;
-    font-size: 1rem;
-    padding: 0 4px;
-    line-height: 1;
-    transition: var(--transition);
-}
-.btn-pwa-close:hover { color: var(--brown-light); }
-
-/* ========== MODALE D'INSTALLATION DOUCE ========== */
-#modal-install {
-    display: none;
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    z-index: 2000;
-    padding: 16px 16px 32px;
-    background: var(--cream);
-    border-radius: 24px 24px 0 0;
-    box-shadow: 0 -8px 40px rgba(61,43,31,0.18);
-    max-width: 520px;
-    margin: 0 auto;
-}
-
-@media (min-width: 600px) {
-    #modal-install {
-        bottom: 24px;
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%);
-        border-radius: 20px;
-        padding: 24px 28px;
-    }
-}
-
-.install-drag {
-    width: 36px; height: 4px;
-    background: var(--gray-mid);
-    border-radius: 4px;
-    margin: 0 auto 18px;
-}
-
-@media (min-width: 600px) { .install-drag { display: none; } }
-
-.install-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 14px;
-    gap: 12px;
-}
-
-.install-icon {
-    width: 52px; height: 52px;
-    background: var(--brown);
-    border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.6rem;
-    flex-shrink: 0;
-}
-
-.install-titles { flex: 1; }
-.install-titles h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.15rem;
-    color: var(--brown);
-    margin-bottom: 3px;
-}
-.install-titles p {
-    font-size: 0.82rem;
-    color: #9a8878;
-    line-height: 1.5;
-    margin: 0;
-}
-
-.install-close {
-    background: none; border: none;
-    color: var(--gray-mid); cursor: pointer;
-    font-size: 1.2rem; padding: 0;
-    transition: var(--transition);
-    flex-shrink: 0;
-}
-.install-close:hover { color: var(--brown-light); }
-
-.install-steps {
-    list-style: none;
-    margin: 0 0 18px;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.install-steps li {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.88rem;
-    color: var(--brown-light);
-    line-height: 1.4;
-}
-
-.install-steps li .step-dot {
-    width: 22px; height: 22px;
-    background: var(--gold-light);
-    color: var(--brown);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.72rem;
-    font-weight: 700;
-    flex-shrink: 0;
-}
-
-.install-btn-main {
-    width: 100%;
-    background: var(--orange);
-    color: white;
-    border: none;
-    padding: 14px;
-    border-radius: var(--radius);
-    font-weight: 700;
-    font-size: 0.95rem;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: var(--transition);
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-}
-.install-btn-main:hover { background: var(--orange-dark); }
-
-.install-footer {
-    text-align: center;
-    margin-top: 10px;
-    font-size: 0.78rem;
-    color: #b0a090;
-}
-.install-footer button {
-    background: none; border: none;
-    color: #b0a090; cursor: pointer;
-    text-decoration: underline;
-    font-size: 0.78rem;
-    font-family: 'DM Sans', sans-serif;
-    padding: 0;
-}
-.install-footer button:hover { color: var(--brown-light); }
-
-/* ========== TABS ========== */
-.tabs {
-    display: flex;
-    max-width: 1060px;
-    margin: 28px auto 0;
-    padding: 0 20px;
-    gap: 6px;
-    overflow-x: auto;
-    scrollbar-width: none;
-}
-.tabs::-webkit-scrollbar { display: none; }
-
-.tab {
-    padding: 13px 22px;
-    cursor: pointer;
-    background: rgba(44,26,14,0.07);
-    border-radius: 12px 12px 0 0;
-    border: none;
-    border-top: 2px solid transparent;
-    border-left: 1px solid transparent;
-    border-right: 1px solid transparent;
-    font-weight: 600;
-    color: var(--brown-light);
-    transition: var(--transition);
-    font-size: 1rem;
-    font-family: 'DM Sans', sans-serif;
-    white-space: nowrap;
-    position: relative;
-    letter-spacing: 0.1px;
-}
-
-.tab:hover:not(.active) {
-    background: rgba(217,95,32,0.08);
-    color: var(--orange-dark);
-    border-top-color: rgba(217,95,32,0.3);
-}
-
-.tab.active {
-    background: var(--white);
-    font-weight: 700;
-    color: var(--brown);
-    border-color: var(--gray);
-    border-bottom-color: transparent;
-    border-top-color: var(--orange);
-    box-shadow: 0 -3px 12px rgba(44,26,14,0.06);
-}
-
-.tab.active::after {
-    display: none;
-}
-
-/* ========== MAIN CONTENT ========== */
-.main-content {
-    max-width: 1060px;
-    margin: 0 auto 60px;
-    padding: 40px 28px;
-    background: var(--white);
-    border-radius: 0 0 20px 20px;
-    min-height: 500px;
-    box-shadow: 0 8px 40px rgba(44,26,14,0.1), 0 1px 0 var(--gray);
-}
-
-.section-page { display: none; }
-.section-page.active { display: block; }
-
-/* ========== SEARCH ========== */
-.search-wrapper {
-    position: relative;
-    margin-bottom: 24px;
-}
-
-.search-wrapper input {
-    width: 100%;
-    padding: 16px 60px 16px 52px;
-    border-radius: 50px;
-    border: 2px solid var(--gray);
-    font-size: 1rem;
-    outline: none;
-    background: var(--cream);
-    transition: all var(--transition);
-    color: var(--brown);
-    font-family: 'DM Sans', sans-serif;
-    box-shadow: inset 0 2px 6px rgba(44,26,14,0.04);
-}
-
-.search-wrapper input:focus {
-    border-color: var(--orange);
-    background: white;
-    box-shadow: 0 0 0 4px var(--orange-glow), inset 0 2px 6px rgba(44,26,14,0.02);
-}
-.search-wrapper input::placeholder { color: #a89080; }
-
-.search-icon {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--brown-light);
-    font-size: 1.2rem;
-    pointer-events: none;
-}
-
-.btn-mic-search {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none;
-    background: var(--gray);
-    color: var(--brown-light);
-    font-size: 1.1rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: var(--transition);
-    flex-shrink: 0;
-}
-.btn-mic-search:hover { background: var(--orange); color: white; }
-.btn-mic-search.recording { background: #c0392b; color: white; animation: pulse-mic 1s infinite; }
-
-@keyframes pulse-mic {
-    0%, 100% { transform: translateY(-50%) scale(1); }
-    50% { transform: translateY(-50%) scale(1.12); }
-}
-
-/* ========== FILTERS ========== */
-.univers-filter {
-    margin-bottom: 24px;
-}
-
-.select-filtre-wrap {
-    position: relative;
-    display: inline-block;
-    width: 100%;
-    max-width: 320px;
-}
-
-.select-filtre-wrap::after {
-    content: '▾';
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--brown-light);
-    pointer-events: none;
-    font-size: 1rem;
-}
-
-.select-filtre {
-    width: 100%;
-    padding: 13px 44px 13px 16px;
-    border-radius: 50px;
-    border: 2px solid var(--gray);
-    background: var(--cream);
-    color: var(--brown);
-    font-size: 0.95rem;
-    font-weight: 600;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    transition: all var(--transition);
-    outline: none;
-}
-
-.select-filtre:focus {
-    border-color: var(--orange);
-    background: white;
-    box-shadow: 0 0 0 3px var(--orange-glow);
-}
-.select-filtre:hover { border-color: var(--brown-light); background: white; }
-
-/* ========== RECIPE GRID ========== */
-.recettes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 24px;
-    margin-top: 8px;
-}
-
-.recette-card {
-    background: white;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 2px 12px rgba(44,26,14,0.07), 0 1px 3px rgba(44,26,14,0.05);
-    border: 1px solid var(--gray);
-    cursor: pointer;
-    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s ease, border-color 0.2s;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-}
-
-.recette-card:hover {
-    transform: translateY(-10px) scale(1.015);
-    box-shadow: 0 28px 60px rgba(44,26,14,0.18), 0 4px 12px rgba(217,95,32,0.1);
-    border-color: var(--gold-light);
-}
-
-.recette-img {
-    width: 100%;
-    height: 210px;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.4s ease;
-}
-
-.recette-card:hover .recette-img { transform: scale(1.04); }
-
-.recette-img-placeholder {
-    width: 100%;
-    height: 210px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3.5rem;
-    position: relative;
-    overflow: hidden;
-}
-.recette-img-placeholder::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 50%;
-    background: linear-gradient(to top, rgba(44,26,14,0.2), transparent);
-}
-
-.recette-info {
-    padding: 16px 18px 18px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    position: relative;
-}
-
-/* Ligne dorée subtile en haut du contenu */
-.recette-info::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 18px; right: 18px;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--gold-light), transparent);
-}
-
-.recette-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.2rem;
-    color: var(--brown);
-    font-weight: 700;
-    line-height: 1.3;
-    letter-spacing: -0.2px;
-}
-
-.recette-meta {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-.recette-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.6px;
-    text-transform: uppercase;
-    border: 1.5px solid transparent;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-}
-
-.recette-time {
-    font-size: 0.82rem;
-    color: var(--brown-light);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: var(--gray);
-    padding: 3px 9px;
-    border-radius: 20px;
-    font-weight: 500;
-}
-
-.card-author {
-    font-size: 0.82rem;
-    color: var(--brown-light);
-    margin-top: auto;
-    font-style: italic;
-}
-
-.card-origine {
-    font-size: 0.82rem;
-    color: var(--brown-light);
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-/* Bouton favori sur les cartes */
-.fav-btn {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none;
-    background: rgba(255,255,255,0.92);
-    font-size: 1.15rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.18);
-    transition: var(--transition);
-    backdrop-filter: blur(6px);
-}
-.fav-btn:hover { background: white; transform: scale(1.2) rotate(-5deg); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
-.fav-btn.fav-actif { background: #fff8e1; box-shadow: 0 3px 12px rgba(196,154,60,0.3); }
-
-/* Bouton favori dans la modal */
-.btn-fav-modal {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 20px;
-    border-radius: 24px;
-    border: 2px solid var(--gold-light);
-    background: white;
-    color: var(--brown-light);
-    font-weight: 600;
-    font-size: 0.95rem;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    transition: var(--transition);
-    margin-bottom: 4px;
-    box-shadow: 0 2px 8px rgba(196,154,60,0.1);
-}
-.btn-fav-modal:hover { border-color: var(--gold); background: #fffbf0; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(196,154,60,0.2); }
-.btn-fav-modal.fav-actif { background: linear-gradient(135deg, #fff8e1, #fffbf0); border-color: var(--gold); color: var(--brown); }
-
-/* ========== EMPTY STATE ========== */
-.empty-state {
-    text-align: center;
-    padding: 72px 20px;
-    color: #b0a090;
-    grid-column: 1/-1;
-}
-.empty-state-icon {
-    font-size: 4.5rem;
-    margin-bottom: 20px;
-    display: block;
-    filter: grayscale(20%);
-}
-.empty-state h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.6rem;
-    color: var(--brown-light);
-    margin-bottom: 10px;
-    font-style: italic;
-}
-.empty-state p { font-size: 0.95rem; line-height: 1.7; max-width: 320px; margin: 0 auto; }
-
-/* ========== SKELETON LOADING ========== */
-@keyframes shimmer {
-    0% { background-position: -600px 0; }
-    100% { background-position: 600px 0; }
-}
-.skeleton {
-    background: linear-gradient(90deg, #e8e0d4 0%, #f5f0e8 40%, #ede5da 60%, #e8e0d4 100%);
-    background-size: 600px 100%;
-    animation: shimmer 1.6s ease-in-out infinite;
-    border-radius: 8px;
-}
-.skeleton-card {
-    border-radius: var(--radius);
-    overflow: hidden;
-    border: 1px solid var(--gray);
-}
-.skeleton-img { height: 190px; border-radius: 0; }
-.skeleton-line { height: 16px; margin: 6px 18px; }
-.skeleton-line.short { width: 60%; }
-.skeleton-line.tall { height: 20px; }
-
-/* ========== MODAL ========== */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(30,18,10,0.7);
-    z-index: 1000;
-    justify-content: center;
-    align-items: flex-end;
-    backdrop-filter: blur(6px);
-    padding: 20px 0 0;
-}
-
-@media (min-width: 600px) {
-    .modal { align-items: center; padding: 20px; }
-}
-
-.modal-content {
-    background: var(--cream);
-    width: 100%;
-    max-width: 720px;
-    max-height: 92vh;
-    padding: 0;
-    border-radius: 28px 28px 0 0;
-    overflow: hidden;
-    position: relative;
-    box-shadow: 0 -24px 80px rgba(0,0,0,0.35);
-    display: flex;
-    flex-direction: column;
-    border-top: 1px solid rgba(196,154,60,0.2);
-}
-
-@media (min-width: 600px) {
-    .modal-content { border-radius: 24px; max-height: 88vh; border: 1px solid rgba(196,154,60,0.15); }
-}
-
-.modal-header {
-    padding: 28px 32px 0;
-    position: relative;
-    flex-shrink: 0;
-}
-
-.modal-close {
-    position: absolute;
-    right: 20px;
-    top: 20px;
-    width: 44px;
-    height: 44px;
-    background: rgba(0,0,0,0.08);
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 1.4rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: var(--transition);
-    color: var(--brown);
-    z-index: 2;
-}
-.modal-close:hover { background: rgba(0,0,0,0.15); }
-
-.modal-body {
-    overflow-y: auto;
-    padding: 0 32px 32px;
-    flex: 1;
-}
-
-.modal-drag {
-    width: 40px;
-    height: 4px;
-    background: #d0c8bc;
-    border-radius: 4px;
-    margin: 12px auto 0;
-    display: block;
-}
-
-@media (min-width: 600px) { .modal-drag { display: none; } }
-
-.modal-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.2rem;
-    color: var(--brown);
-    margin: 16px 0 8px;
-    line-height: 1.2;
-    padding-right: 40px;
-    letter-spacing: -0.5px;
-}
-
-.modal-meta-row {
-    display: flex;
-    gap: 16px;
-    align-items: center;
-    flex-wrap: wrap;
-    padding: 12px 0 16px;
-    border-bottom: 2px dashed var(--gold-light);
-    margin-bottom: 24px;
-}
-
-.meta-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--gray);
-    padding: 6px 14px;
-    border-radius: 30px;
-    font-size: 0.92rem;
-    font-weight: 600;
-    color: var(--brown);
-}
-
-.meta-chip.orange { background: #fdf2ed; color: var(--orange); }
-.meta-chip.gold { background: #fdf8ec; color: #8a6820; }
-
-.modal-section-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.4rem;
-    color: var(--orange);
-    margin: 32px 0 14px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.list-ingredients {
-    list-style: none;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 6px;
-}
-
-.list-ingredients li {
-    padding: 12px 16px;
-    background: #fafaf8;
-    border: 1px solid var(--gray);
-    border-radius: var(--radius-sm);
-    font-size: 1.05rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--brown);
-    line-height: 1.4;
-}
-
-.list-ingredients li::before { content: "🌿"; font-size: 0.8rem; }
-
-.ol-etapes {
-    padding-left: 0;
-    list-style: none;
-    counter-reset: etapes;
-}
-
-.ol-etapes li {
-    counter-increment: etapes;
-    padding: 16px 16px;
-    color: var(--brown);
-    line-height: 1.75;
-    font-size: 1.05rem;
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-    border-bottom: 1px solid var(--gray);
-}
-
-.ol-etapes li:last-child { border-bottom: none; }
-
-.ol-etapes li::before {
-    content: counter(etapes);
-    min-width: 34px;
-    height: 34px;
-    background: var(--orange);
-    color: white;
-    border-radius: 50%;
-    font-size: 0.9rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-top: 2px;
-}
-
-/* ========== NOTES / COMMENTAIRES ========== */
-.notes-zone {
-    margin-top: 24px;
-    padding: 20px;
-    background: #fffcf5;
-    border-radius: var(--radius);
-    border: 2px solid var(--gold-light);
-}
-
-.notes-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1rem;
-    color: var(--gold);
-    margin-bottom: 12px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.notes-list { margin-bottom: 12px; }
-.note-item {
-    background: white;
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    margin-bottom: 8px;
-    font-size: 0.88rem;
-    color: var(--brown-light);
-    border-left: 3px solid var(--gold-light);
-    line-height: 1.5;
-}
-.note-author { font-size: 0.75rem; color: #b0a090; margin-top: 4px; }
-
-.note-input-row {
-    display: flex;
-    gap: 8px;
-}
-
-.note-input-row textarea {
-    flex: 1;
-    padding: 10px 14px;
-    border-radius: var(--radius-sm);
-    border: 2px solid var(--gray);
-    font-size: 0.88rem;
-    resize: none;
-    font-family: 'DM Sans', sans-serif;
-    color: var(--brown);
-    transition: border-color var(--transition);
-    outline: none;
-    height: 60px;
-}
-.note-input-row textarea:focus { border-color: var(--gold); }
-
-/* ========== IA BOXES ========== */
-.ia-box {
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-top: 16px;
-}
-
-.ia-box-purple { background: linear-gradient(135deg, #faf4fc, #f5e8fb); border: 1.5px solid #d4a8e8; border-left: 4px solid #8e24aa; }
-.ia-box-green  { background: linear-gradient(135deg, #f4fbf5, #e8f8ea); border: 1.5px solid #a8d8aa; border-left: 4px solid #388e3c; }
-.ia-box-orange { background: linear-gradient(135deg, #fff9f5, #fff0e6); border: 1.5px solid #f4c09a; border-left: 4px solid #ef6c00; }
-
-.ia-box-title { font-weight: 700; margin-bottom: 12px; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
-.ia-box-purple .ia-box-title { color: #6a1b9a; }
-.ia-box-green  .ia-box-title { color: #2e7d32; }
-.ia-box-orange .ia-box-title { color: #e65100; }
-
-.btn-ia {
-    color: white;
-    border: none;
-    padding: 13px 18px;
-    border-radius: 50px;
-    font-weight: 700;
-    cursor: pointer;
-    width: 100%;
-    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 0.95rem;
-    font-family: 'DM Sans', sans-serif;
-    letter-spacing: 0.2px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
-}
-.btn-ia:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
-.btn-ia:active { transform: translateY(0); }
-
-.btn-ia-purple { background: linear-gradient(135deg, #9c27b0, #6a1b9a); }
-.btn-ia-purple:hover { background: linear-gradient(135deg, #ab47bc, #7b1fa2); }
-.btn-ia-green  { background: linear-gradient(135deg, #43a047, #2e7d32); }
-.btn-ia-green:hover  { background: linear-gradient(135deg, #4caf50, #388e3c); }
-.btn-ia-orange { background: linear-gradient(135deg, #f57c00, #e65100); }
-.btn-ia-orange:hover { background: linear-gradient(135deg, #ff8f00, #ef6c00); }
-.btn-ia:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
-
-.liste-rendu {
-    background: white;
-    padding: 16px 18px;
-    border-radius: var(--radius-sm);
-    margin-top: 12px;
-    font-family: 'DM Sans', sans-serif;
-    white-space: pre-line;
-    line-height: 1.75;
-    font-size: 0.95rem;
-    color: var(--brown);
-    display: none;
-    box-shadow: inset 0 2px 6px rgba(0,0,0,0.04);
-}
-
-.ia-box-purple .liste-rendu { border: 1px solid #e1bee7; }
-.ia-box-green  .liste-rendu { border: 1px solid #c8e6c9; }
-.ia-box-orange .liste-rendu { border: 1px solid #ffe0b2; }
-
-.ia-loading {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #9a8878;
-    font-style: italic;
-    font-size: 0.9rem;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-.spinner {
-    width: 16px; height: 16px;
-    border: 2px solid currentColor;
-    border-top-color: transparent;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    display: inline-block;
-    flex-shrink: 0;
-}
-
-/* ========== PRINT & DELETE ========== */
-.btn-print {
-    background: var(--gray);
-    border: 2px solid var(--gray-mid);
-    color: var(--brown-light);
-    padding: 13px 18px;
-    border-radius: 50px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: 'DM Sans', sans-serif;
-    justify-content: center;
-}
-.btn-print:hover { border-color: var(--brown); color: var(--brown); background: var(--cream-deep); transform: translateY(-1px); }
-
-.btn-share {
-    background: var(--brown);
-    border: 2px solid var(--brown);
-    color: white;
-    padding: 13px 18px;
-    border-radius: 50px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: 'DM Sans', sans-serif;
-    justify-content: center;
-}
-.btn-share:hover { background: var(--brown-mid); transform: translateY(-1px); }
-
-.btn-delete {
-    margin-top: 12px;
-    background: white;
-    color: #c0392b;
-    border: 2px solid #fcd0ce;
-    padding: 13px 18px;
-    border-radius: 50px;
-    cursor: pointer;
-    font-weight: 600;
-    width: 100%;
-    font-size: 0.95rem;
-    font-family: 'DM Sans', sans-serif;
-    transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-.btn-delete:hover { background: #fef2f2; border-color: #c0392b; transform: translateY(-1px); }
-
-/* ========== FRIGO ========== */
-.frigo-zone {
-    border: 3px dashed var(--gold);
-    border-radius: 20px;
-    padding: 50px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: var(--transition);
-    background: #fdf8f0;
-}
-.frigo-zone:hover { background: #fdf2ed; border-color: var(--orange); }
-.frigo-zone-icon { font-size: 3.5rem; margin-bottom: 12px; }
-.frigo-zone p { color: #9a8878; font-size: 0.95rem; line-height: 1.6; }
-
-.frigo-preview {
-    width: 100%;
-    max-height: 300px;
-    object-fit: cover;
-    border-radius: var(--radius);
-    margin: 20px 0;
-    display: none;
-    border: 2px solid var(--gold-light);
-}
-
-.tag-ingredient {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 5px 13px;
-    background: #e8f5e9;
-    color: #2e7d32;
-    border-radius: 20px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    margin: 4px;
-}
-
-.frigo-recette-card {
-    background: white;
-    border: 1.5px solid var(--gray);
-    border-radius: var(--radius);
-    padding: 14px 18px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-.frigo-recette-card:hover { border-color: var(--orange); transform: translateX(5px); }
-.frigo-recette-card .emoji { font-size: 2.2rem; }
-.frigo-recette-card .titre { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; color: var(--brown); }
-.frigo-recette-card .sous { font-size: 0.82rem; color: #9a8878; margin-top: 3px; line-height: 1.4; }
-
-/* ========== FORM AJOUTER ========== */
-.section-title-form {
-    font-family: 'Playfair Display', serif;
-    font-size: 2rem;
-    color: var(--brown);
-    margin-bottom: 32px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid var(--gray);
-    position: relative;
-}
-.section-title-form::after {
-    content: '';
-    position: absolute;
-    bottom: -2px; left: 0;
-    width: 60px; height: 2px;
-    background: linear-gradient(90deg, var(--orange), var(--gold));
-    border-radius: 2px;
-}
-
-.form-section {
-    margin-bottom: 28px;
-}
-
-.form-label {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--brown);
-    letter-spacing: 0.3px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.field-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 12px;
-    align-items: center;
-}
-
-.field-row input {
-    flex: 1;
-    padding: 14px 16px;
-    border-radius: var(--radius-sm);
-    border: 2px solid var(--gray);
-    font-size: 1rem;
-    outline: none;
-    font-family: 'DM Sans', sans-serif;
-    color: var(--brown);
-    transition: all var(--transition);
-    background: var(--cream);
-}
-.field-row input:focus {
-    border-color: var(--orange);
-    background: white;
-    box-shadow: 0 0 0 3px var(--orange-glow);
-}
-.field-row input::placeholder { color: #a89080; }
-
-.btn-remove-field {
-    background: none;
-    border: none;
-    font-size: 1.4rem;
-    cursor: pointer;
-    color: var(--gray-mid);
-    padding: 6px;
-    border-radius: 50%;
-    transition: var(--transition);
-    flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.btn-remove-field:hover { color: #c0392b; background: #fef2f2; }
-
-.btn-mic-field {
-    background: var(--gray);
-    border: none;
-    font-size: 1.1rem;
-    cursor: pointer;
-    color: var(--brown-light);
-    border-radius: 50%;
-    transition: var(--transition);
-    flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.btn-mic-field:hover { background: var(--orange); color: white; }
-.btn-mic-field.recording { background: #c0392b; color: white; animation: pulse-mic 1s infinite; }
-
-.btn-add-champ {
-    background: none;
-    border: 2px dashed var(--orange);
-    color: var(--orange);
-    padding: 13px;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    width: 100%;
-    font-weight: 600;
-    font-size: 1rem;
-    transition: var(--transition);
-    font-family: 'DM Sans', sans-serif;
-}
-.btn-add-champ:hover { background: #fdf2ed; }
-
-.select-group {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
-
-select {
-    padding: 15px 16px;
-    border-radius: var(--radius-sm);
-    border: 2px solid var(--gray-mid);
-    font-size: 1rem;
-    outline: none;
-    background: #fafaf8;
-    color: var(--brown);
-    font-family: 'DM Sans', sans-serif;
-    transition: border-color var(--transition);
-    cursor: pointer;
-    width: 100%;
-}
-select:focus { border-color: var(--orange); }
-
-.time-portions-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.time-portions-row input {
-    padding: 13px 16px;
-    border-radius: var(--radius-sm);
-    border: 2px solid var(--gray);
-    font-size: 0.92rem;
-    outline: none;
-    font-family: 'DM Sans', sans-serif;
-    color: var(--brown);
-    transition: border-color var(--transition);
-    background: #fafaf8;
-    width: 100%;
-}
-.time-portions-row input:focus { border-color: var(--orange); }
-
-.input-full {
-    width: 100%;
-    padding: 13px 16px;
-    border-radius: var(--radius-sm);
-    border: 2px solid var(--gray);
-    font-size: 0.92rem;
-    outline: none;
-    font-family: 'DM Sans', sans-serif;
-    color: var(--brown);
-    transition: border-color var(--transition);
-    background: #fafaf8;
-    margin-bottom: 12px;
-}
-.input-full:focus { border-color: var(--orange); background: white; }
-
-.public-toggle {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 18px;
-    background: var(--gray);
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    margin-bottom: 20px;
-}
-.public-toggle input { width: 18px; height: 18px; cursor: pointer; accent-color: var(--orange); }
-.public-toggle label { cursor: pointer; font-weight: 500; font-size: 0.92rem; }
-
-.btn-save {
-    background: linear-gradient(135deg, var(--orange) 0%, var(--orange-dark) 100%);
-    color: white;
-    border: none;
-    padding: 18px 30px;
-    border-radius: 50px;
-    font-weight: 700;
-    font-size: 1.05rem;
-    cursor: pointer;
-    width: 100%;
-    box-shadow: 0 8px 28px rgba(217,95,32,0.4), 0 2px 8px rgba(217,95,32,0.2);
-    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-    font-family: 'DM Sans', sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    letter-spacing: 0.2px;
-}
-.btn-save:hover { transform: translateY(-2px) scale(1.01); box-shadow: 0 12px 32px rgba(217,95,32,0.45); }
-.btn-save:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
-
-/* ========== TOAST ========== */
-.toast {
-    position: fixed;
-    bottom: 32px;
-    left: 50%;
-    transform: translateX(-50%) translateY(120px);
-    background: var(--brown);
-    color: white;
-    padding: 13px 24px;
-    border-radius: 50px;
-    font-weight: 600;
-    font-size: 0.92rem;
-    z-index: 3000;
-    box-shadow: 0 12px 36px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.1);
-    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-.toast.show { transform: translateX(-50%) translateY(0); }
-.toast.success { background: linear-gradient(135deg, #2e7d32, #388e3c); }
-.toast.error { background: linear-gradient(135deg, #c0392b, #e53935); }
-
-/* ========== PRINT ========== */
-@media print {
-    header, .tabs, .ia-box, .btn-print, .btn-delete, .notes-zone, .btn-save, .modal-drag { display: none !important; }
-    .modal { position: static; background: none; backdrop-filter: none; padding: 0; }
-    .modal-content { max-height: none; box-shadow: none; border-radius: 0; }
-    body { background: white; }
-    .list-ingredients { grid-template-columns: repeat(2, 1fr); }
-}
-
-/* ========== RESPONSIVE ========== */
-@media (max-width: 600px) {
-    header { padding: 0 16px; height: 64px; }
-    .header-brand h1 { font-size: 1.2rem; }
-    .header-brand span { display: none; }
-    .tabs { margin: 16px auto 0; padding: 0 10px; gap: 3px; }
-    .tab { padding: 10px 13px; font-size: 0.9rem; }
-    .main-content { padding: 22px 14px; border-radius: 0; margin-bottom: 0; }
-    .recettes-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
-    .recette-img, .recette-img-placeholder { height: 150px; }
-    .recette-title { font-size: 1rem; }
-    .modal-title { font-size: 1.7rem; }
-    .modal-body { padding: 0 16px 28px; }
-    .modal-header { padding: 18px 16px 0; }
-    .list-ingredients { grid-template-columns: 1fr; }
-    .select-group, .time-portions-row { grid-template-columns: 1fr 1fr; }
-    .time-portions-row { grid-template-columns: 1fr; }
-    .ol-etapes li { font-size: 1rem; line-height: 1.7; }
-    .list-ingredients li { font-size: 1rem; }
-    .section-title-form { font-size: 1.6rem; }
-}
-/* ========== SCANNER IA ========== */
-.scanner-box {
-    background: var(--gold-pale);
-    border: 2px dashed var(--gold);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 24px;
-}
-
-.scanner-box-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--brown);
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.scanner-box-sub {
-    font-size: 0.88rem;
-    color: var(--brown-light);
-    margin-bottom: 16px;
-    line-height: 1.5;
-}
-
-.scanner-zone-drop {
-    border: 2px dashed var(--gray-mid);
-    border-radius: var(--radius-sm);
-    padding: 28px 20px;
-    text-align: center;
-    cursor: pointer;
-    background: white;
-    transition: var(--transition);
-    color: var(--brown-light);
-    font-size: 0.95rem;
-    line-height: 1.6;
-}
-.scanner-zone-drop:hover { border-color: var(--orange); background: #fffaf6; }
-.scanner-zone-drop .drop-icon { font-size: 2.4rem; display: block; margin-bottom: 8px; }
-
-.scanner-preview-wrap { display: none; margin-bottom: 12px; }
-.scanner-preview-wrap img {
-    width: 100%;
-    max-height: 220px;
-    object-fit: cover;
-    border-radius: var(--radius-sm);
-    border: 2px solid var(--gold-light);
-}
-
-.btn-scanner-ia {
-    display: none;
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, var(--brown) 0%, var(--brown-mid) 100%);
-    color: white;
-    border: none;
-    border-radius: var(--radius-sm);
-    font-size: 1rem;
-    font-weight: 700;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition: var(--transition);
-    margin-top: 12px;
-}
-.btn-scanner-ia:hover { opacity: 0.9; }
-.btn-scanner-ia:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.scanner-resultat {
-    display: none;
-    margin-top: 12px;
-    padding: 12px 16px;
-    background: #e8f5e9;
-    border: 1px solid #a5d6a7;
-    border-radius: var(--radius-sm);
-    font-size: 0.9rem;
-    color: #2e7d32;
-    line-height: 1.5;
-}
-
-/* ========== MODE CUISINE — LECTURE ÉTAPE PAR ÉTAPE ========== */
-.btn-lecture {
-    width: 100%;
-    padding: 15px 18px;
-    background: linear-gradient(135deg, var(--brown) 0%, var(--brown-mid) 100%);
-    color: white;
-    border: none;
-    border-radius: 50px;
-    font-size: 1rem;
-    font-weight: 700;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-    margin-top: 20px;
-    box-shadow: 0 6px 20px rgba(44,26,14,0.25);
-    letter-spacing: 0.2px;
-}
-.btn-lecture:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(44,26,14,0.3); }
-.btn-lecture.lecture-active {
-    background: linear-gradient(135deg, #c0392b 0%, #922b21 100%);
-    box-shadow: 0 6px 20px rgba(192,57,43,0.35);
-}
-
-.etape-active {
-    background: #fff8e1 !important;
-    border-color: var(--gold) !important;
-    border-width: 2px !important;
-    font-weight: 600;
-}
-
-#panneau-lecture {
-    display: none;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 4000;
-    background: linear-gradient(135deg, #1e0e06 0%, #2c1a0e 100%);
-    color: white;
-    border-radius: 24px 24px 0 0;
-    box-shadow: 0 -8px 40px rgba(0,0,0,0.4);
-    padding: 20px 20px 32px;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-@media (min-width: 600px) {
-    #panneau-lecture {
-        bottom: 24px;
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%);
-        border-radius: 20px;
-        padding: 24px 28px;
-        width: 540px;
-    }
-}
-
-.panneau-drag {
-    width: 40px;
-    height: 4px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 4px;
-    margin: 0 auto 16px;
-}
-
-.panneau-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
-    gap: 10px;
-}
-
-.panneau-nom {
-    font-family: 'Playfair Display', serif;
-    font-size: 1rem;
-    color: rgba(255,255,255,0.75);
-    font-style: italic;
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.panneau-step-label {
-    font-size: 0.82rem;
-    color: var(--gold-light);
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.panneau-progress {
-    height: 4px;
-    background: rgba(255,255,255,0.15);
-    border-radius: 4px;
-    margin-bottom: 18px;
-    overflow: hidden;
-}
-
-.panneau-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--gold) 0%, var(--orange) 100%);
-    border-radius: 4px;
-    transition: width 0.4s ease;
-}
-
-.panneau-etape-num {
-    font-family: 'Playfair Display', serif;
-    font-size: 3rem;
-    font-weight: 700;
-    color: var(--gold);
-    line-height: 1;
-    margin-bottom: 10px;
-}
-
-.panneau-etape-contenu {
-    font-size: 1.15rem;
-    line-height: 1.75;
-    color: white;
-    min-height: 80px;
-    margin-bottom: 20px;
-}
-
-.panneau-controls {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 14px;
-}
-
-.panneau-btn {
-    background: rgba(255,255,255,0.1);
-    border: none;
-    color: white;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: var(--transition);
-    flex-shrink: 0;
-}
-.panneau-btn:hover { background: rgba(255,255,255,0.2); }
-.panneau-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.panneau-btn.sm { width: 44px; height: 44px; font-size: 1.1rem; }
-.panneau-btn.lg {
-    width: 60px;
-    height: 60px;
-    font-size: 1.4rem;
-    background: var(--orange);
-}
-.panneau-btn.lg:hover { background: var(--orange-dark); }
-
-.panneau-commandes {
-    text-align: center;
-    font-size: 0.78rem;
-    color: rgba(255,255,255,0.45);
-    line-height: 1.5;
-}
-
-.btn-panneau-fermer {
-    background: rgba(255,255,255,0.08);
-    border: none;
-    color: rgba(255,255,255,0.6);
-    font-size: 0.82rem;
-    padding: 6px 14px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-}
-.btn-panneau-fermer:hover { background: rgba(255,255,255,0.15); color: white; }
-
-</style>
-</head>
-<body>
-
-<!-- Bannière discrète Android (si beforeinstallprompt disponible) -->
-<div id="pwa-install-container">
-    <p>📱 Ajouter le Grimoire à ton téléphone ?</p>
-    <button id="btn-pwa-install" class="btn-pwa">Installer</button>
-    <button onclick="document.getElementById('pwa-install-container').style.display='none'" class="btn-pwa-close" aria-label="Fermer">✕</button>
-</div>
-
-<!-- Modale d'installation douce (iPhone + premier accès) -->
-<div id="modal-install" role="dialog" aria-label="Installer l'application">
-    <div class="install-drag"></div>
-    <div class="install-header">
-        <div class="install-icon">📖</div>
-        <div class="install-titles">
-            <h3>Toujours à portée de main</h3>
-            <p>Ajoute le Grimoire sur ton écran d'accueil pour l'ouvrir en un seul geste.</p>
-        </div>
-        <button class="install-close" onclick="window.fermerModalInstall()" aria-label="Fermer">✕</button>
-    </div>
-    <ul class="install-steps" id="install-steps-list"></ul>
-    <button class="install-btn-main" id="install-btn-main" onclick="window.actionInstall()">
-        📲 Ajouter à mon écran d'accueil
-    </button>
-    <div class="install-footer">
-        <button onclick="window.fermerModalInstall(true)">Non merci, je reviendrai par le lien</button>
-    </div>
-</div>
-
-<header>
-    <div class="header-brand">
-        <div class="header-brand-icon">📖</div>
-        <div>
-            <h1>Le Grimoire</h1>
-            <span>Recipearl</span>
-        </div>
-    </div>
-    <div class="header-right">
-        <div id="info-user">
-            <img id="avatar-user" class="avatar" src="" alt="">
-            <span id="txt-user"></span>
-            <button onclick="window.deconnexion()" class="btn-header">Déconnexion</button>
-        </div>
-        <button id="btn-login" onclick="window.connexionGoogle()" class="btn-header orange">
-            <img src="https://img.icons8.com/color/16/000000/google-logo.png" alt="Google"> Connexion
-        </button>
-    </div>
-</header>
-
-<div class="tabs">
-    <button class="tab active" onclick="window.changerOnglet('commu', this)">🌍 Communauté</button>
-    <button class="tab" onclick="window.changerOnglet('mes-recettes', this)">📚 Mes Recettes</button>
-    <button class="tab" onclick="window.changerOnglet('favoris', this)">⭐ Favoris</button>
-    <button class="tab" onclick="window.changerOnglet('frigo', this)">🧊 Mon Frigo</button>
-    <button class="tab" onclick="window.changerOnglet('ajouter', this)">➕ Ajouter</button>
-</div>
-
-<div class="main-content">
-
-    <!-- COMMUNAUTÉ -->
-    <div id="page-commu" class="section-page active">
-        <div class="search-wrapper">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="rechercheCommu" placeholder="Rechercher une recette..." oninput="window.filtrerRecettes('commu')">
-            <button class="btn-mic-search" onclick="window.demarrerVocal('rechercheCommu', 'commu')" title="Recherche vocale">🎙️</button>
-        </div>
-        <div class="univers-filter" id="filtres-commu"></div>
-        <div class="recettes-grid" id="grille-commu"></div>
-    </div>
-
-    <!-- MES RECETTES -->
-    <div id="page-mes-recettes" class="section-page">
-        <div class="search-wrapper">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="recherchePerso" placeholder="Rechercher dans mes recettes..." oninput="window.filtrerRecettes('perso')">
-            <button class="btn-mic-search" onclick="window.demarrerVocal('recherchePerso', 'perso')" title="Recherche vocale">🎙️</button>
-        </div>
-        <div class="univers-filter" id="filtres-perso"></div>
-        <div class="recettes-grid" id="grille-perso"></div>
-    </div>
-
-    <!-- FAVORIS -->
-    <div id="page-favoris" class="section-page">
-        <div class="search-wrapper">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="rechercheFavoris" placeholder="Rechercher dans mes favoris..." oninput="window.filtrerRecettes('favoris')">
-            <button class="btn-mic-search" onclick="window.demarrerVocal('rechercheFavoris', 'favoris')" title="Recherche vocale">🎙️</button>
-        </div>
-        <div class="univers-filter" id="filtres-favoris"></div>
-        <div class="recettes-grid" id="grille-favoris"></div>
-    </div>
-
-    <!-- MON FRIGO -->
-    <div id="page-frigo" class="section-page">
-        <h2 style="font-family:'Playfair Display',serif; margin-bottom:8px; color:var(--brown); font-size:1.8rem;">🧊 Mon Frigo</h2>
-        <p style="color:#9a8878; margin-bottom:28px; font-size:0.95rem; line-height:1.6;">Prends en photo ton frigo et l'IA te suggère des recettes avec ce que tu as !</p>
-
-        <input type="file" id="inputFrigo" accept="image/*" capture="environment" style="display:none" onchange="window.previsualiserFrigo(event)">
-        
-        <div class="frigo-zone" onclick="document.getElementById('inputFrigo').click()">
-            <div class="frigo-zone-icon">📸</div>
-            <p>Clique ici pour prendre une photo de ton frigo<br><small style="opacity:0.7">ou sélectionner une image depuis ta galerie</small></p>
-        </div>
-
-        <img id="frigoPreview" class="frigo-preview" alt="Aperçu du frigo">
-
-        <div id="frigo-ia-zone" style="display:none; margin-top:24px;">
-            <button class="btn-ia btn-ia-purple" id="btnAnalyseFrigo" onclick="window.analyserFrigo()" style="margin-bottom:20px;">
-                ✨ Analyser mon frigo et suggérer des recettes (IA)
-            </button>
-            <div id="frigo-ingredients" style="display:none; margin-bottom:20px;">
-                <h3 style="font-family:'Playfair Display',serif; color:var(--orange); margin-bottom:10px;">🥦 Ingrédients détectés</h3>
-                <div id="frigo-tags"></div>
-            </div>
-            <div id="frigo-recettes" style="display:none;">
-                <h3 style="font-family:'Playfair Display',serif; color:var(--brown); margin-bottom:15px;">🍽️ Recettes suggérées</h3>
-                <div id="frigo-recettes-liste"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- AJOUTER -->
-    <div id="page-ajouter" class="section-page">
-        <h2 class="section-title-form">✨ Nouvelle Formule Magique</h2>
-
-        <!-- SCANNER IA -->
-        <div class="scanner-box">
-            <div class="scanner-box-title">📸 Scanner une recette papier</div>
-            <div class="scanner-box-sub">Prends en photo une recette d'un livre ou d'une fiche — l'IA remplit le formulaire automatiquement !</div>
-
-            <div id="scanner-zone-drop" class="scanner-zone-drop" onclick="document.getElementById('scanner-input').click()">
-                <span class="drop-icon">📷</span>
-                Appuie ici pour prendre une photo<br>
-                <small>ou choisir une image depuis la galerie</small>
-            </div>
-            <input type="file" id="scanner-input" accept="image/*" capture="environment" style="display:none" onchange="window.previsualiserScan(event)">
-
-            <div id="scanner-preview-wrap" class="scanner-preview-wrap">
-                <img id="scanner-preview-img" src="" alt="Aperçu de la photo">
-            </div>
-
-            <button id="btnScannerIA" class="btn-scanner-ia" onclick="window.scannerRecette()">
-                ✨ Analyser la photo avec l'IA
-            </button>
-
-            <div id="scanner-resultat" class="scanner-resultat">
-                <span id="scanner-resultat-texte"></span>
-            </div>
-        </div>
-
-        <div class="form-section">
-            <div class="form-label">📝 Nom de la recette</div>
-            <div class="field-row">
-                <input type="text" id="nomRecette" class="input-full" placeholder="Ex: Gratin de mamie au reblochon" style="flex:1;padding:15px 16px;border-radius:var(--radius-sm);border:2px solid var(--gray-mid);font-size:1rem;outline:none;font-family:'DM Sans',sans-serif;color:var(--brown);background:#fafaf8;width:100%;">
-                <button class="btn-mic-field" onclick="window.demarrerVocalChamp('nomRecette', null)" title="Dicter le nom">🎙️</button>
-            </div>
-        </div>
-
-        <div class="form-section">
-            <div class="form-label">⏱️ Infos pratiques</div>
-            <div class="time-portions-row">
-                <input type="number" id="tempsPrep" placeholder="Préparation (min)" min="0">
-                <input type="number" id="tempsCuisson" placeholder="Cuisson (min)" min="0">
-                <input type="number" id="portions" placeholder="Portions" min="1">
-            </div>
-        </div>
-
-        <div class="form-section">
-            <div class="form-label">📋 Ingrédients</div>
-            <div id="zone-ingredients">
-                <div class="field-row">
-                    <input type="text" class="ingredient-item" placeholder="Ex: 200g de farine">
-                    <button class="btn-mic-field" onclick="window.demarrerVocalChamp(null, this)" title="Dicter l'ingrédient">🎙️</button>
-                </div>
-            </div>
-            <button class="btn-add-champ" onclick="window.ajouterChamp('zone-ingredients', 'ingredient-item', 'Ex: 1 pincée de sel')">🌿 Ajouter un ingrédient</button>
-        </div>
-
-        <div class="form-section">
-            <div class="form-label">✨ Étapes de préparation</div>
-            <div id="zone-etapes">
-                <div class="field-row">
-                    <input type="text" class="etape-item" placeholder="Ex: Préchauffer le four à 180°C">
-                    <button class="btn-mic-field" onclick="window.demarrerVocalChamp(null, this)" title="Dicter l'étape">🎙️</button>
-                </div>
-            </div>
-            <button class="btn-add-champ" onclick="window.ajouterChamp('zone-etapes', 'etape-item', 'Ex: Mélanger les ingrédients')">📜 Ajouter une étape</button>
-        </div>
-
-        <div class="form-section">
-            <div class="form-label">🏷️ Catégorisation</div>
-            <div class="select-group" style="margin-bottom:12px;">
-                <select id="univers" onchange="window.majSousCategories()">
-                    <option value="cuisine">🍳 Cuisine</option>
-                    <option value="pâtisserie">🥐 Pâtisserie</option>
-                </select>
-                <select id="sousCategorie"></select>
-            </div>
-            <div class="form-label" style="margin-top:4px;">🌍 Origine culinaire</div>
-            <select id="origine" style="margin-bottom:12px;">
-                <option value="">— Non précisée —</option>
-                <option value="française">🇫🇷 Française</option>
-                <option value="italienne">🇮🇹 Italienne</option>
-                <option value="espagnole">🇪🇸 Espagnole</option>
-                <option value="mexicaine">🇲🇽 Mexicaine</option>
-                <option value="japonaise">🇯🇵 Japonaise</option>
-                <option value="chinoise">🇨🇳 Chinoise</option>
-                <option value="indienne">🇮🇳 Indienne</option>
-                <option value="américaine">🇺🇸 Américaine</option>
-                <option value="grecque">🇬🇷 Grecque</option>
-                <option value="marocaine">🇲🇦 Marocaine</option>
-                <option value="libanaise">🇱🇧 Libanaise</option>
-                <option value="thaïlandaise">🇹🇭 Thaïlandaise</option>
-                <option value="vietnamienne">🇻🇳 Vietnamienne</option>
-                <option value="coréenne">🇰🇷 Coréenne</option>
-                <option value="portugaise">🇵🇹 Portugaise</option>
-                <option value="brésilienne">🇧🇷 Brésilienne</option>
-                <option value="autre">🌐 Autre</option>
-            </select>
-            <input type="text" id="imageLien" class="input-full" placeholder="🖼️ Lien image (optionnel)">
-        </div>
-
-        <label class="public-toggle">
-            <input type="checkbox" id="public" checked>
-            <span>🌍 Partager avec la communauté</span>
-        </label>
-
-        <button class="btn-save" id="btnSauvegarder" onclick="window.ajouterRecette()">
-            📖 Enregistrer dans le Grimoire
-        </button>
-    </div>
-</div>
-
-<!-- MODAL RECETTE -->
-<div id="modalRecette" class="modal" onclick="if(event.target===this)window.fermerRecette()">
-    <div class="modal-content">
-        <div class="modal-header">
-            <span class="modal-drag"></span>
-            <button onclick="window.fermerRecette()" class="modal-close" aria-label="Fermer">✕</button>
-            <div id="contenuRecetteHeader"></div>
-        </div>
-        <div class="modal-body" id="contenuRecette"></div>
-    </div>
-</div>
-
-<!-- PANNEAU MODE CUISINE — LECTURE ÉTAPE PAR ÉTAPE -->
-<div id="panneau-lecture">
-    <div class="panneau-drag"></div>
-    <div class="panneau-header">
-        <div class="panneau-nom" id="panneau-nom-recette"></div>
-        <div class="panneau-step-label" id="panneau-step-label">Étape 1 / 1</div>
-    </div>
-    <div class="panneau-progress">
-        <div class="panneau-progress-fill" id="panneau-progress-fill" style="width:0%"></div>
-    </div>
-    <div class="panneau-etape-num" id="panneau-etape-num">1</div>
-    <div class="panneau-etape-contenu" id="panneau-etape-contenu"></div>
-    <div id="panneau-timer" style="display:none; text-align:center; font-size:2rem; font-weight:bold; margin:10px 0; color:#3d2b1f; background:#fdf6ec; border-radius:10px; padding:8px;"></div>
-    <div id="panneau-timer-ctrl" style="text-align:center; margin-bottom:8px;">
-        <button onclick="window._demarrerTimerManuel && window._demarrerTimerManuel()" style="background:none;border:1px solid #e8672a;color:#e8672a;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:0.85rem;">▶ Relancer timer</button>
-    </div>
-    <div class="panneau-controls">
-        <button class="panneau-btn sm" id="btn-panneau-prev" onclick="window.etapePrecedente()" title="Étape précédente">⏮</button>
-        <button class="panneau-btn lg" id="btn-panneau-play" onclick="window.toggleLecturePanneau()" title="Lecture / Pause">▶</button>
-        <button class="panneau-btn sm" id="btn-panneau-next" onclick="window.etapeSuivante()" title="Étape suivante">⏭</button>
-        <button class="panneau-btn sm" onclick="window.repeterEtape()" title="Répéter">🔁</button>
-    </div>
-    <div class="panneau-commandes">
-        🎙️ Commandes vocales : <strong>« suivant »</strong> · <strong>« précédent »</strong> · <strong>« répète »</strong> · <strong>« stop »</strong>
-    </div>
-    <div style="text-align:center;margin-top:12px;">
-        <button class="btn-panneau-fermer" onclick="window.stopperLecture()">✕ Fermer le mode cuisine</button>
-    </div>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
-<script>
-    window.firebaseConfig = {
-        apiKey: "AIzaSyCXO-I5ZaXd_qdp5dC0hVle-pnr_3TAK_E",
-        authDomain: "recipearl-911f4.firebaseapp.com",
-        projectId: "recipearl-911f4",
-        storageBucket: "recipearl-911f4.firebasestorage.app",
-        messagingSenderId: "532296769066",
-        appId: "1:532296769066:web:ba4ecfe2ef713b194d2bb7"
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, arrayUnion, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+const app = initializeApp(window.firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+const CLAUDE_PROXY = "https://grimoire-proxy.patrick-gabriere.workers.dev";
+const MODEL = "claude-haiku-4-5-20251001";
+
+// =============================================
+// SCANNER RECETTE PAPIER — IA
+// =============================================
+
+let _scanImageBase64 = null;
+let _scanMediaType = 'image/jpeg';
+
+window.previsualiserScan = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    _scanMediaType = file.type || 'image/jpeg';
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        _scanImageBase64 = e.target.result.split(',')[1];
+
+        // Afficher la prévisualisation
+        const wrap = document.getElementById('scanner-preview-wrap');
+        const img  = document.getElementById('scanner-preview-img');
+        const zone = document.getElementById('scanner-zone-drop');
+        const btn  = document.getElementById('btnScannerIA');
+        const res  = document.getElementById('scanner-resultat');
+
+        img.src = e.target.result;
+        wrap.style.display = 'block';
+        zone.style.display  = 'none';
+        btn.style.display   = 'flex';
+        res.style.display   = 'none';
     };
-</script>
-<script type="module" src="script.js"></script>
-</body>
-</html>
+    reader.readAsDataURL(file);
+};
+
+window.scannerRecette = async () => {
+    if (!_scanImageBase64) return;
+
+    const btn = document.getElementById('btnScannerIA');
+    btn.innerHTML = '<span class="spinner"></span> Analyse de la photo en cours…';
+    btn.disabled = true;
+
+    const prompt = `Tu es un assistant qui extrait des recettes de cuisine depuis des photos de livres ou fiches recettes.
+Analyse cette image et extrais toutes les informations disponibles.
+Réponds UNIQUEMENT en JSON valide, sans markdown, sans texte autour.
+
+{
+  "nom": "Nom exact de la recette",
+  "tempsPrep": 20,
+  "tempsCuisson": 35,
+  "portions": 4,
+  "ingredients": ["200g de farine", "3 oeufs", "..."],
+  "etapes": ["Préchauffer le four à 180°C", "Mélanger les ingrédients secs", "..."],
+  "univers": "cuisine",
+  "sousCategorie": "plat",
+  "origine": "française"
+}
+
+Règles :
+- tempsPrep, tempsCuisson, portions sont des nombres entiers (0 si non trouvé)
+- ingredients : un ingrédient par entrée du tableau, avec quantité si précisée
+- etapes : une étape par entrée, phrase complète
+- univers : "cuisine" ou "pâtisserie"
+- sousCategorie : parmi entrée/soupe/plat/accompagnement/sauce/apéro/salade/gâteau/tarte/biscuit/viennoiserie/crème-mousse/confiture/pain
+- origine : langue/style détecté (française, italienne, etc.) ou "" si inconnu
+- Si une info est illisible ou absente, mets une valeur vide/zéro`;
+
+    try {
+        const response = await fetch(CLAUDE_PROXY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: MODEL,
+                max_tokens: 1500,
+                messages: [{
+                    role: 'user',
+                    content: [
+                        {
+                            type: 'image',
+                            source: { type: 'base64', media_type: _scanMediaType, data: _scanImageBase64 }
+                        },
+                        { type: 'text', text: prompt }
+                    ]
+                }]
+            })
+        });
+
+        if (!response.ok) throw new Error('Erreur serveur: ' + response.status);
+        const data = await response.json();
+        const texte = data.content[0].text.replace(/```json|```/g, '').trim();
+        const recette = JSON.parse(texte);
+
+        _remplirFormulaire(recette);
+
+        // Afficher le message de succès
+        document.getElementById('scanner-resultat').style.display = 'block';
+        document.getElementById('scanner-resultat-texte').textContent =
+            `"${recette.nom}" détectée — ${recette.ingredients?.length || 0} ingrédient(s) et ${recette.etapes?.length || 0} étape(s) extraits. Vérifie et corrige si besoin !`;
+
+        showToast('Recette extraite avec succès ! 🎉', 'success');
+
+        // Scroll vers le formulaire
+        document.getElementById('nomRecette').scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    } catch (e) {
+        console.error('Erreur scan:', e);
+        showToast("Impossible de lire la photo. Essaie avec une image plus nette !", 'error');
+    } finally {
+        btn.innerHTML = '✨ Ré-analyser la photo';
+        btn.disabled = false;
+    }
+};
+
+function _remplirFormulaire(r) {
+    // Nom
+    const nomEl = document.getElementById('nomRecette');
+    if (nomEl) nomEl.value = r.nom || '';
+
+    // Temps & portions
+    const prepEl = document.getElementById('tempsPrep');
+    const cuisEl = document.getElementById('tempsCuisson');
+    const portEl = document.getElementById('portions');
+    if (prepEl) prepEl.value = r.tempsPrep || '';
+    if (cuisEl) cuisEl.value = r.tempsCuisson || '';
+    if (portEl) portEl.value = r.portions || '';
+
+    // Ingrédients
+    const zoneIng = document.getElementById('zone-ingredients');
+    if (zoneIng && r.ingredients?.length) {
+        zoneIng.innerHTML = r.ingredients.map(ing => `
+            <div class="field-row">
+                <input type="text" class="ingredient-item" value="${_escHtml(ing)}" placeholder="Ingrédient">
+                <button class="btn-mic-field" onclick="window.demarrerVocalChamp(null, this)" title="Dicter">🎙️</button>
+                <button onclick="this.parentElement.remove()" class="btn-remove-field" title="Supprimer">×</button>
+            </div>
+        `).join('');
+    }
+
+    // Étapes
+    const zoneEta = document.getElementById('zone-etapes');
+    if (zoneEta && r.etapes?.length) {
+        zoneEta.innerHTML = r.etapes.map(eta => `
+            <div class="field-row">
+                <input type="text" class="etape-item" value="${_escHtml(eta)}" placeholder="Étape">
+                <button class="btn-mic-field" onclick="window.demarrerVocalChamp(null, this)" title="Dicter">🎙️</button>
+                <button onclick="this.parentElement.remove()" class="btn-remove-field" title="Supprimer">×</button>
+            </div>
+        `).join('');
+    }
+
+    // Univers & sous-catégorie
+    const univEl = document.getElementById('univers');
+    if (univEl && r.univers) {
+        univEl.value = r.univers;
+        window.majSousCategories();
+    }
+    const sousEl = document.getElementById('sousCategorie');
+    if (sousEl && r.sousCategorie) {
+        // Trouver l'option la plus proche
+        const opts = Array.from(sousEl.options);
+        const match = opts.find(o => o.value === r.sousCategorie.toLowerCase().replace('/', '-'));
+        if (match) sousEl.value = match.value;
+    }
+
+    // Origine
+    const oriEl = document.getElementById('origine');
+    if (oriEl && r.origine) {
+        const opts = Array.from(oriEl.options);
+        const match = opts.find(o => o.value === r.origine.toLowerCase());
+        if (match) oriEl.value = match.value;
+    }
+}
+
+function _escHtml(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+
+const UNSPLASH_KEY = "aJKziiIrqJf56a0HgZ0XeqBRmycg716cCNPxB5vt7Ig";
+
+// =============================================
+// IMAGE AUTO (Unsplash)
+// =============================================
+
+window.chercherImageAuto = async () => {
+    const nom = document.getElementById("nomRecette").value.trim();
+    if (!nom) { showToast("Entre d'abord le nom de la recette !", "error"); return; }
+    const btn = document.getElementById("btnAutoImg");
+    btn.textContent = "⏳";
+    btn.disabled = true;
+    try {
+        const query = encodeURIComponent(nom + " food recipe");
+        const res = await fetch(`https://api.unsplash.com/search/photos?query=${query}&per_page=1&orientation=landscape&client_id=${UNSPLASH_KEY}`);
+        const data = await res.json();
+        if (data.results && data.results.length > 0) {
+            const url = data.results[0].urls.regular;
+            document.getElementById("imageLien").value = url;
+            document.getElementById("img-preview").src = url;
+            document.getElementById("preview-image").style.display = "block";
+            showToast("Image trouvée !", "success");
+        } else {
+            showToast("Aucune image trouvée, essaie un autre nom", "error");
+        }
+    } catch(e) {
+        showToast("Erreur lors de la recherche d'image", "error");
+    } finally {
+        btn.textContent = "🔍 Auto";
+        btn.disabled = false;
+    }
+};
+
+// Prévisualisation quand on colle un lien manuellement
+document.addEventListener("DOMContentLoaded", () => {
+    const input = document.getElementById("imageLien");
+    if (input) {
+        input.addEventListener("input", () => {
+            const url = input.value.trim();
+            if (url.startsWith("http")) {
+                document.getElementById("img-preview").src = url;
+                document.getElementById("preview-image").style.display = "block";
+            } else {
+                document.getElementById("preview-image").style.display = "none";
+            }
+        });
+    }
+});
+
+let toutesLesRecettes = [];
+let frigoImageBase64 = null;
+let mesFavoris = new Set(); // IDs des recettes favorites
+
+// =============================================
+// TOAST
+// =============================================
+
+function showToast(msg, type = "") {
+    const t = document.getElementById("toast");
+    t.className = "toast" + (type ? " " + type : "");
+    const icon = type === "success" ? "✅ " : type === "error" ? "❌ " : "ℹ️ ";
+    t.textContent = icon + msg;
+    t.classList.add("show");
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => t.classList.remove("show"), 3500);
+}
+
+// =============================================
+// IMAGE — Emojis propres (fiable à 100%)
+// =============================================
+
+const EMOJI_CAT = {
+    soupe: "🥣", plat: "🍽️", accompagnement: "🥗", "entrée": "🥗",
+    sauce: "🫕", apéro: "🥂", salade: "🥙", gâteau: "🎂",
+    tarte: "🥧", biscuit: "🍪", viennoiserie: "🥐", "crème/mousse": "🍮",
+    confiture: "🫙", pain: "🍞"
+};
+
+// Couleurs de fond par catégorie — chaque carte a une belle couleur cohérente
+const BG_CAT = {
+    soupe:        ["#FFF3E0", "#E65100"],
+    plat:         ["#FBE9E7", "#BF360C"],
+    accompagnement:["#E8F5E9", "#2E7D32"],
+    "entrée":     ["#E3F2FD", "#1565C0"],
+    sauce:        ["#FCE4EC", "#880E4F"],
+    apéro:        ["#F3E5F5", "#6A1B9A"],
+    salade:       ["#E8F5E9", "#1B5E20"],
+    gâteau:       ["#FFF8E1", "#F57F17"],
+    tarte:        ["#FFF3E0", "#E65100"],
+    biscuit:      ["#EFEBE9", "#4E342E"],
+    viennoiserie: ["#FFF8E1", "#F9A825"],
+    "crème/mousse":["#F3E5F5", "#4A148C"],
+    confiture:    ["#FCE4EC", "#C62828"],
+    pain:         ["#EFEBE9", "#5D4037"],
+};
+
+function getEmojiCategorie(cat) {
+    return EMOJI_CAT[cat?.toLowerCase()] || "🍴";
+}
+
+function getBgCategorie(cat) {
+    return BG_CAT[cat?.toLowerCase()] || ["#F5F0EB", "#6B4C3B"];
+}
+
+// =============================================
+// ONGLETS & CHAMPS
+// =============================================
+
+window.changerOnglet = (page, el) => {
+    document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    if (el) el.classList.add('active');
+};
+
+window.ajouterChamp = (id, cl, placeholder = "Ajouter un élément...") => {
+    const c = document.getElementById(id);
+    const d = document.createElement("div");
+    d.className = "field-row";
+    d.innerHTML = `
+        <input type="text" class="${cl}" placeholder="${placeholder}">
+        <button class="btn-mic-field" onclick="window.demarrerVocalChamp(null, this)" title="Dicter">🎙️</button>
+        <button onclick="this.parentElement.remove()" class="btn-remove-field" title="Supprimer">×</button>
+    `;
+    c.appendChild(d);
+    d.querySelector('input').focus();
+};
+
+const sousCatMapping = {
+    cuisine: ["Entrée", "Soupe", "Plat", "Accompagnement", "Sauce", "Apéro", "Salade"],
+    pâtisserie: ["Gâteau", "Tarte", "Biscuit", "Viennoiserie", "Crème/Mousse", "Confiture", "Pain"]
+};
+
+const ORIGINES = [
+    { val: "française",     emoji: "🇫🇷", label: "Française" },
+    { val: "italienne",     emoji: "🇮🇹", label: "Italienne" },
+    { val: "espagnole",     emoji: "🇪🇸", label: "Espagnole" },
+    { val: "mexicaine",     emoji: "🇲🇽", label: "Mexicaine" },
+    { val: "japonaise",     emoji: "🇯🇵", label: "Japonaise" },
+    { val: "chinoise",      emoji: "🇨🇳", label: "Chinoise" },
+    { val: "indienne",      emoji: "🇮🇳", label: "Indienne" },
+    { val: "américaine",    emoji: "🇺🇸", label: "Américaine" },
+    { val: "grecque",       emoji: "🇬🇷", label: "Grecque" },
+    { val: "marocaine",     emoji: "🇲🇦", label: "Marocaine" },
+    { val: "libanaise",     emoji: "🇱🇧", label: "Libanaise" },
+    { val: "thaïlandaise",  emoji: "🇹🇭", label: "Thaïlandaise" },
+    { val: "vietnamienne",  emoji: "🇻🇳", label: "Vietnamienne" },
+    { val: "coréenne",      emoji: "🇰🇷", label: "Coréenne" },
+    { val: "portugaise",    emoji: "🇵🇹", label: "Portugaise" },
+    { val: "brésilienne",   emoji: "🇧🇷", label: "Brésilienne" },
+    { val: "asiatique",     emoji: "🥢",  label: "Asiatique" },
+    { val: "méditerranéenne",emoji: "🫒", label: "Méditerranéenne" },
+    { val: "autre",         emoji: "🌍",  label: "Autre" },
+];
+
+window.majSousCategories = () => {
+    const u = document.getElementById("univers").value;
+    const s = document.getElementById("sousCategorie");
+    s.innerHTML = sousCatMapping[u].map(c => `<option value="${c.toLowerCase()}">${c}</option>`).join('');
+};
+
+window.majSelectOrigine = () => {
+    const s = document.getElementById("origine");
+    if (!s) return;
+    s.innerHTML = ORIGINES.map(o => `<option value="${o.val}">${o.emoji} ${o.label}</option>`).join("");
+};
+
+// =============================================
+// FIREBASE — CHARGEMENT
+// =============================================
+
+async function chargerRecettes() {
+    afficherSkeletons();
+    try {
+        const snap = await getDocs(collection(db, "recettes"));
+        toutesLesRecettes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        window.genererFiltres('commu');
+        window.genererFiltres('perso');
+        window.genererFiltres('favoris');
+        window.filtrerRecettes('commu');
+        window.filtrerRecettes('perso');
+        window.filtrerRecettes('favoris');
+    } catch (e) {
+        console.error("Erreur chargement:", e);
+        showToast("Impossible de charger les recettes", "error");
+    }
+}
+
+function afficherSkeletons(n = 6) {
+    const html = Array(n).fill(0).map(() => `
+        <div class="skeleton-card">
+            <div class="skeleton skeleton-img"></div>
+            <div style="padding:16px;">
+                <div class="skeleton skeleton-line tall" style="margin-left:0;margin-right:0;width:80%;"></div>
+                <div class="skeleton skeleton-line short" style="margin-left:0;margin-right:0;margin-top:10px;"></div>
+            </div>
+        </div>
+    `).join('');
+    document.getElementById('grille-commu').innerHTML = html;
+}
+
+// =============================================
+// FIREBASE — AJOUT / SUPPRESSION
+// =============================================
+
+window.ajouterRecette = async () => {
+    const nom = document.getElementById("nomRecette").value.trim();
+    const ing = Array.from(document.querySelectorAll('.ingredient-item')).map(i => i.value.trim()).filter(Boolean).join('\n');
+    const eta = Array.from(document.querySelectorAll('.etape-item')).map(e => e.value.trim()).filter(Boolean).join('\n');
+    const tempsPrep = parseInt(document.getElementById("tempsPrep").value) || 0;
+    const tempsCuisson = parseInt(document.getElementById("tempsCuisson").value) || 0;
+    const portions = parseInt(document.getElementById("portions").value) || 0;
+
+    if (!nom) { showToast("Le nom de la recette est requis !", "error"); return; }
+    if (!ing) { showToast("Ajoute au moins un ingrédient !", "error"); return; }
+
+    const btn = document.getElementById("btnSauvegarder");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Enregistrement...';
+
+    try {
+        await addDoc(collection(db, "recettes"), {
+            nom, ingredients: ing, etapes: eta,
+            tempsPrep, tempsCuisson, portions,
+            univers: document.getElementById("univers").value,
+            sousCategorie: document.getElementById("sousCategorie").value,
+            origine: document.getElementById("origine") ? document.getElementById("origine").value : "française",
+            image: document.getElementById("imageLien").value.trim() || "",
+            auteurId: auth.currentUser ? auth.currentUser.uid : "anonyme",
+            auteurNom: auth.currentUser ? auth.currentUser.displayName : "Anonyme",
+            estPublic: document.getElementById("public").checked,
+            notes: [],
+            createdAt: Date.now()
+        });
+        showToast("Recette ajoutée au Grimoire !", "success");
+        document.getElementById("nomRecette").value = "";
+        document.getElementById("imageLien").value = "";
+        document.getElementById("tempsPrep").value = "";
+        document.getElementById("tempsCuisson").value = "";
+        document.getElementById("portions").value = "";
+        document.getElementById("zone-ingredients").innerHTML = `<div class="field-row"><input type="text" class="ingredient-item" placeholder="Ex: 200g de farine"></div>`;
+        document.getElementById("zone-etapes").innerHTML = `<div class="field-row"><input type="text" class="etape-item" placeholder="Ex: Préchauffer le four à 180°C"></div>`;
+        await chargerRecettes();
+        window.changerOnglet('mes-recettes', document.querySelectorAll('.tab')[1]);
+    } catch (e) {
+        console.error("Erreur ajout:", e);
+        showToast("Erreur lors de l'enregistrement", "error");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '📖 Enregistrer dans le Grimoire';
+    }
+};
+
+window.connexionGoogle = () => signInWithPopup(auth, provider).catch(e => {
+    console.error(e);
+    showToast("Erreur de connexion Google", "error");
+});
+
+window.deconnexion = () => signOut(auth).then(() => { mesFavoris.clear(); showToast("Déconnecté !"); });
+
+// =============================================
+// FAVORIS
+// =============================================
+
+async function chargerFavoris() {
+    const uid = auth.currentUser?.uid;
+    if (!uid) { mesFavoris.clear(); return; }
+    try {
+        const snap = await getDoc(doc(db, "favoris", uid));
+        mesFavoris = new Set(snap.exists() ? (snap.data().ids || []) : []);
+    } catch(e) { mesFavoris = new Set(); }
+}
+
+window.toggleFavori = async (id, e) => {
+    if (e) e.stopPropagation();
+    const uid = auth.currentUser?.uid;
+    if (!uid) { showToast("Connecte-toi pour ajouter des favoris !", "error"); return; }
+    if (mesFavoris.has(id)) {
+        mesFavoris.delete(id);
+        showToast("Retiré des favoris", "");
+    } else {
+        mesFavoris.add(id);
+        showToast("Ajouté aux favoris ⭐", "success");
+    }
+    await setDoc(doc(db, "favoris", uid), { ids: [...mesFavoris] });
+    // Mettre à jour les boutons visibles sans recharger
+    document.querySelectorAll(`.fav-btn[data-id="${id}"]`).forEach(btn => {
+        btn.textContent = mesFavoris.has(id) ? "⭐" : "☆";
+        btn.classList.toggle("fav-actif", mesFavoris.has(id));
+    });
+    // Mettre à jour le bouton dans la modal si ouverte
+    const modalBtn = document.getElementById("fav-btn-modal");
+    if (modalBtn && modalBtn.dataset.id === id) {
+        modalBtn.textContent = mesFavoris.has(id) ? "⭐ Favori" : "☆ Ajouter aux favoris";
+        modalBtn.classList.toggle("fav-actif", mesFavoris.has(id));
+    }
+    // Rafraîchir l'onglet favoris
+    window.filtrerRecettes('favoris');
+};
+
+onAuthStateChanged(auth, async (user) => {
+    document.getElementById("info-user").style.display = user ? "flex" : "none";
+    document.getElementById("btn-login").style.display = user ? "none" : "block";
+    if (user) {
+        document.getElementById("txt-user").innerText = user.displayName;
+        const avatar = document.getElementById("avatar-user");
+        if (user.photoURL) { avatar.src = user.photoURL; avatar.style.display = "block"; }
+    }
+    await chargerFavoris();
+    await chargerRecettes();
+});
+
+// =============================================
+// FILTRES & AFFICHAGE
+// =============================================
+
+let filtreActif = { commu: "tous", perso: "tous", favoris: "tous" };
+let filtreOrigine = { commu: "tous", perso: "tous", favoris: "tous" };
+
+window.genererFiltres = (type) => {
+    const zone = document.getElementById('filtres-' + type);
+    const uid = auth.currentUser ? auth.currentUser.uid : null;
+    const recs = toutesLesRecettes.filter(r => type === 'commu' ? r.estPublic : r.auteurId === uid);
+
+    // Filtre catégorie
+    const cats = [...new Set(recs.map(r => r.sousCategorie).filter(Boolean))];
+    const categories = ["tous", ...cats.map(c => c.toLowerCase())];
+    const optionsCat = categories.map(val => {
+        const label = val === 'tous' ? 'Toutes les catégories' : val.charAt(0).toUpperCase() + val.slice(1);
+        const emoji = val === 'tous' ? '🍴' : getEmojiCategorie(val);
+        const selected = val === filtreActif[type] ? 'selected' : '';
+        return `<option value="${val}" ${selected}>${emoji} ${label}</option>`;
+    }).join('');
+
+
+    // Filtre origine
+    const originesDispo = [...new Set(recs.map(r => r.origine).filter(Boolean))];
+    const optionsOrigine = [
+        `<option value="tous" ${filtreOrigine[type] === 'tous' ? 'selected' : ''}>🌍 Toutes les origines</option>`,
+        ...ORIGINES.filter(o => originesDispo.includes(o.val)).map(o =>
+            `<option value="${o.val}" ${filtreOrigine[type] === o.val ? 'selected' : ''}>${o.emoji} ${o.label}</option>`)
+    ].join('');
+
+    zone.innerHTML = `
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <div class="select-filtre-wrap">
+                <select class="select-filtre" onchange="window.setFiltre('${type}', this.value)">
+                    ${optionsCat}
+                </select>
+            </div>
+            <div class="select-filtre-wrap">
+                <select class="select-filtre" onchange="window.setFiltreOrigine('${type}', this.value)">
+                    ${optionsOrigine}
+                </select>
+            </div>
+        </div>
+    `;
+};
+
+window.setFiltre = (type, cat) => {
+    filtreActif[type] = cat;
+    window.filtrerRecettes(type);
+};
+
+window.setFiltreOrigine = (type, val) => {
+    filtreOrigine[type] = val;
+    window.filtrerRecettes(type);
+};
+
+window.filtrerRecettes = (type) => {
+    const uid = auth.currentUser ? auth.currentUser.uid : null;
+    const inputId = type === 'commu' ? 'rechercheCommu' : type === 'favoris' ? 'rechercheFavoris' : 'recherchePerso';
+    const inputEl = document.getElementById(inputId);
+    const txt = inputEl ? inputEl.value.toLowerCase().trim() : '';
+    const fCat = filtreActif[type];
+    const fOri = filtreOrigine[type];
+
+    let res;
+    if (type === 'favoris') {
+        res = toutesLesRecettes.filter(r => mesFavoris.has(r.id));
+    } else {
+        res = toutesLesRecettes.filter(r => type === 'commu' ? r.estPublic : r.auteurId === uid);
+    }
+    if (txt) res = res.filter(r =>
+        r.nom.toLowerCase().includes(txt) ||
+        (r.ingredients || "").toLowerCase().includes(txt)
+    );
+    if (fCat !== "tous") res = res.filter(r => r.sousCategorie?.toLowerCase() === fCat);
+    if (fOri !== "tous") res = res.filter(r => r.origine === fOri || !r.origine);
+
+    const grille = document.getElementById('grille-' + type);
+
+    if (!res.length) {
+        const emptyIcon = type === 'commu' ? '🌍' : type === 'favoris' ? '⭐' : '📚';
+        const emptyTitle = type === 'commu' ? 'Aucune recette publique' : type === 'favoris' ? 'Pas encore de favoris' : 'Pas encore de recettes';
+        const emptyMsg = type === 'commu' ? 'Aucune recette ne correspond à ta recherche.' : type === 'favoris' ? "Clique sur ☆ sur une recette pour l'ajouter ici !" : 'Commence par en ajouter une !';
+        grille.innerHTML = `
+            <div class="empty-state" style="grid-column:1/-1;">
+                <div class="empty-state-icon">${emptyIcon}</div>
+                <h3>${emptyTitle}</h3>
+                <p>${emptyMsg}</p>
+            </div>
+        `;
+        return;
+    }
+
+    grille.innerHTML = res.map(r => {
+        const emoji = getEmojiCategorie(r.sousCategorie);
+        const [bgColor, accentColor] = getBgCategorie(r.sousCategorie);
+        const temps = [];
+        if (r.tempsPrep) temps.push(`⏱ ${r.tempsPrep}min`);
+        if (r.tempsCuisson) temps.push(`🔥 ${r.tempsCuisson}min`);
+        const tempsHtml = temps.length ? `<span class="recette-time">${temps.join(' · ')}</span>` : '';
+        const portionsHtml = r.portions ? `<span class="recette-time">👥 ${r.portions}p</span>` : '';
+
+        // Si une vraie image est fournie, on l'utilise ; sinon emoji sur fond coloré
+        const imageHtml = (r.image && r.image.trim())
+            ? `<img class="recette-img" src="${r.image}" alt="${r.nom}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+               <div class="recette-img-placeholder" style="display:none;background:${bgColor};font-size:4rem;">${emoji}</div>`
+            : `<div class="recette-img-placeholder" style="background:${bgColor};font-size:4rem;">${emoji}</div>`;
+
+        return `
+            <div class="recette-card" onclick="window.ouvrirRecette('${r.id}')">
+                <button class="fav-btn ${mesFavoris.has(r.id) ? 'fav-actif' : ''}" data-id="${r.id}" onclick="window.toggleFavori('${r.id}', event)" title="Ajouter aux favoris">${mesFavoris.has(r.id) ? '⭐' : '☆'}</button>
+                ${imageHtml}
+                <div class="recette-info">
+                    <div class="recette-title">${r.nom}</div>
+                    <div class="recette-meta">
+                        <span class="recette-badge" style="background:${bgColor};color:${accentColor};">${emoji} ${r.sousCategorie?.toUpperCase() || ''}</span>
+                        ${tempsHtml}${portionsHtml}
+                    </div>
+                    ${r.origine ? (() => { const o = ORIGINES.find(x => x.val === r.origine); return o ? `<div class="card-origine">${o.emoji} ${o.label}</div>` : ''; })() : ''}
+                    ${r.auteurNom && type === 'commu' ? `<div class="card-author">par ${r.auteurNom}</div>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+};
+
+// =============================================
+// MODAL
+// =============================================
+
+window.ouvrirRecette = (id) => {
+    const r = toutesLesRecettes.find(x => x.id === id);
+    if (!r) return;
+
+    const estAuteur = auth.currentUser && r.auteurId === auth.currentUser.uid;
+    window._recetteCourante = r;
+
+    const emoji = getEmojiCategorie(r.sousCategorie);
+    const [bgColor, accentColor] = getBgCategorie(r.sousCategorie);
+    const tempsTotal = (r.tempsPrep || 0) + (r.tempsCuisson || 0);
+
+    const chips = [
+        r.univers ? `<span class="meta-chip">${r.univers === 'pâtisserie' ? '🥐' : '🍳'} ${r.univers}</span>` : '',
+        r.sousCategorie ? `<span class="meta-chip orange">${emoji} ${r.sousCategorie}</span>` : '',
+        r.tempsPrep ? `<span class="meta-chip">⏱ Prép: ${r.tempsPrep}min</span>` : '',
+        r.tempsCuisson ? `<span class="meta-chip">🔥 Cuisson: ${r.tempsCuisson}min</span>` : '',
+        tempsTotal ? `<span class="meta-chip gold">⏰ Total: ${tempsTotal}min</span>` : '',
+        r.portions ? `<span class="meta-chip">👥 ${r.portions} portions</span>` : '',
+    ].filter(Boolean).join('');
+
+    const favActif = mesFavoris.has(r.id);
+    document.getElementById("contenuRecetteHeader").innerHTML = `
+        <div class="modal-title">${r.nom}</div>
+        <div class="modal-meta-row">${chips || `<span class="meta-chip">🍽️ Recette</span>`}</div>
+        <button id="fav-btn-modal" class="btn-fav-modal ${favActif ? 'fav-actif' : ''}" data-id="${r.id}" onclick="window.toggleFavori('${r.id}', event)">${favActif ? '⭐ Favori' : '☆ Ajouter aux favoris'}</button>
+    `;
+
+    const portionsBase = parseInt(r.portions) || 4;
+    window._portionsBase = portionsBase;
+    window._portionsCourantes = portionsBase;
+    window._ingredientsBase = (Array.isArray(r.ingredients) ? r.ingredients.join('\n') : (r.ingredients || "")).split('\n').filter(Boolean);
+
+    // Mots-clés qui indiquent un ingrédient qu'on ne peut pas fractionner
+    const INGREDIENTS_ENTIERS = ['oeuf','oeufs','oignon','oignons','gousse','gousses','carotte','carottes','pomme de terre','pommes de terre','citron','citrons','tomate','tomates','poivron','poivrons','échalote','échalotes','courgette','courgettes','aubergine','aubergines','banane','bananes','feuille','feuilles','tranche','tranches','morceau','morceaux'];
+
+    const renderIngredients = (facteur) => {
+        return window._ingredientsBase.map(ligne => {
+            const match = ligne.match(/(\d+(?:[.,]\d+)?)/);
+            if (match) {
+                const valBase = parseFloat(match[1].replace(',', '.'));
+                const valNew = valBase * facteur;
+                // Arrondi à l'entier si l'ingrédient est "comptable"
+                const ligneMin = ligne.toLowerCase();
+                const estEntier = INGREDIENTS_ENTIERS.some(mot => ligneMin.includes(mot));
+                const valAff = estEntier
+                    ? Math.max(1, Math.round(valNew))
+                    : (Number.isInteger(valNew) ? valNew : Math.round(valNew * 10) / 10);
+                const ligneMod = ligne.replace(match[1], `<strong>${valAff}</strong>`);
+                return `<li>${ligneMod}</li>`;
+            }
+            return `<li>${ligne}</li>`;
+        }).join('');
+    };
+
+    window.ajusterPortions = (delta) => {
+        const nouvelles = Math.max(1, window._portionsCourantes + delta);
+        window._portionsCourantes = nouvelles;
+        const facteur = nouvelles / window._portionsBase;
+        document.getElementById('portions-count').textContent = nouvelles;
+        document.getElementById('ingredients-liste').innerHTML = renderIngredients(facteur);
+    };
+
+    const etapesList = (Array.isArray(r.etapes) ? r.etapes.join('\n') : (r.etapes || "")).split('\n').filter(Boolean).map(e => `<li>${e}</li>`).join('');
+
+    const notesList = (r.notes || []).map((n, i) => {
+        const date = n.date ? new Date(n.date).toLocaleDateString('fr-FR', {day:'numeric',month:'short',year:'numeric'}) : '';
+        const testeBadge = n.teste ? '<span class="badge-teste">✅ J'ai testé !</span>' : '';
+        const likes = n.likes || 0;
+        const initiale = (n.auteur || 'A')[0].toUpperCase();
+        return `
+        <div class="note-item" id="note-${i}">
+            <div class="note-header">
+                <div class="note-avatar">${initiale}</div>
+                <div>
+                    <div class="note-author-name">${n.auteur || 'Anonyme'} ${testeBadge}</div>
+                    <div class="note-date">${date}</div>
+                </div>
+            </div>
+            <div class="note-texte">${n.texte}</div>
+            <button class="note-like-btn" onclick="window.likerNote('${r.id}', ${i})">
+                👍 <span>${likes}</span>
+            </button>
+        </div>`;
+    }).join('') || '<p style="color:#b0a090;font-size:0.85rem;margin-bottom:8px;">Pas encore de commentaires. Sois le premier !</p>';
+
+    let bodyHtml = `
+        <div class="modal-section-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <span>🍓 Ingrédients</span>
+            <div class="portions-widget">
+                <button class="portions-btn" onclick="window.ajusterPortions(-1)">−</button>
+                <span class="portions-label"><span id="portions-count">${portionsBase}</span> portion${portionsBase > 1 ? 's' : ''}</span>
+                <button class="portions-btn" onclick="window.ajusterPortions(+1)">+</button>
+            </div>
+        </div>
+        <ul class="list-ingredients" id="ingredients-liste">${renderIngredients(1)}</ul>
+
+        ${etapesList ? `<div class="modal-section-title">🍳 Préparation</div><ol class="ol-etapes">${etapesList}</ol>` : ''}
+
+        <div class="notes-zone">
+            <div class="notes-title">📝 Notes & Astuces</div>
+            <div class="notes-list" id="notes-list">${notesList}</div>
+            ${auth.currentUser ? `
+            <div class="note-input-row">
+                <textarea id="noteInput" placeholder="Partage une astuce, une variante..."></textarea>
+                <button onclick="window.ajouterNote('${r.id}')" class="btn-ia btn-ia-purple" style="width:auto;padding:10px 14px;">✉️</button>
+            </div>
+            <label class="teste-toggle">
+                <input type="checkbox" id="noteTestee">
+                <span>✅ J'ai testé cette recette !</span>
+            </label>` : `<p style="font-size:0.82rem;color:#b0a090;">Connecte-toi pour laisser une note.</p>`}
+        </div>
+
+        <div class="ia-box ia-box-purple">
+            <p class="ia-box-title">🛒 Liste de courses</p>
+            <button class="btn-ia btn-ia-purple" id="btnGenererListe" onclick="window.genererListeCourses()">✨ Générer ma liste de courses triée (IA)</button>
+            <div id="zoneRenduListe" class="liste-rendu"></div>
+        </div>
+        <div class="ia-box ia-box-green">
+            <p class="ia-box-title">👨‍🍳 Conseils du chef</p>
+            <button class="btn-ia btn-ia-green" id="btnConseils" onclick="window.genererConseils()">🌿 Obtenir des conseils de préparation (IA)</button>
+            <div id="zoneRenduConseils" class="liste-rendu"></div>
+        </div>
+        <div class="ia-box ia-box-orange">
+            <p class="ia-box-title">🔍 Recettes similaires</p>
+            <button class="btn-ia btn-ia-orange" id="btnSimilaires" onclick="window.genererSimilaires()">🍽️ Suggérer des recettes similaires (IA)</button>
+            <div id="zoneRenduSimilaires" class="liste-rendu"></div>
+        </div>
+
+        <button id="btn-lecture" class="btn-lecture" onclick="window.toggleLecture()">🔊 Lire les étapes à voix haute</button>
+        <div style="display:flex;gap:10px;margin-top:8px;">
+            <button class="btn-print" onclick="window.imprimerRecette()" style="flex:1;">🖨️ Imprimer</button>
+            <button class="btn-share" id="btn-share" onclick="window.partagerRecette()" style="flex:1;">🔗 Partager</button>
+        </div>
+    `;
+
+    if (estAuteur) {
+        bodyHtml += `<button onclick="window.supprimerRecette('${r.id}')" class="btn-delete">🗑️ Supprimer cette recette</button>`;
+    }
+
+    document.getElementById("contenuRecette").innerHTML = bodyHtml;
+    document.getElementById("modalRecette").style.display = "flex";
+    document.body.style.overflow = "hidden";
+};
+
+window.fermerRecette = () => {
+    document.getElementById("modalRecette").style.display = "none";
+    document.body.style.overflow = "";
+    window._recetteCourante = null;
+    window.stopperLecture();
+};
+
+// =============================================
+// IMPRESSION & PARTAGE
+// =============================================
+
+window.imprimerRecette = () => {
+    const r = window._recetteCourante;
+    if (!r) return;
+    const win = window.open('', '_blank');
+    const ing = (Array.isArray(r.ingredients) ? r.ingredients.join('\n') : (r.ingredients || ''))
+        .split('\n').filter(Boolean).map(i => `<li>${i}</li>`).join('');
+    const eta = (Array.isArray(r.etapes) ? r.etapes.join('\n') : (r.etapes || ''))
+        .split('\n').filter(Boolean).map((e, i) => {
+            let t = e.replace(/\*\*/g,'').replace(/\*/g,'').replace(/#{1,6}\s*/g,'').replace(/^\s*\d+[.)\-]\s*/,'').trim();
+            t = t.replace(/^[A-ZÀ-Ûa-zà-û][^:]{2,40}\s*:\s*/, '');
+            return `<li>${t.charAt(0).toUpperCase() + t.slice(1)}</li>`;
+        }).join('');
+    const temps = [r.tempsPrep ? `⏱ Préparation : ${r.tempsPrep} min` : '', r.tempsCuisson ? `🔥 Cuisson : ${r.tempsCuisson} min` : ''].filter(Boolean).join(' &nbsp;|&nbsp; ');
+    win.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+    <title>${r.nom}</title>
+    <style>
+        body { font-family: Georgia, serif; max-width: 700px; margin: 40px auto; color: #2c1a0e; line-height: 1.7; }
+        h1 { font-size: 2rem; margin-bottom: 6px; }
+        .meta { color: #7a5640; font-size: 0.9rem; margin-bottom: 24px; }
+        h2 { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #e8cf85; padding-bottom: 4px; margin: 24px 0 12px; }
+        ul, ol { padding-left: 20px; }
+        li { margin-bottom: 8px; }
+        .footer { margin-top: 40px; font-size: 0.8rem; color: #aaa; text-align: center; }
+    </style></head><body>
+    <h1>${r.nom}</h1>
+    <div class="meta">${temps}${r.portions ? ` &nbsp;|&nbsp; 👥 ${r.portions} portions` : ''}</div>
+    <h2>Ingrédients</h2><ul>${ing}</ul>
+    <h2>Préparation</h2><ol>${eta}</ol>
+    <div class="footer">Le Grimoire des Parents — patrickgabriere.github.io/Mes-recettes/</div>
+    </body></html>`);
+    win.document.close();
+    win.print();
+};
+
+window.partagerRecette = async () => {
+    const r = window._recetteCourante;
+    if (!r) return;
+    const url = `${window.location.origin}${window.location.pathname}?recette=${r.id}`;
+    if (navigator.share) {
+        try {
+            await navigator.share({ title: r.nom, text: `Découvre la recette : ${r.nom}`, url });
+            return;
+        } catch(e) {}
+    }
+    // Fallback : copier dans le presse-papier
+    try {
+        await navigator.clipboard.writeText(url);
+        showToast("Lien copié dans le presse-papier !", "success");
+    } catch(e) {
+        showToast("Lien : " + url, "");
+    }
+};
+
+// Ouvrir une recette directement si ?recette=ID dans l'URL
+window.addEventListener('load', () => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('recette');
+    if (id) {
+        const tryOpen = setInterval(() => {
+            if (toutesLesRecettes.length) {
+                clearInterval(tryOpen);
+                window.ouvrirRecette(id);
+            }
+        }, 300);
+    }
+});
+
+// =============================================
+// MODE CUISINE — LECTURE ÉTAPE PAR ÉTAPE
+// =============================================
+
+const _synth = window.speechSynthesis;
+let _etapesCuisine = [];
+let _etapeIndex = 0;
+let _lectureEnCours = false;
+let _lectureAuto = false;
+let _reconnaissanceCuisine = null;
+let _timerInterval = null;
+let _timerSecondes = 0;
+
+// Détecte la durée en minutes dans une étape
+function _detecterDuree(texte) {
+    const m = texte.match(/(\d+)\s*min(?:ute)?s?/i);
+    if (m) return parseInt(m[1]) * 60;
+    const h = texte.match(/(\d+)\s*heure?s?/i);
+    if (h) return parseInt(h[1]) * 3600;
+    const s = texte.match(/(\d+)\s*sec(?:onde)?s?/i);
+    if (s) return parseInt(s[1]);
+    return 0;
+}
+
+function _afficherTimer(secondes) {
+    const el = document.getElementById('panneau-timer');
+    if (!el) return;
+    if (secondes <= 0) { el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    const m = Math.floor(secondes / 60);
+    const s = secondes % 60;
+    el.textContent = `⏱ ${m}:${s.toString().padStart(2, '0')}`;
+    el.style.color = secondes <= 30 ? '#e8672a' : '#3d2b1f';
+}
+
+function _demarrerTimer(secondes) {
+    _arreterTimer();
+    if (!secondes) return;
+    _timerSecondes = secondes;
+    _afficherTimer(_timerSecondes);
+    _timerInterval = setInterval(() => {
+        _timerSecondes--;
+        _afficherTimer(_timerSecondes);
+        if (_timerSecondes <= 0) {
+            _arreterTimer();
+            // Alarme sonore
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            [0, 0.3, 0.6].forEach(t => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.frequency.value = 880;
+                gain.gain.setValueAtTime(0.5, ctx.currentTime + t);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + t + 0.4);
+                osc.start(ctx.currentTime + t);
+                osc.stop(ctx.currentTime + t + 0.4);
+            });
+            // Message vocal
+            const fin = new SpeechSynthesisUtterance('Le timer est terminé !');
+            fin.lang = 'fr-FR';
+            _synth.speak(fin);
+        }
+    }, 1000);
+}
+
+function _arreterTimer() {
+    if (_timerInterval) { clearInterval(_timerInterval); _timerInterval = null; }
+    _afficherTimer(0);
+}
+
+// Mots-clés reconnus pour chaque commande — variantes orthographiques incluses
+const CMDS = {
+    suivant:   ['suivant', 'suivan', 'suivante', 'prochain', 'prochaine', 'continuer', 'continue', 'next', 'apres', 'après'],
+    precedent: ['précédent', 'precedent', 'précédant', 'precedant', 'précédente', 'retour', 'avant', 'revenir', 'revien', 'previous', 'back'],
+    repeter:   ['répète', 'repete', 'répéter', 'repeter', 'encore', 'relire', 'redis', 'replay'],
+    pause:     ['pause', 'stop provisoire', 'attends', 'attendre'],
+    stop:      ['stop', 'arrête', 'arrete', 'terminer', 'terminer', 'fermer', 'quitter', 'fin'],
+};
+
+function _cmdMatch(texte, liste) {
+    return liste.some(mot => texte.includes(mot));
+}
+
+function _updatePanneau() {
+    const r = window._recetteCourante;
+    if (!r || !_etapesCuisine.length) return;
+    const total = _etapesCuisine.length;
+    const idx = _etapeIndex;
+
+    const nomEl = document.getElementById('panneau-nom-recette');
+    const numEl = document.getElementById('panneau-etape-num');
+    const contEl = document.getElementById('panneau-etape-contenu');
+    const labelEl = document.getElementById('panneau-step-label');
+    const fillEl = document.getElementById('panneau-progress-fill');
+    const prevBtn = document.getElementById('btn-panneau-prev');
+    const nextBtn = document.getElementById('btn-panneau-next');
+
+    if (nomEl) nomEl.textContent = r.nom;
+    if (numEl) numEl.textContent = idx + 1;
+    if (contEl) contEl.textContent = _etapesCuisine[idx] || '';
+    // Lancer le timer si durée détectée
+    const duree = _detecterDuree(_etapesCuisine[idx] || '');
+    _demarrerTimer(duree);
+    if (labelEl) labelEl.textContent = `Étape ${idx + 1} / ${total}`;
+    if (fillEl) fillEl.style.width = `${((idx + 1) / total) * 100}%`;
+    if (prevBtn) prevBtn.disabled = idx === 0;
+    if (nextBtn) nextBtn.disabled = idx === total - 1;
+
+    // Surbrillance dans la modal
+    document.querySelectorAll('.ol-etapes li').forEach((li, i) => {
+        li.classList.toggle('etape-active', i === idx);
+        if (i === idx) li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+}
+
+function _lireEtape() {
+    if (!_synth || !_etapesCuisine.length) return;
+    _synth.cancel();
+
+    const texte = `Étape ${_etapeIndex + 1} : ${_etapesCuisine[_etapeIndex]}`;
+    const u = new SpeechSynthesisUtterance(texte);
+    u.lang = 'fr-FR';
+    u.rate = 0.88;
+    u.pitch = 1.0;
+
+    // Sélectionner une voix française disponible
+    const voixFr = _synth.getVoices().find(v => v.lang.startsWith('fr') && !v.name.includes('Compact'));
+    if (voixFr) u.voice = voixFr;
+
+    u.onend = () => {
+        if (_lectureAuto) {
+            if (_etapeIndex < _etapesCuisine.length - 1) {
+                setTimeout(() => { if (_lectureAuto) { _etapeIndex++; _updatePanneau(); _lireEtape(); } }, 2200);
+            } else {
+                // Fin recette
+                _lectureAuto = false;
+                _lectureEnCours = false;
+                _majBtnPlay();
+                setTimeout(() => {
+                    const fin = new SpeechSynthesisUtterance('Bravo ! Toutes les étapes sont terminées. Bon appétit !');
+                    fin.lang = 'fr-FR';
+                    if (voixFr) fin.voice = voixFr;
+                    _synth.speak(fin);
+                }, 500);
+            }
+        }
+    };
+    _synth.speak(u);
+    _lectureEnCours = true;
+    _majBtnPlay();
+}
+
+function _majBtnPlay() {
+    const btn = document.getElementById('btn-panneau-play');
+    if (btn) btn.textContent = _lectureAuto ? '⏸' : '▶';
+
+    const btnModal = document.getElementById('btn-lecture');
+    if (btnModal) {
+        if (_lectureEnCours || _lectureAuto) {
+            btnModal.textContent = '⏹ Arrêter la lecture';
+            btnModal.classList.add('lecture-active');
+        } else {
+            btnModal.textContent = '🔊 Mode cuisine — Lecture étape par étape';
+            btnModal.classList.remove('lecture-active');
+        }
+    }
+}
+
+// --- API publique ---
+
+window.toggleLecture = () => {
+    const r = window._recetteCourante;
+    if (!r) return;
+    _etapesCuisine = (Array.isArray(r.etapes) ? r.etapes.join('\n') : (r.etapes || '')).split('\n').filter(Boolean);
+    if (!_etapesCuisine.length) { showToast("Pas d'étapes à lire !", 'error'); return; }
+
+    if (_lectureEnCours || _lectureAuto) { window.stopperLecture(); return; }
+
+    _etapeIndex = 0;
+    _lectureAuto = true;
+    const panneau = document.getElementById('panneau-lecture');
+    if (panneau) panneau.style.display = 'block';
+    _updatePanneau();
+    // Attendre les voix si pas encore chargées
+    if (_synth.getVoices().length === 0) {
+        _synth.addEventListener('voiceschanged', () => _lireEtape(), { once: true });
+    } else {
+        _lireEtape();
+    }
+    _demarrerEcouteCommandes();
+};
+
+window.toggleLecturePanneau = () => {
+    if (_lectureAuto) {
+        _lectureAuto = false; _synth.cancel(); _majBtnPlay();
+    } else {
+        _lectureAuto = true; _lireEtape();
+    }
+};
+
+window.etapeSuivante = () => {
+    if (_etapeIndex < _etapesCuisine.length - 1) {
+        _etapeIndex++; _synth.cancel(); _updatePanneau(); _lireEtape(); _lectureAuto = false;
+    } else { showToast('Dernière étape !', ''); }
+};
+
+window.etapePrecedente = () => {
+    if (_etapeIndex > 0) {
+        _etapeIndex--; _synth.cancel(); _updatePanneau(); _lireEtape(); _lectureAuto = false;
+    } else { showToast('Première étape !', ''); }
+};
+
+window.repeterEtape = () => { _synth.cancel(); _lireEtape(); };
+
+window.stopperLecture = () => {
+    _synth.cancel();
+    _arreterTimer();
+    _lectureEnCours = false;
+    _lectureAuto = false;
+    const panneau = document.getElementById('panneau-lecture');
+    if (panneau) panneau.style.display = 'none';
+    document.querySelectorAll('.ol-etapes li').forEach(li => li.classList.remove('etape-active'));
+    _majBtnPlay();
+    _arreterEcouteCommandes();
+};
+
+// --- Commandes vocales robustes ---
+
+function _demarrerEcouteCommandes() {
+    if (!SpeechRecognition || _reconnaissanceCuisine) return;
+    const r = new SpeechRecognition();
+    r.lang = 'fr-FR';
+    r.continuous = true;
+    r.interimResults = true; // Résultats intermédiaires pour réactivité immédiate
+
+    r.onresult = (e) => {
+        // Prendre le dernier résultat (intermédiaire ou final)
+        const result = e.results[e.results.length - 1];
+        const texte = result[0].transcript.toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // retirer accents pour comparaison
+            .trim();
+
+        // On traite même les résultats intermédiaires pour réactivité
+        if (_cmdMatch(texte, CMDS.suivant)) {
+            window.etapeSuivante();
+            showToast('⏭ Étape suivante', '');
+        } else if (_cmdMatch(texte, CMDS.precedent)) {
+            window.etapePrecedente();
+            showToast('⏮ Étape précédente', '');
+        } else if (_cmdMatch(texte, CMDS.repeter)) {
+            window.repeterEtape();
+            showToast('🔁 Je répète…', '');
+        } else if (_cmdMatch(texte, CMDS.pause)) {
+            _lectureAuto = false; _synth.cancel(); _majBtnPlay();
+            showToast('⏸ Pause', '');
+        } else if (_cmdMatch(texte, CMDS.stop)) {
+            window.stopperLecture();
+            showToast('⏹ Lecture arrêtée', '');
+        }
+    };
+
+    r.onerror = (e) => {
+        // Ignorer les erreurs no-speech (silence) — normales en cuisine
+        if (e.error === 'no-speech') return;
+        console.warn('Erreur reconnaissance cuisine:', e.error);
+    };
+
+    r.onend = () => {
+        // Relancer automatiquement si la lecture est toujours active
+        if ((_lectureAuto || _lectureEnCours) && _reconnaissanceCuisine) {
+            try { r.start(); } catch(err) {}
+        } else {
+            _reconnaissanceCuisine = null;
+        }
+    };
+
+    try {
+        r.start();
+        _reconnaissanceCuisine = r;
+        const hint = document.getElementById('panneau-vocal-hint');
+        if (hint) hint.style.opacity = '1';
+    } catch(e) {
+        _reconnaissanceCuisine = null;
+    }
+}
+
+function _arreterEcouteCommandes() {
+    if (_reconnaissanceCuisine) {
+        const r = _reconnaissanceCuisine;
+        _reconnaissanceCuisine = null; // mettre à null AVANT stop pour éviter le relancement dans onend
+        try { r.stop(); } catch(e) {}
+    }
+    const hint = document.getElementById('panneau-vocal-hint');
+    if (hint) hint.style.opacity = '0.4';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') window.fermerRecette(); });
+
+window.supprimerRecette = async (id) => {
+    if (!confirm("Supprimer définitivement cette recette ?")) return;
+    try {
+        await deleteDoc(doc(db, "recettes", id));
+        window.fermerRecette();
+        toutesLesRecettes = toutesLesRecettes.filter(r => r.id !== id);
+        window.genererFiltres('commu');
+        window.genererFiltres('perso');
+        window.genererFiltres('favoris');
+        window.filtrerRecettes('commu');
+        window.filtrerRecettes('perso');
+        window.filtrerRecettes('favoris');
+        showToast("Recette supprimée", "success");
+    } catch (e) { showToast("Erreur lors de la suppression", "error"); }
+};
+
+// =============================================
+// NOTES
+// =============================================
+
+window.likerNote = async (recetteId, index) => {
+    if (!auth.currentUser) { showToast("Connecte-toi pour liker !", "error"); return; }
+    const r = toutesLesRecettes.find(x => x.id === recetteId);
+    if (!r || !r.notes[index]) return;
+    r.notes[index].likes = (r.notes[index].likes || 0) + 1;
+    await updateDoc(doc(db, "recettes", recetteId), { notes: r.notes });
+    const btn = document.querySelector(`#note-${index} .note-like-btn span`);
+    if (btn) btn.textContent = r.notes[index].likes;
+    showToast("👍 Liké !", "success");
+};
+
+const _renderNotes = (notes, recetteId) => notes.map((n, i) => {
+    const date = n.date || n.ts ? new Date(n.date || n.ts).toLocaleDateString('fr-FR', {day:'numeric',month:'short',year:'numeric'}) : '';
+    const testeBadge = n.teste ? `<span class="badge-teste">✅ J'ai testé !</span>` : '';
+    const initiale = (n.auteur || 'A')[0].toUpperCase();
+    return `<div class="note-item" id="note-${i}">
+        <div class="note-header">
+            <div class="note-avatar">${initiale}</div>
+            <div><div class="note-author-name">${n.auteur || 'Anonyme'} ${testeBadge}</div>
+            <div class="note-date">${date}</div></div>
+        </div>
+        <div class="note-texte">${n.texte}</div>
+        <button class="note-like-btn" onclick="window.likerNote('${recetteId}', ${i})">👍 <span>${n.likes||0}</span></button>
+    </div>`;
+}).join('') || '<p style="color:#b0a090;font-size:0.85rem;margin-bottom:8px;">Pas encore de commentaires. Sois le premier !</p>';
+
+window.ajouterNote = async (recetteId) => {
+    const input = document.getElementById("noteInput");
+    const texte = input.value.trim();
+    if (!texte) return;
+    if (!auth.currentUser) { showToast("Connecte-toi pour laisser un commentaire", "error"); return; }
+    const teste = document.getElementById("noteTestee")?.checked || false;
+    const note = { texte, auteur: auth.currentUser.displayName, date: Date.now(), teste, likes: 0 };
+    try {
+        await updateDoc(doc(db, "recettes", recetteId), { notes: arrayUnion(note) });
+        const r = toutesLesRecettes.find(x => x.id === recetteId);
+        if (r) r.notes = [...(r.notes || []), note];
+        input.value = "";
+        if (document.getElementById("noteTestee")) document.getElementById("noteTestee").checked = false;
+        document.getElementById("notes-list").innerHTML = _renderNotes(r.notes || [], recetteId);
+        showToast(teste ? "Commentaire ajouté + testé enregistré ! ✅" : "Commentaire ajouté !", "success");
+    } catch (e) { showToast("Erreur lors de l'ajout", "error"); }
+};
+
+// =============================================
+// RECONNAISSANCE VOCALE
+// =============================================
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let reconnaissance = null;
+
+function creerReconnaissance() {
+    if (!SpeechRecognition) {
+        showToast("La reconnaissance vocale n'est pas disponible sur ce navigateur.", "error");
+        return null;
+    }
+    const r = new SpeechRecognition();
+    r.lang = 'fr-FR';
+    r.interimResults = false;
+    r.maxAlternatives = 1;
+    return r;
+}
+
+// Recherche vocale (barre de recherche)
+window.demarrerVocal = (inputId, type) => {
+    const input = document.getElementById(inputId);
+    const btn = input.parentElement.querySelector('.btn-mic-search');
+    if (!btn) return;
+
+    if (reconnaissance) { reconnaissance.stop(); return; }
+
+    const r = creerReconnaissance();
+    if (!r) return;
+    reconnaissance = r;
+
+    btn.classList.add('recording');
+    btn.textContent = '⏹️';
+
+    r.onresult = (e) => {
+        const texte = e.results[0][0].transcript;
+        input.value = texte;
+        window.filtrerRecettes(type);
+        showToast(`🎙️ "${texte}"`, "success");
+    };
+    r.onerror = () => showToast("Impossible de reconnaître la voix. Réessaie !", "error");
+    r.onend = () => {
+        reconnaissance = null;
+        btn.classList.remove('recording');
+        btn.textContent = '🎙️';
+    };
+    r.start();
+};
+
+// Dictée vocale (champ de formulaire)
+window.demarrerVocalChamp = (inputId, btnEl) => {
+    const input = inputId
+        ? document.getElementById(inputId)
+        : btnEl.previousElementSibling;
+    const btn = btnEl || (inputId ? document.querySelector(`[onclick*="${inputId}"]`) : null);
+
+    if (reconnaissance) { reconnaissance.stop(); return; }
+
+    const r = creerReconnaissance();
+    if (!r) return;
+    reconnaissance = r;
+
+    if (btn) { btn.classList.add('recording'); btn.textContent = '⏹️'; }
+
+    r.onresult = (e) => {
+        const texte = e.results[0][0].transcript;
+        // Capitalise la première lettre
+        input.value = texte.charAt(0).toUpperCase() + texte.slice(1);
+        input.focus();
+    };
+    r.onerror = () => showToast("Impossible de reconnaître la voix. Réessaie !", "error");
+    r.onend = () => {
+        reconnaissance = null;
+        if (btn) { btn.classList.remove('recording'); btn.textContent = '🎙️'; }
+    };
+    r.start();
+};
+
+// =============================================
+// CLAUDE — GÉNÉRIQUE
+// =============================================
+
+async function appellerClaude(prompt, btnId, zoneId, labelEnCours, labelFini) {
+    const btn = document.getElementById(btnId);
+    const rendu = document.getElementById(zoneId);
+    if (!btn || !rendu) return;
+
+    btn.innerHTML = `<span class="spinner"></span> ${labelEnCours}`;
+    btn.disabled = true;
+    rendu.style.display = "block";
+    rendu.innerHTML = `<span class="ia-loading"><span class="spinner"></span> Magie en cours…</span>`;
+
+    try {
+        const response = await fetch(CLAUDE_PROXY, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ model: MODEL, max_tokens: 1000, messages: [{ role: "user", content: prompt }] })
+        });
+        if (!response.ok) throw new Error(`Erreur serveur: ${response.status}`);
+        const data = await response.json();
+        rendu.innerHTML = "";
+        rendu.style.whiteSpace = "pre-line";
+        rendu.textContent = data.content[0].text;
+    } catch (error) {
+        console.error("Erreur Claude:", error);
+        rendu.innerHTML = `<span style="color:#c0392b;">⚠️ Oups, le grimoire a eu un souci. Réessaye !</span>`;
+    } finally {
+        btn.innerHTML = labelFini;
+        btn.disabled = false;
+    }
+}
+
+window.genererListeCourses = () => {
+    const r = window._recetteCourante; if (!r) return;
+    appellerClaude(
+        `Tu es l'assistant culinaire du "Grimoire des Parents".\nGénère une liste de courses organisée par rayons.\n\nRecette : ${r.nom}\n${r.portions ? `Portions : ${r.portions} personnes\n` : ''}Ingrédients : ${r.ingredients}\n\nRègles :\n1. Organise par rayons avec émoji (🥦 Fruits & Légumes, 🥖 Épicerie, 🥛 Frais, 🥩 Boucherie, 🧴 Condiments…)\n2. Un ingrédient par ligne avec émoji\n3. Pas de doublons\n4. Commence directement, sans intro.`,
+        "btnGenererListe", "zoneRenduListe", "Génération en cours…", "✨ Régénérer la liste de courses (IA)"
+    );
+};
+
+window.genererConseils = () => {
+    const r = window._recetteCourante; if (!r) return;
+    appellerClaude(
+        `Tu es un chef bienveillant qui aide des parents à cuisiner.\n\nRecette : ${r.nom} (${r.univers} - ${r.sousCategorie})\n${r.portions ? `Portions : ${r.portions}\n` : ''}Ingrédients : ${r.ingredients}\nÉtapes : ${r.etapes}\n\nDonne 4 à 6 conseils pratiques (astuces, variantes, conservation, accompagnements).\nFormat : une ligne par conseil avec émoji, sans intro.`,
+        "btnConseils", "zoneRenduConseils", "Analyse en cours…", "🌿 Obtenir des conseils de préparation (IA)"
+    );
+};
+
+window.genererSimilaires = () => {
+    const r = window._recetteCourante; if (!r) return;
+    const nomsExistants = toutesLesRecettes.map(x => x.nom).join(', ');
+    appellerClaude(
+        `Tu es un chef passionné de cuisine familiale.\nSuggère 4 recettes similaires à : ${r.nom} (${r.univers} - ${r.sousCategorie})\nIngrédients principaux : ${r.ingredients}\nÀ éviter (déjà dans le grimoire) : ${nomsExistants || 'aucune'}\n\nFormat : 🍽️ **Nom** — Description courte. 4 suggestions, sans intro.`,
+        "btnSimilaires", "zoneRenduSimilaires", "Recherche en cours…", "🍽️ Suggérer des recettes similaires (IA)"
+    );
+};
+
+// =============================================
+// FRIGO
+// =============================================
+
+window.previsualiserFrigo = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const preview = document.getElementById("frigoPreview");
+        preview.src = e.target.result;
+        preview.style.display = "block";
+        frigoImageBase64 = e.target.result.split(',')[1];
+        document.getElementById("frigo-ia-zone").style.display = "block";
+        document.getElementById("frigo-ingredients").style.display = "none";
+        document.getElementById("frigo-recettes").style.display = "none";
+    };
+    reader.readAsDataURL(file);
+};
+
+window.analyserFrigo = async () => {
+    if (!frigoImageBase64) return;
+    const btn = document.getElementById("btnAnalyseFrigo");
+    btn.innerHTML = `<span class="spinner"></span> Analyse du frigo en cours…`;
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(CLAUDE_PROXY, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                model: MODEL, max_tokens: 1000,
+                messages: [{ role: "user", content: [
+                    { type: "image", source: { type: "base64", media_type: "image/jpeg", data: frigoImageBase64 } },
+                    { type: "text", text: `Analyse ce frigo. Réponds en JSON UNIQUEMENT (sans markdown).\n{"ingredients":["..."],"recettes":[{"emoji":"🍳","titre":"...","description":"..."}]}\nPropose 3-5 recettes familiales réalisables avec ces ingrédients.` }
+                ]}]
+            })
+        });
+        if (!response.ok) throw new Error();
+        const data = await response.json();
+        const json = JSON.parse(data.content[0].text.replace(/```json|```/g, '').trim());
+        afficherResultatsFrigo(json);
+    } catch (e) {
+        showToast("Impossible d'analyser la photo. Vérifie ta connexion !", "error");
+    } finally {
+        btn.innerHTML = "✨ Ré-analyser le frigo (IA)";
+        btn.disabled = false;
+    }
+};
+
+function afficherResultatsFrigo(json) {
+    document.getElementById("frigo-tags").innerHTML = json.ingredients.map(i => `<span class="tag-ingredient">🌿 ${i}</span>`).join('');
+    document.getElementById("frigo-ingredients").style.display = "block";
+    document.getElementById("frigo-recettes-liste").innerHTML = json.recettes.map(r => `
+        <div class="frigo-recette-card">
+            <div class="emoji">${r.emoji}</div>
+            <div><div class="titre">${r.titre}</div><div class="sous">${r.description}</div></div>
+        </div>
+    `).join('');
+    document.getElementById("frigo-recettes").style.display = "block";
+}
+
+// =============================================
+// INIT & PWA
+// =============================================
+
+window.majSousCategories();
+window.majSelectOrigine();
+
+// =============================================
+// PWA — Installation douce (Android + iPhone)
+// =============================================
+
+let deferredPrompt = null;
+
+// Détection iPhone/iPad
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+// Détection si déjà installée (mode standalone)
+const isInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+
+// Android : capturer l'événement natif
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    // On affiche la bannière discrète en haut (pas la modale)
+    const c = document.getElementById('pwa-install-container');
+    if (c && !isInstalled) c.style.display = 'flex';
+});
+
+// Bouton bannière Android
+const installBtn = document.getElementById('btn-pwa-install');
+if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        document.getElementById('pwa-install-container').style.display = 'none';
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+    });
+}
+
+// Contenu des étapes selon le type de téléphone
+const STEPS_ANDROID = [
+    "Appuie sur les <strong>trois petits points</strong> ⋮ en haut à droite de Chrome",
+    "Puis sur <strong>« Ajouter à l'écran d'accueil »</strong>",
+    "Et enfin <strong>Installer</strong> — c'est tout !"
+];
+const STEPS_IOS = [
+    "Appuie sur le bouton <strong>Partager</strong> ⬆ en bas de Safari",
+    "Fais défiler et appuie sur <strong>« Sur l'écran d'accueil »</strong>",
+    "Puis <strong>Ajouter</strong> en haut à droite — et voilà !"
+];
+
+function remplirEtapesInstall() {
+    const liste = document.getElementById('install-steps-list');
+    const btn = document.getElementById('install-btn-main');
+    if (!liste) return;
+    const steps = isIOS ? STEPS_IOS : STEPS_ANDROID;
+    liste.innerHTML = steps.map((s, i) => `
+        <li>
+            <span class="step-dot">${i + 1}</span>
+            <span>${s}</span>
+        </li>
+    `).join('');
+    // Sur iOS pas d'événement natif, le bouton explique juste (déjà visible dans les étapes)
+    if (isIOS && btn) {
+        btn.style.display = 'none'; // les étapes suffisent, pas de bouton
+    }
+}
+
+window.actionInstall = async () => {
+    if (deferredPrompt) {
+        // Android avec prompt natif disponible
+        document.getElementById('modal-install').style.display = 'none';
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+    }
+    // Sur iOS : rien à faire, les étapes visuelles guident l'utilisateur
+};
+
+window.fermerModalInstall = (definitivement = false) => {
+    document.getElementById('modal-install').style.display = 'none';
+    if (definitivement) {
+        // On se souvient du refus pour ne pas re-afficher à chaque visite
+        try { localStorage.setItem('grimoire-install-refused', '1'); } catch(e) {}
+    }
+};
+
+// Afficher la modale douce après 4s si :
+// - pas déjà installée
+// - pas déjà refusée
+// - première ou deuxième visite (pas toutes les visites)
+function tenterAfficherModalInstall() {
+    if (isInstalled) return; // Déjà installée, on ne dérange pas
+
+    try {
+        if (localStorage.getItem('grimoire-install-refused')) return; // Refus mémorisé
+
+        const visites = parseInt(localStorage.getItem('grimoire-visites') || '0') + 1;
+        localStorage.setItem('grimoire-visites', visites);
+
+        // On propose seulement à la 1ère et 3ème visite, pas à chaque fois
+        if (visites !== 1 && visites !== 3) return;
+    } catch(e) {}
+
+    remplirEtapesInstall();
+    setTimeout(() => {
+        const modal = document.getElementById('modal-install');
+        if (modal) modal.style.display = 'block';
+    }, 4000); // 4 secondes après le chargement, pas agressif
+}
+
+// On attend que les recettes soient chargées avant de proposer
+window.addEventListener('load', tenterAfficherModalInstall);
+
+// Relancer le timer manuellement depuis le bouton
+window._demarrerTimerManuel = () => {
+    const duree = _detecterDuree(_etapesCuisine[_etapeIndex] || '');
+    if (duree) { _demarrerTimer(duree); }
+    else { showToast("Pas de durée détectée dans cette étape", ""); }
+};
