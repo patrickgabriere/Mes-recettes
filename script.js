@@ -691,12 +691,17 @@ window.ouvrirRecette = (id) => {
         document.getElementById('ingredients-liste').innerHTML = renderIngredients(facteur);
     };
 
-    const nettoyerMd = (txt) => txt
-        .replace(/\*\*/g, '')
-        .replace(/\*/g, '')
-        .replace(/#{1,6}\s*/g, '')
-        .replace(/^\s*\d+[.)\-]\s*/, '')
-        .trim();
+    const nettoyerMd = (txt) => {
+        let t = txt
+            .replace(/\*\*/g, '')
+            .replace(/\*/g, '')
+            .replace(/#{1,6}\s*/g, '')
+            .replace(/^\s*\d+[.)\-]\s*/, '')
+            .trim();
+        // Supprime "Titre : " en début d'étape (ex: "Préparation des oignons : ")
+        t = t.replace(/^[A-ZÀ-Ûa-zà-û][^:]{2,40}\s*:\s*/, '');
+        return t.charAt(0).toUpperCase() + t.slice(1);
+    };
     const etapesList = (Array.isArray(r.etapes) ? r.etapes.join('\n') : (r.etapes || "")).split('\n').filter(Boolean).map(e => `<li>${nettoyerMd(e)}</li>`).join('');
 
     const notesList = (r.notes || []).map(n => `
