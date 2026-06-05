@@ -691,14 +691,44 @@ window.ouvrirRecette = (id) => {
         document.getElementById('ingredients-liste').innerHTML = renderIngredients(facteur);
     };
 
-    const etapesList = (Array.isArray(r.etapes) ? r.etapes.join('\n') : (r.etapes || "")).split('\n').filter(Boolean).map(e => `<li>${e}</li>`).join('');
+    const nettoyerMd = (txt) => {
+        let t = txt
+            .replace(/\*\*/g, '')
+            .replace(/\*/g, '')
+            .replace(/#{1,6}\s*/g, '')
+            .replace(/^\s*\d+[.)\-]\s*/, '')
+            .trim();
+        // Supprime "Titre : " en début d'étape ET les lignes qui ne sont QUE un titre
+        t = t.replace(/^[A-ZÀ-Ûa-zà-û][^:]{2,50}\s*-\s*[Rr]ecette.*$/, ''); // ex: "Gyudon - Recette détaillée"
+        t = t.replace(/^[A-ZÀ-Ûa-zà-û][^:]{2,40}\s*:\s*/, ''); // ex: "Préparation des oignons : "
+        return t.charAt(0).toUpperCase() + t.slice(1);
+    };
+    const etapesList = (Array.isArray(r.etapes) ? r.etapes.join('\n') : (r.etapes || ""))
+        .split('\n').filter(Boolean)
+        .map(e => nettoyerMd(e))
+        .filter(Boolean) // retire les lignes vides après nettoyage (ex: le titre "# Gyudon - Recette détaillée")
+        .map(e => `<li>${e}</li>`).join('');
 
-    const notesList = (r.notes || []).map(n => `
-        <div class="note-item">
-            ${n.texte}
-            <div class="note-author">— ${n.auteur || 'Anonyme'}</div>
-        </div>
-    `).join('') || '<p style="color:#b0a090;font-size:0.85rem;margin-bottom:8px;">Pas encore de notes. Sois le premier !</p>';
+    const notesList = (r.notes || []).map((n, i) => {
+        const date = n.date ? new Date(n.date).toLocaleDateString('fr-FR', {day:'numeric',month:'short',year:'numeric'}) : '';
+        const testeBadge = n.teste ? '<span class="badge-teste">✅ J'ai testé !</span>' : '';
+        const likes = n.likes || 0;
+        const initiale = (n.auteur || 'A')[0].toUpperCase();
+        return `
+        <div class="note-item" id="note-${i}">
+            <div class="note-header">
+                <div class="note-avatar">${initiale}</div>
+                <div>
+                    <div class="note-author-name">${n.auteur || 'Anonyme'} ${testeBadge}</div>
+                    <div class="note-date">${date}</div>
+                </div>
+            </div>
+            <div class="note-texte">${n.texte}</div>
+            <button class="note-like-btn" onclick="window.likerNote('${r.id}', ${i})">
+                👍 <span>${likes}</span>
+            </button>
+        </div>`;
+    }).join('') || '<p style="color:#b0a090;font-size:0.85rem;margin-bottom:8px;">Pas encore de commentaires. Sois le premier !</p>';
 
     let bodyHtml = `
         <div class="modal-section-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
@@ -720,7 +750,11 @@ window.ouvrirRecette = (id) => {
             <div class="note-input-row">
                 <textarea id="noteInput" placeholder="Partage une astuce, une variante..."></textarea>
                 <button onclick="window.ajouterNote('${r.id}')" class="btn-ia btn-ia-purple" style="width:auto;padding:10px 14px;">✉️</button>
-            </div>` : `<p style="font-size:0.82rem;color:#b0a090;">Connecte-toi pour laisser une note.</p>`}
+            </div>
+            <label class="teste-toggle">
+                <input type="checkbox" id="noteTestee">
+                <span>✅ J'ai testé cette recette !</span>
+            </label>` : `<p style="font-size:0.82rem;color:#b0a090;">Connecte-toi pour laisser une note.</p>`}
         </div>
 
         <div class="ia-box ia-box-purple">
@@ -1151,23 +1185,48 @@ window.supprimerRecette = async (id) => {
 // NOTES
 // =============================================
 
+window.likerNote = async (recetteId, index) => {
+    if (!auth.currentUser) { showToast("Connecte-toi pour liker !", "error"); return; }
+    const r = toutesLesRecettes.find(x => x.id === recetteId);
+    if (!r || !r.notes[index]) return;
+    r.notes[index].likes = (r.notes[index].likes || 0) + 1;
+    await updateDoc(doc(db, "recettes", recetteId), { notes: r.notes });
+    const btn = document.querySelector(`#note-${index} .note-like-btn span`);
+    if (btn) btn.textContent = r.notes[index].likes;
+    showToast("👍 Liké !", "success");
+};
+
+const _renderNotes = (notes, recetteId) => notes.map((n, i) => {
+    const date = n.date || n.ts ? new Date(n.date || n.ts).toLocaleDateString('fr-FR', {day:'numeric',month:'short',year:'numeric'}) : '';
+    const testeBadge = n.teste ? `<span class="badge-teste">✅ J'ai testé !</span>` : '';
+    const initiale = (n.auteur || 'A')[0].toUpperCase();
+    return `<div class="note-item" id="note-${i}">
+        <div class="note-header">
+            <div class="note-avatar">${initiale}</div>
+            <div><div class="note-author-name">${n.auteur || 'Anonyme'} ${testeBadge}</div>
+            <div class="note-date">${date}</div></div>
+        </div>
+        <div class="note-texte">${n.texte}</div>
+        <button class="note-like-btn" onclick="window.likerNote('${recetteId}', ${i})">👍 <span>${n.likes||0}</span></button>
+    </div>`;
+}).join('') || '<p style="color:#b0a090;font-size:0.85rem;margin-bottom:8px;">Pas encore de commentaires. Sois le premier !</p>';
+
 window.ajouterNote = async (recetteId) => {
     const input = document.getElementById("noteInput");
     const texte = input.value.trim();
     if (!texte) return;
-    if (!auth.currentUser) { showToast("Connecte-toi pour laisser une note", "error"); return; }
-
-    const note = { texte, auteur: auth.currentUser.displayName, ts: Date.now() };
+    if (!auth.currentUser) { showToast("Connecte-toi pour laisser un commentaire", "error"); return; }
+    const teste = document.getElementById("noteTestee")?.checked || false;
+    const note = { texte, auteur: auth.currentUser.displayName, date: Date.now(), teste, likes: 0 };
     try {
         await updateDoc(doc(db, "recettes", recetteId), { notes: arrayUnion(note) });
         const r = toutesLesRecettes.find(x => x.id === recetteId);
         if (r) r.notes = [...(r.notes || []), note];
         input.value = "";
-        document.getElementById("notes-list").innerHTML = (r.notes || []).map(n => `
-            <div class="note-item">${n.texte}<div class="note-author">— ${n.auteur || 'Anonyme'}</div></div>
-        `).join('');
-        showToast("Note ajoutée !", "success");
-    } catch (e) { showToast("Erreur lors de l'ajout de la note", "error"); }
+        if (document.getElementById("noteTestee")) document.getElementById("noteTestee").checked = false;
+        document.getElementById("notes-list").innerHTML = _renderNotes(r.notes || [], recetteId);
+        showToast(teste ? "Commentaire ajouté + testé enregistré ! ✅" : "Commentaire ajouté !", "success");
+    } catch (e) { showToast("Erreur lors de l'ajout", "error"); }
 };
 
 // =============================================
