@@ -711,7 +711,7 @@ window.ouvrirRecette = (id) => {
 
     const notesList = (r.notes || []).map((n, i) => {
         const date = n.date ? new Date(n.date).toLocaleDateString('fr-FR', {day:'numeric',month:'short',year:'numeric'}) : '';
-        const testeBadge = n.teste ? '<span class="badge-teste">✅ J'ai testé !</span>' : '';
+        const testeBadge = n.teste ? `<span class="badge-teste">✅ J'ai testé !</span>` : '';
         const likes = n.likes || 0;
         const initiale = (n.auteur || 'A')[0].toUpperCase();
         return `
