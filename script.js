@@ -691,44 +691,14 @@ window.ouvrirRecette = (id) => {
         document.getElementById('ingredients-liste').innerHTML = renderIngredients(facteur);
     };
 
-    const nettoyerMd = (txt) => {
-        let t = txt
-            .replace(/\*\*/g, '')
-            .replace(/\*/g, '')
-            .replace(/#{1,6}\s*/g, '')
-            .replace(/^\s*\d+[.)\-]\s*/, '')
-            .trim();
-        // Supprime "Titre : " en début d'étape ET les lignes qui ne sont QUE un titre
-        t = t.replace(/^[A-ZÀ-Ûa-zà-û][^:]{2,50}\s*-\s*[Rr]ecette.*$/, ''); // ex: "Gyudon - Recette détaillée"
-        t = t.replace(/^[A-ZÀ-Ûa-zà-û][^:]{2,40}\s*:\s*/, ''); // ex: "Préparation des oignons : "
-        return t.charAt(0).toUpperCase() + t.slice(1);
-    };
-    const etapesList = (Array.isArray(r.etapes) ? r.etapes.join('\n') : (r.etapes || ""))
-        .split('\n').filter(Boolean)
-        .map(e => nettoyerMd(e))
-        .filter(Boolean) // retire les lignes vides après nettoyage (ex: le titre "# Gyudon - Recette détaillée")
-        .map(e => `<li>${e}</li>`).join('');
+    const etapesList = (Array.isArray(r.etapes) ? r.etapes.join('\n') : (r.etapes || "")).split('\n').filter(Boolean).map(e => `<li>${e}</li>`).join('');
 
-    const notesList = (r.notes || []).map((n, i) => {
-        const date = n.date ? new Date(n.date).toLocaleDateString('fr-FR', {day:'numeric',month:'short',year:'numeric'}) : '';
-        const testeBadge = n.teste ? `<span class="badge-teste">✅ J'ai testé !</span>` : '';
-        const likes = n.likes || 0;
-        const initiale = (n.auteur || 'A')[0].toUpperCase();
-        return `
-        <div class="note-item" id="note-${i}">
-            <div class="note-header">
-                <div class="note-avatar">${initiale}</div>
-                <div>
-                    <div class="note-author-name">${n.auteur || 'Anonyme'} ${testeBadge}</div>
-                    <div class="note-date">${date}</div>
-                </div>
-            </div>
-            <div class="note-texte">${n.texte}</div>
-            <button class="note-like-btn" onclick="window.likerNote('${r.id}', ${i})">
-                👍 <span>${likes}</span>
-            </button>
-        </div>`;
-    }).join('') || '<p style="color:#b0a090;font-size:0.85rem;margin-bottom:8px;">Pas encore de commentaires. Sois le premier !</p>';
+    const notesList = (r.notes || []).map(n => `
+        <div class="note-item">
+            ${n.texte}
+            <div class="note-author">— ${n.auteur || 'Anonyme'}</div>
+        </div>
+    `).join('') || '<p style="color:#b0a090;font-size:0.85rem;margin-bottom:8px;">Pas encore de notes. Sois le premier !</p>';
 
     let bodyHtml = `
         <div class="modal-section-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
@@ -750,11 +720,7 @@ window.ouvrirRecette = (id) => {
             <div class="note-input-row">
                 <textarea id="noteInput" placeholder="Partage une astuce, une variante..."></textarea>
                 <button onclick="window.ajouterNote('${r.id}')" class="btn-ia btn-ia-purple" style="width:auto;padding:10px 14px;">✉️</button>
-            </div>
-            <label class="teste-toggle">
-                <input type="checkbox" id="noteTestee">
-                <span>✅ J'ai testé cette recette !</span>
-            </label>` : `<p style="font-size:0.82rem;color:#b0a090;">Connecte-toi pour laisser une note.</p>`}
+            </div>` : `<p style="font-size:0.82rem;color:#b0a090;">Connecte-toi pour laisser une note.</p>`}
         </div>
 
         <div class="ia-box ia-box-purple">
@@ -774,10 +740,7 @@ window.ouvrirRecette = (id) => {
         </div>
 
         <button id="btn-lecture" class="btn-lecture" onclick="window.toggleLecture()">🔊 Lire les étapes à voix haute</button>
-        <div style="display:flex;gap:10px;margin-top:8px;">
-            <button class="btn-print" onclick="window.imprimerRecette()" style="flex:1;">🖨️ Imprimer</button>
-            <button class="btn-share" id="btn-share" onclick="window.partagerRecette()" style="flex:1;">🔗 Partager</button>
-        </div>
+        <button class="btn-print" onclick="window.print()">🖨️ Imprimer cette recette</button>
     `;
 
     if (estAuteur) {
@@ -795,77 +758,6 @@ window.fermerRecette = () => {
     window._recetteCourante = null;
     window.stopperLecture();
 };
-
-// =============================================
-// IMPRESSION & PARTAGE
-// =============================================
-
-window.imprimerRecette = () => {
-    const r = window._recetteCourante;
-    if (!r) return;
-    const win = window.open('', '_blank');
-    const ing = (Array.isArray(r.ingredients) ? r.ingredients.join('\n') : (r.ingredients || ''))
-        .split('\n').filter(Boolean).map(i => `<li>${i}</li>`).join('');
-    const eta = (Array.isArray(r.etapes) ? r.etapes.join('\n') : (r.etapes || ''))
-        .split('\n').filter(Boolean).map((e, i) => {
-            let t = e.replace(/\*\*/g,'').replace(/\*/g,'').replace(/#{1,6}\s*/g,'').replace(/^\s*\d+[.)\-]\s*/,'').trim();
-            t = t.replace(/^[A-ZÀ-Ûa-zà-û][^:]{2,40}\s*:\s*/, '');
-            return `<li>${t.charAt(0).toUpperCase() + t.slice(1)}</li>`;
-        }).join('');
-    const temps = [r.tempsPrep ? `⏱ Préparation : ${r.tempsPrep} min` : '', r.tempsCuisson ? `🔥 Cuisson : ${r.tempsCuisson} min` : ''].filter(Boolean).join(' &nbsp;|&nbsp; ');
-    win.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
-    <title>${r.nom}</title>
-    <style>
-        body { font-family: Georgia, serif; max-width: 700px; margin: 40px auto; color: #2c1a0e; line-height: 1.7; }
-        h1 { font-size: 2rem; margin-bottom: 6px; }
-        .meta { color: #7a5640; font-size: 0.9rem; margin-bottom: 24px; }
-        h2 { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #e8cf85; padding-bottom: 4px; margin: 24px 0 12px; }
-        ul, ol { padding-left: 20px; }
-        li { margin-bottom: 8px; }
-        .footer { margin-top: 40px; font-size: 0.8rem; color: #aaa; text-align: center; }
-    </style></head><body>
-    <h1>${r.nom}</h1>
-    <div class="meta">${temps}${r.portions ? ` &nbsp;|&nbsp; 👥 ${r.portions} portions` : ''}</div>
-    <h2>Ingrédients</h2><ul>${ing}</ul>
-    <h2>Préparation</h2><ol>${eta}</ol>
-    <div class="footer">Le Grimoire des Parents — patrickgabriere.github.io/Mes-recettes/</div>
-    </body></html>`);
-    win.document.close();
-    win.print();
-};
-
-window.partagerRecette = async () => {
-    const r = window._recetteCourante;
-    if (!r) return;
-    const url = `${window.location.origin}${window.location.pathname}?recette=${r.id}`;
-    if (navigator.share) {
-        try {
-            await navigator.share({ title: r.nom, text: `Découvre la recette : ${r.nom}`, url });
-            return;
-        } catch(e) {}
-    }
-    // Fallback : copier dans le presse-papier
-    try {
-        await navigator.clipboard.writeText(url);
-        showToast("Lien copié dans le presse-papier !", "success");
-    } catch(e) {
-        showToast("Lien : " + url, "");
-    }
-};
-
-// Ouvrir une recette directement si ?recette=ID dans l'URL
-window.addEventListener('load', () => {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get('recette');
-    if (id) {
-        const tryOpen = setInterval(() => {
-            if (toutesLesRecettes.length) {
-                clearInterval(tryOpen);
-                window.ouvrirRecette(id);
-            }
-        }, 300);
-    }
-});
 
 // =============================================
 // MODE CUISINE — LECTURE ÉTAPE PAR ÉTAPE
@@ -1185,48 +1077,23 @@ window.supprimerRecette = async (id) => {
 // NOTES
 // =============================================
 
-window.likerNote = async (recetteId, index) => {
-    if (!auth.currentUser) { showToast("Connecte-toi pour liker !", "error"); return; }
-    const r = toutesLesRecettes.find(x => x.id === recetteId);
-    if (!r || !r.notes[index]) return;
-    r.notes[index].likes = (r.notes[index].likes || 0) + 1;
-    await updateDoc(doc(db, "recettes", recetteId), { notes: r.notes });
-    const btn = document.querySelector(`#note-${index} .note-like-btn span`);
-    if (btn) btn.textContent = r.notes[index].likes;
-    showToast("👍 Liké !", "success");
-};
-
-const _renderNotes = (notes, recetteId) => notes.map((n, i) => {
-    const date = n.date || n.ts ? new Date(n.date || n.ts).toLocaleDateString('fr-FR', {day:'numeric',month:'short',year:'numeric'}) : '';
-    const testeBadge = n.teste ? `<span class="badge-teste">✅ J'ai testé !</span>` : '';
-    const initiale = (n.auteur || 'A')[0].toUpperCase();
-    return `<div class="note-item" id="note-${i}">
-        <div class="note-header">
-            <div class="note-avatar">${initiale}</div>
-            <div><div class="note-author-name">${n.auteur || 'Anonyme'} ${testeBadge}</div>
-            <div class="note-date">${date}</div></div>
-        </div>
-        <div class="note-texte">${n.texte}</div>
-        <button class="note-like-btn" onclick="window.likerNote('${recetteId}', ${i})">👍 <span>${n.likes||0}</span></button>
-    </div>`;
-}).join('') || '<p style="color:#b0a090;font-size:0.85rem;margin-bottom:8px;">Pas encore de commentaires. Sois le premier !</p>';
-
 window.ajouterNote = async (recetteId) => {
     const input = document.getElementById("noteInput");
     const texte = input.value.trim();
     if (!texte) return;
-    if (!auth.currentUser) { showToast("Connecte-toi pour laisser un commentaire", "error"); return; }
-    const teste = document.getElementById("noteTestee")?.checked || false;
-    const note = { texte, auteur: auth.currentUser.displayName, date: Date.now(), teste, likes: 0 };
+    if (!auth.currentUser) { showToast("Connecte-toi pour laisser une note", "error"); return; }
+
+    const note = { texte, auteur: auth.currentUser.displayName, ts: Date.now() };
     try {
         await updateDoc(doc(db, "recettes", recetteId), { notes: arrayUnion(note) });
         const r = toutesLesRecettes.find(x => x.id === recetteId);
         if (r) r.notes = [...(r.notes || []), note];
         input.value = "";
-        if (document.getElementById("noteTestee")) document.getElementById("noteTestee").checked = false;
-        document.getElementById("notes-list").innerHTML = _renderNotes(r.notes || [], recetteId);
-        showToast(teste ? "Commentaire ajouté + testé enregistré ! ✅" : "Commentaire ajouté !", "success");
-    } catch (e) { showToast("Erreur lors de l'ajout", "error"); }
+        document.getElementById("notes-list").innerHTML = (r.notes || []).map(n => `
+            <div class="note-item">${n.texte}<div class="note-author">— ${n.auteur || 'Anonyme'}</div></div>
+        `).join('');
+        showToast("Note ajoutée !", "success");
+    } catch (e) { showToast("Erreur lors de l'ajout de la note", "error"); }
 };
 
 // =============================================
@@ -1552,4 +1419,125 @@ window._demarrerTimerManuel = () => {
     const duree = _detecterDuree(_etapesCuisine[_etapeIndex] || '');
     if (duree) { _demarrerTimer(duree); }
     else { showToast("Pas de durée détectée dans cette étape", ""); }
+};
+
+
+// =============================================
+// PLANIFICATEUR DE REPAS
+// =============================================
+
+const JOURS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+const REPAS = ['Matin','Midi','Soir'];
+let planning = {}; // { "Lundi-Midi": { id, nom, image } }
+
+async function chargerPlanning() {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    try {
+        const snap = await getDoc(doc(db, "planning", uid));
+        planning = snap.exists() ? (snap.data().semaine || {}) : {};
+    } catch(e) { planning = {}; }
+}
+
+async function sauvegarderPlanning() {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    await setDoc(doc(db, "planning", uid), { semaine: planning });
+}
+
+window.afficherPlanning = async () => {
+    await chargerPlanning();
+    renderPlanning();
+};
+
+window.retirerDuPlanning = async (slot) => {
+    delete planning[slot];
+    await sauvegarderPlanning();
+    renderPlanning();
+};
+
+window.ajouterAuPlanning = (slot) => {
+    // Ouvrir un mini-sélecteur de recette
+    const modal = document.getElementById('modal-planning-select');
+    modal.dataset.slot = slot;
+    modal.style.display = 'flex';
+    const search = document.getElementById('planning-search');
+    search.value = '';
+    renderPlanningRecettes('');
+    search.focus();
+};
+
+window.fermerPlanningSelect = () => {
+    document.getElementById('modal-planning-select').style.display = 'none';
+};
+
+window.selectionnerRecettePlanning = async (id, nom, image) => {
+    const slot = document.getElementById('modal-planning-select').dataset.slot;
+    planning[slot] = { id, nom, image: image || '' };
+    await sauvegarderPlanning();
+    window.fermerPlanningSelect();
+    renderPlanning();
+};
+
+function renderPlanningRecettes(filtre) {
+    const liste = document.getElementById('planning-recettes-liste');
+    const res = toutesLesRecettes
+        .filter(r => r.estPublic || r.auteurId === auth.currentUser?.uid)
+        .filter(r => !filtre || r.nom.toLowerCase().includes(filtre.toLowerCase()))
+        .slice(0, 30);
+    liste.innerHTML = res.map(r => `
+        <div class="planning-recette-item" onclick="window.selectionnerRecettePlanning('${r.id}', ${JSON.stringify(r.nom)}, ${JSON.stringify(r.image || '')})">
+            ${r.image ? `<img src="${r.image}" alt="${r.nom}">` : `<div class="planning-recette-emoji">🍽️</div>`}
+            <span>${r.nom}</span>
+        </div>
+    `).join('') || '<p style="color:#b0a090;padding:16px;">Aucune recette trouvée</p>';
+}
+
+window.filtrerPlanningRecettes = (val) => renderPlanningRecettes(val);
+
+function renderPlanning() {
+    const grille = document.getElementById('planning-grille');
+    grille.innerHTML = `
+        <div class="planning-grid">
+            <div class="planning-header-cell"></div>
+            ${JOURS.map(j => `<div class="planning-header-cell">${j}</div>`).join('')}
+            ${REPAS.map(repas => `
+                <div class="planning-repas-label">${repas}</div>
+                ${JOURS.map(jour => {
+                    const slot = jour + '-' + repas;
+                    const r = planning[slot];
+                    return r ? `
+                        <div class="planning-cell planning-cell-filled" onclick="window.ouvrirRecette('${r.id}')">
+                            ${r.image ? `<img src="${r.image}" alt="${r.nom}">` : '🍽️'}
+                            <span>${r.nom}</span>
+                            <button class="planning-remove" onclick="event.stopPropagation();window.retirerDuPlanning('${slot}')">×</button>
+                        </div>` :
+                        `<div class="planning-cell planning-cell-empty" onclick="window.ajouterAuPlanning('${slot}')">
+                            <span class="planning-add-icon">+</span>
+                        </div>`;
+                }).join('')}
+            `).join('')}
+        </div>
+    `;
+}
+
+window.genererListeCoursesPlanning = async () => {
+    const slots = Object.values(planning);
+    if (!slots.length) { showToast("Le planning est vide !", "error"); return; }
+    const recettes = slots.map(s => toutesLesRecettes.find(r => r.id === s.id)).filter(Boolean);
+    const ingredients = recettes.flatMap(r =>
+        (Array.isArray(r.ingredients) ? r.ingredients : (r.ingredients||'').split('\n')).filter(Boolean)
+    );
+    const texte = `Génère une liste de courses regroupée par rayon (fruits/légumes, viandes, épicerie...) à partir de ces ingrédients pour la semaine :\n${ingredients.join('\n')}\nFormat : rayon en titre, ingrédients en liste.`;
+    const btn = document.getElementById('btn-courses-planning');
+    btn.textContent = '⏳ Génération...';
+    btn.disabled = true;
+    try {
+        const res = await appeller(texte);
+        document.getElementById('courses-planning-result').innerHTML =
+            res.replace(/\n/g,'<br>').replace(/\*\*/g,'<b>').replace(/\*\*/g,'</b>');
+        document.getElementById('courses-planning-result').style.display = 'block';
+    } catch(e) { showToast("Erreur IA", "error"); }
+    btn.textContent = '🛒 Générer la liste de courses (IA)';
+    btn.disabled = false;
 };
