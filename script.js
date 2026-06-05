@@ -691,7 +691,13 @@ window.ouvrirRecette = (id) => {
         document.getElementById('ingredients-liste').innerHTML = renderIngredients(facteur);
     };
 
-    const etapesList = (Array.isArray(r.etapes) ? r.etapes.join('\n') : (r.etapes || "")).split('\n').filter(Boolean).map(e => `<li>${e}</li>`).join('');
+    const nettoyerMd = (txt) => txt
+        .replace(/\*\*/g, '')
+        .replace(/\*/g, '')
+        .replace(/#{1,6}\s*/g, '')
+        .replace(/^\s*\d+[.)\-]\s*/, '')
+        .trim();
+    const etapesList = (Array.isArray(r.etapes) ? r.etapes.join('\n') : (r.etapes || "")).split('\n').filter(Boolean).map(e => `<li>${nettoyerMd(e)}</li>`).join('');
 
     const notesList = (r.notes || []).map(n => `
         <div class="note-item">
