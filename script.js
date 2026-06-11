@@ -1542,3 +1542,219 @@ window.genererListeCoursesPlanning = async () => {
     btn.textContent = '🛒 Générer la liste de courses (IA)';
     btn.disabled = false;
 };
+// =============================================
+// MODE CUISINE — Étape par étape
+// =============================================
+
+let _mc_etapes = [];
+let _mc_index = 0;
+let _mc_timerInterval = null;
+let _mc_timerSecondes = 0;
+let _mc_timerEnCours = false;
+let _mc_wakeLock = null;
+
+// Détecte une durée dans le texte de l'étape → retourne les secondes ou null
+function detecterDuree(texte) {
+    const t = texte.toLowerCase();
+    // Exemples : "10 min", "1h30", "1 h 30", "45 minutes", "2 heures", "30 secondes"
+    const matchHM = t.match(/(\d+)\s*h\s*(\d+)?\s*(min)?/);
+    const matchMin = t.match(/(\d+)\s*(min|minute|minutes)/);
+    const matchH = t.match(/(\d+)\s*(heure|heures|h)\b/);
+    const matchSec = t.match(/(\d+)\s*(sec|seconde|secondes)/);
+
+    if (matchHM) {
+        const h = parseInt(matchHM[1]) || 0;
+        const m = parseInt(matchHM[2]) || 0;
+        if (h > 0) return h * 3600 + m * 60;
+    }
+    if (matchMin) return parseInt(matchMin[1]) * 60;
+    if (matchH) return parseInt(matchH[1]) * 3600;
+    if (matchSec) return parseInt(matchSec[1]);
+    return null;
+}
+
+function formatTimer(sec) {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    if (h > 0) return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function arreterTimer() {
+    if (_mc_timerInterval) { clearInterval(_mc_timerInterval); _mc_timerInterval = null; }
+    _mc_timerEnCours = false;
+}
+
+window.resetTimer = () => {
+    arreterTimer();
+    const duree = detecterDuree(_mc_etapes[_mc_index] || '');
+    _mc_timerSecondes = duree || 0;
+    document.getElementById('mc-timer-display').textContent = formatTimer(_mc_timerSecondes);
+    document.getElementById('mc-timer-start').textContent = '▶ Démarrer';
+};
+
+window.toggleTimer = () => {
+    if (_mc_timerEnCours) {
+        arreterTimer();
+        document.getElementById('mc-timer-start').textContent = '▶ Reprendre';
+    } else {
+        if (_mc_timerSecondes <= 0) return;
+        _mc_timerEnCours = true;
+        document.getElementById('mc-timer-start').textContent = '⏸ Pause';
+        _mc_timerInterval = setInterval(() => {
+            _mc_timerSecondes--;
+            document.getElementById('mc-timer-display').textContent = formatTimer(_mc_timerSecondes);
+            if (_mc_timerSecondes <= 0) {
+                arreterTimer();
+                document.getElementById('mc-timer-start').textContent = '✅ Terminé !';
+                // Alerte sonore simple
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                [0, 0.3, 0.6].forEach(t => {
+                    const o = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    o.connect(g); g.connect(ctx.destination);
+                    o.frequency.value = 880;
+                    g.gain.setValueAtTime(0.3, ctx.currentTime + t);
+                    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.4);
+                    o.start(ctx.currentTime + t);
+                    o.stop(ctx.currentTime + t + 0.4);
+                });
+            }
+        }, 1000);
+    }
+};
+
+function afficherEtape(idx) {
+    arreterTimer();
+    const etape = _mc_etapes[idx];
+    const total = _mc_etapes.length;
+
+    // Compteur et progress bar
+    document.getElementById('mc-compteur').textContent = `${idx + 1} / ${total}`;
+    document.getElementById('mc-progress').style.width = `${((idx + 1) / total) * 100}%`;
+
+    // Texte de l'étape
+    document.getElementById('mc-etape-texte').textContent = etape;
+    document.getElementById('mc-etape-ia').style.display = 'none';
+    document.getElementById('mc-etape-ia').textContent = '';
+    document.getElementById('mc-btn-ia').textContent = '✨ Détailler (IA)';
+    document.getElementById('mc-btn-ia').disabled = false;
+
+    // Timer
+    const duree = detecterDuree(etape);
+    const timerZone = document.getElementById('mc-timer-zone');
+    if (duree) {
+        _mc_timerSecondes = duree;
+        document.getElementById('mc-timer-display').textContent = formatTimer(duree);
+        document.getElementById('mc-timer-label').textContent = `⏱ Minuteur détecté : ${formatTimer(duree)}`;
+        document.getElementById('mc-timer-start').textContent = '▶ Démarrer';
+        timerZone.style.display = 'block';
+    } else {
+        timerZone.style.display = 'none';
+        _mc_timerSecondes = 0;
+    }
+
+    // Navigation
+    document.getElementById('mc-btn-prec').style.opacity = idx === 0 ? '0.35' : '1';
+    document.getElementById('mc-btn-prec').disabled = idx === 0;
+    const btnSuiv = document.getElementById('mc-btn-suiv');
+    if (idx === total - 1) {
+        btnSuiv.textContent = '✅ Recette terminée !';
+        btnSuiv.style.background = '#2e7d32';
+    } else {
+        btnSuiv.textContent = 'Suivante →';
+        btnSuiv.style.background = '#e8671a';
+    }
+}
+
+window.etapeSuivante = () => {
+    window.stopperLecture && window.stopperLecture();
+    if (_mc_index < _mc_etapes.length - 1) {
+        _mc_index++;
+        afficherEtape(_mc_index);
+    } else {
+        window.quitterModeCuisine();
+        showToast('🎉 Bonne dégustation !', 'success');
+    }
+};
+
+window.etapePrecedente = () => {
+    window.stopperLecture && window.stopperLecture();
+    if (_mc_index > 0) { _mc_index--; afficherEtape(_mc_index); }
+};
+
+window.lireEtapeCourante = () => {
+    const synth = window.speechSynthesis;
+    if (!synth) return;
+    synth.cancel();
+    const texte = `Étape ${_mc_index + 1} : ${_mc_etapes[_mc_index]}`;
+    const u = new SpeechSynthesisUtterance(texte);
+    u.lang = 'fr-FR'; u.rate = 0.9;
+    synth.speak(u);
+};
+
+window.detaillerEtapeIA = async () => {
+    const r = window._recetteCourante;
+    if (!r) return;
+    const btn = document.getElementById('mc-btn-ia');
+    btn.textContent = '⏳ En cours…';
+    btn.disabled = true;
+    const etape = _mc_etapes[_mc_index];
+    const prompt = `Tu es un chef bienveillant. Pour la recette "${r.nom}", détaille cette étape de façon pratique et précise en 2-3 phrases maximum :\n\n"${etape}"\n\nRéponds directement sans intro ni titre.`;
+    try {
+        const res = await fetch(CLAUDE_PROXY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: MODEL, max_tokens: 300, messages: [{ role: 'user', content: prompt }] })
+        });
+        const data = await res.json();
+        const texte = data.content?.[0]?.text || 'Pas de réponse.';
+        const zone = document.getElementById('mc-etape-ia');
+        zone.textContent = '💡 ' + texte;
+        zone.style.display = 'block';
+        btn.textContent = '✅ Détaillé';
+    } catch(e) {
+        btn.textContent = '✨ Détailler (IA)';
+        btn.disabled = false;
+        showToast('Erreur IA', 'error');
+    }
+};
+
+// Wake Lock — empêche la mise en veille
+async function activerWakeLock() {
+    if ('wakeLock' in navigator) {
+        try { _mc_wakeLock = await navigator.wakeLock.request('screen'); } catch(e) {}
+    }
+}
+function relacherWakeLock() {
+    if (_mc_wakeLock) { _mc_wakeLock.release(); _mc_wakeLock = null; }
+}
+
+window.lancerModeCuisine = () => {
+    const r = window._recetteCourante;
+    if (!r) return;
+    const etapes = (r.etapes || '').split('\n').filter(Boolean);
+    if (!etapes.length) { showToast("Pas d'étapes dans cette recette !", 'error'); return; }
+
+    _mc_etapes = etapes;
+    _mc_index = 0;
+
+    document.getElementById('mc-titre').textContent = r.nom;
+    document.getElementById('modeCuisine').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+
+    // Ferme la modale recette
+    document.getElementById('modalRecette').style.display = 'none';
+
+    afficherEtape(0);
+    activerWakeLock();
+};
+
+window.quitterModeCuisine = () => {
+    arreterTimer();
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    relacherWakeLock();
+    document.getElementById('modeCuisine').style.display = 'none';
+    document.body.style.overflow = '';
+};
