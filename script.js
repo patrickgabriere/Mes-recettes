@@ -739,6 +739,7 @@ window.ouvrirRecette = (id) => {
             <div id="zoneRenduSimilaires" class="liste-rendu"></div>
         </div>
 
+        ${etapesList ? `<button onclick="window.lancerModeCuisine()" style="width:100%;margin-top:20px;margin-bottom:8px;background:#e8671a;color:white;border:none;border-radius:14px;padding:16px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:1rem;display:flex;align-items:center;justify-content:center;gap:10px;">👨‍🍳 Mode Cuisine — Étape par étape</button>` : ''}
         <button id="btn-lecture" class="btn-lecture" onclick="window.toggleLecture()">🔊 Lire les étapes à voix haute</button>
         <button class="btn-print" onclick="window.print()">🖨️ Imprimer cette recette</button>
     `;
