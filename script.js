@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, arrayUnion, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 const app = initializeApp(window.firebaseConfig);
 const db = getFirestore(app);
@@ -442,11 +442,9 @@ window.ajouterRecette = async () => {
 window.connexionGoogle = () => {
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     if (isMobile) {
-        import("https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js").then(({ signInWithRedirect }) => {
-            signInWithRedirect(auth, provider).catch(e => {
-                console.error(e);
-                showToast("Erreur de connexion Google", "error");
-            });
+        signInWithRedirect(auth, provider).catch(e => {
+            console.error(e);
+            showToast("Erreur de connexion Google", "error");
         });
     } else {
         signInWithPopup(auth, provider).catch(e => {
@@ -1819,10 +1817,13 @@ window.partagerRecette = async () => {
 };
 
 // Gestion du redirect Google (mobile)
-import("https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js").then(({ getRedirectResult }) => {
-    getRedirectResult(auth).then(result => {
-        if (result && result.user) showToast("Connecté avec Google !", "success");
-    }).catch(e => console.error("Redirect result:", e));
+getRedirectResult(auth).then(result => {
+    if (result && result.user) showToast("Connecté avec Google ! 🎉", "success");
+}).catch(e => {
+    console.error("Redirect result error:", e);
+    if (e.code !== 'auth/no-current-user') {
+        showToast("Erreur de connexion Google", "error");
+    }
 });
 
 // Ouvrir recette depuis URL ?recette=ID
