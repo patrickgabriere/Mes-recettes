@@ -1736,7 +1736,7 @@ function relacherWakeLock() {
 window.lancerModeCuisine = () => {
     const r = window._recetteCourante;
     if (!r) return;
-    const etapes = (r.etapes || '').split('\n').filter(Boolean);
+    const etapes = Array.isArray(r.etapes) ? r.etapes.filter(Boolean) : (r.etapes || '').split('\n').filter(Boolean);
     if (!etapes.length) { showToast("Pas d'étapes dans cette recette !", 'error'); return; }
 
     _mc_etapes = etapes;
