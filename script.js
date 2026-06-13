@@ -1808,16 +1808,6 @@ window.partagerRecette = async () => {
     } catch(e) { showToast("Lien : " + url, ""); }
 };
 
-// Gestion du redirect Google (mobile)
-getRedirectResult(auth).then(result => {
-    if (result && result.user) showToast("Connecté avec Google ! 🎉", "success");
-}).catch(e => {
-    console.error("Redirect result error:", e);
-    if (e.code !== 'auth/no-current-user') {
-        showToast("Erreur de connexion Google", "error");
-    }
-});
-
 // Ouvrir recette depuis URL ?recette=ID
 window.addEventListener('load', () => {
     const id = new URLSearchParams(window.location.search).get('recette');
