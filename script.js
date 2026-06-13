@@ -440,18 +440,10 @@ window.ajouterRecette = async () => {
 };
 
 window.connexionGoogle = () => {
-    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (isMobile) {
-        signInWithRedirect(auth, provider).catch(e => {
-            console.error(e);
-            showToast("Erreur de connexion Google", "error");
-        });
-    } else {
-        signInWithPopup(auth, provider).catch(e => {
-            console.error(e);
-            showToast("Erreur de connexion Google", "error");
-        });
-    }
+    signInWithPopup(auth, provider).catch(e => {
+        console.error(e);
+        showToast("Erreur de connexion Google", "error");
+    });
 };
 
 window.deconnexion = () => signOut(auth).then(() => { mesFavoris.clear(); showToast("Déconnecté !"); });
