@@ -1431,6 +1431,9 @@ select:focus { border-color: var(--orange); }
 /* ========== PRINT ========== */
 @media print {
     header, .tabs, .ia-box, .btn-print, .btn-delete, .notes-zone, .btn-save, .modal-drag { display: none !important; }
+
+body.impression-courses > *:not(#zone-impression-courses) { display: none !important; }
+body.impression-courses #zone-impression-courses { display: block !important; }
     .modal { position: static; background: none; backdrop-filter: none; padding: 0; }
     .modal-content { max-height: none; box-shadow: none; border-radius: 0; }
     body { background: white; }
@@ -1961,7 +1964,28 @@ select:focus { border-color: var(--orange); }
             </div>
         </div>
     </div>
+<!-- LISTE DE COURSES -->
+<div id="page-courses" class="section-page">
+    <h2 style="font-family:'Playfair Display',serif; margin-bottom:8px; color:var(--brown); font-size:1.8rem;">🛒 Liste de courses</h2>
+    <p style="color:#9a8878; margin-bottom:20px; font-size:0.95rem;">Ajoute des recettes depuis leur fiche, ou des articles à la main.</p>
 
+    <div style="display:flex; gap:10px; margin-bottom:20px;">
+        <input type="text" id="courses-input-manuel" placeholder="Ajouter un article..." style="flex:1;border:1.5px solid #e0d5c5;border-radius:30px;padding:12px 18px;font-size:0.95rem;outline:none;font-family:'DM Sans',sans-serif;" onkeypress="if(event.key==='Enter')window.ajouterArticleManuel()">
+        <button onclick="window.ajouterArticleManuel()" style="background:#e8671a;color:white;border:none;border-radius:50px;padding:0 22px;font-weight:700;cursor:pointer;">+</button>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-bottom:24px; flex-wrap:wrap;">
+        <button class="btn-ia btn-ia-purple" onclick="window.organiserListeIA()" style="flex:1;min-width:200px;">✨ Organiser par rayons (IA)</button>
+        <button onclick="window.imprimerListeCourses()" style="background:none;border:2px solid #d4b896;color:#3d2b1f;border-radius:50px;padding:12px 20px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">🖨️ Imprimer</button>
+        <button onclick="window.viderListeCourses()" style="background:none;border:2px solid #f4c2c2;color:#c0392b;border-radius:50px;padding:12px 20px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">🗑️ Vider</button>
+    </div>
+
+    <div id="courses-recettes-tags" style="margin-bottom:16px;"></div>
+    <div id="courses-liste-zone"></div>
+</div>
+
+<!-- ZONE IMPRESSION DÉDIÉE (cachée, visible uniquement à l'impression) -->
+<div id="zone-impression-courses" style="display:none;"></div>
     <!-- AJOUTER -->
     <div id="page-ajouter" class="section-page">
         <h2 class="section-title-form">✨ Nouvelle Formule Magique</h2>
