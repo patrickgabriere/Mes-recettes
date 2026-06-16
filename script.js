@@ -744,6 +744,7 @@ window.ouvrirRecette = (id) => {
         ${etapesList ? `<button onclick="window.lancerModeCuisine()" style="width:100%;margin-top:20px;margin-bottom:8px;background:#e8671a;color:white;border:none;border-radius:14px;padding:16px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:1rem;display:flex;align-items:center;justify-content:center;gap:10px;">👨‍🍳 Mode Cuisine — Étape par étape</button>` : ''}
         <button id="btn-lecture" class="btn-lecture" onclick="window.toggleLecture()">🔊 Lire les étapes à voix haute</button>
         <div style="display:flex;gap:10px;margin-top:8px;"><button class="btn-print" onclick="window.imprimerRecette()" style="flex:1;">🖨️ Imprimer</button><button class="btn-share" onclick="window.partagerRecette()" style="flex:1;">🔗 Partager</button></div>
+        <button onclick="window.ajouterRecetteALaListe('${r.id}')" style="width:100%;margin-top:10px;margin-bottom:8px;background:#f0e6f6;color:#7c3aed;border:none;border-radius:14px;padding:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.95rem;">🛒 Ajouter cette recette à ma liste de courses</button>
     `;
 
     if (estAuteur) {
@@ -1816,4 +1817,204 @@ window.addEventListener('load', () => {
             if (toutesLesRecettes.length) { clearInterval(t); window.ouvrirRecette(id); }
         }, 300);
     }
+    // =============================================
+// LISTE DE COURSES
+// =============================================
+
+function chargerListeCourses() {
+    try {
+        return JSON.parse(localStorage.getItem('grimoire-liste-courses') || '{"articles":[],"recettes":[]}');
+    } catch(e) {
+        return { articles: [], recettes: [] };
+    }
+}
+
+function sauverListeCourses(data) {
+    localStorage.setItem('grimoire-liste-courses', JSON.stringify(data));
+}
+
+// Ajoute tous les ingrédients d'une recette à la liste
+window.ajouterRecetteALaListe = (recetteId) => {
+    const r = toutesLesRecettes.find(x => x.id === recetteId);
+    if (!r) return;
+    const data = chargerListeCourses();
+
+    if (data.recettes.includes(r.nom)) {
+        showToast(`"${r.nom}" est déjà dans ta liste !`, 'error');
+        return;
+    }
+
+    const ingredients = Array.isArray(r.ingredients) ? r.ingredients : (r.ingredients || '').split('\n').filter(Boolean);
+    ingredients.forEach(ing => {
+        data.articles.push({ texte: ing.trim(), coche: false, recette: r.nom });
+    });
+    data.recettes.push(r.nom);
+
+    sauverListeCourses(data);
+    showToast(`✅ Ingrédients de "${r.nom}" ajoutés !`, 'success');
+};
+
+window.ajouterArticleManuel = () => {
+    const input = document.getElementById('courses-input-manuel');
+    const texte = input.value.trim();
+    if (!texte) return;
+    const data = chargerListeCourses();
+    data.articles.push({ texte, coche: false, recette: null });
+    sauverListeCourses(data);
+    input.value = '';
+    afficherListeCourses();
+};
+
+window.toggleArticleCourses = (index) => {
+    const data = chargerListeCourses();
+    if (data.articles[index]) {
+        data.articles[index].coche = !data.articles[index].coche;
+        sauverListeCourses(data);
+        afficherListeCourses();
+    }
+};
+
+window.supprimerArticleCourses = (index) => {
+    const data = chargerListeCourses();
+    data.articles.splice(index, 1);
+    sauverListeCourses(data);
+    afficherListeCourses();
+};
+
+window.viderListeCourses = () => {
+    if (!confirm('Vider toute la liste de courses ?')) return;
+    sauverListeCourses({ articles: [], recettes: [] });
+    afficherListeCourses();
+    showToast('Liste vidée !');
+};
+
+function afficherListeCourses() {
+    const data = chargerListeCourses();
+    const zoneTags = document.getElementById('courses-recettes-tags');
+    const zoneListe = document.getElementById('courses-liste-zone');
+    if (!zoneListe) return;
+
+    // Tags des recettes incluses
+    zoneTags.innerHTML = data.recettes.length
+        ? data.recettes.map(nom => `<span style="display:inline-block;background:#fff0e0;color:#e8671a;padding:6px 14px;border-radius:50px;font-size:0.82rem;font-weight:600;margin:0 6px 6px 0;">📖 ${nom}</span>`).join('')
+        : '';
+
+    if (!data.articles.length) {
+        zoneListe.innerHTML = `<p style="text-align:center;color:#9a8878;padding:40px 0;">Ta liste est vide. Ajoute une recette ou un article !</p>`;
+        return;
+    }
+
+    zoneListe.innerHTML = data.articles.map((a, i) => `
+        <div style="display:flex;align-items:center;gap:12px;background:white;border-radius:12px;padding:14px 16px;margin-bottom:8px;${a.coche ? 'opacity:0.5;' : ''}">
+            <input type="checkbox" ${a.coche ? 'checked' : ''} onchange="window.toggleArticleCourses(${i})" style="width:20px;height:20px;cursor:pointer;accent-color:#e8671a;flex-shrink:0;">
+            <span style="flex:1;font-family:'DM Sans',sans-serif;font-size:0.95rem;color:#2d1f14;${a.coche ? 'text-decoration:line-through;' : ''}">${a.texte}</span>
+            <button onclick="window.supprimerArticleCourses(${i})" style="background:none;border:none;color:#c0392b;font-size:1.1rem;cursor:pointer;padding:4px;">✕</button>
+        </div>
+    `).join('');
+}
+
+window.organiserListeIA = async () => {
+    const data = chargerListeCourses();
+    if (!data.articles.length) { showToast("Ta liste est vide !", 'error'); return; }
+
+    const btn = document.querySelector('#page-courses .btn-ia-purple');
+    const texteOriginal = btn.textContent;
+    btn.textContent = '⏳ Organisation en cours…';
+    btn.disabled = true;
+
+    const lignes = data.articles.map(a => a.texte).join('\n');
+    const prompt = `Voici une liste d'ingrédients en vrac :\n${lignes}\n\nRegroupe-les par rayon de supermarché avec émoji (🥦 Fruits & Légumes, 🥖 Épicerie, 🥛 Frais, 🥩 Boucherie, 🧴 Condiments, etc). Fusionne les doublons ou quantités similaires. Réponds en JSON UNIQUEMENT, sans markdown, sous cette forme : {"rayons":[{"nom":"🥦 Fruits & Légumes","articles":["..."]}]}`;
+
+    try {
+        const res = await fetch(CLAUDE_PROXY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model: MODEL, max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
+        });
+        const result = await res.json();
+        let texte = result.content?.[0]?.text || '{}';
+        texte = texte.replace(/```json|```/g, '').trim();
+        const json = JSON.parse(texte);
+
+        // Reconstruit la liste d'articles organisée, en gardant les anciens états cochés si le texte correspond
+        const ancienEtat = {};
+        data.articles.forEach(a => { ancienEtat[a.texte.toLowerCase()] = a.coche; });
+
+        const nouveauxArticles = [];
+        json.rayons.forEach(rayon => {
+            nouveauxArticles.push({ texte: '— ' + rayon.nom + ' —', coche: false, separateur: true });
+            rayon.articles.forEach(art => {
+                nouveauxArticles.push({ texte: art, coche: ancienEtat[art.toLowerCase()] || false, recette: null });
+            });
+        });
+
+        data.articles = nouveauxArticles;
+        sauverListeCourses(data);
+        afficherListeCoursesOrganisee();
+        showToast('✨ Liste organisée par rayons !', 'success');
+    } catch(e) {
+        console.error(e);
+        showToast("Erreur lors de l'organisation", 'error');
+    } finally {
+        btn.textContent = texteOriginal;
+        btn.disabled = false;
+    }
+};
+
+function afficherListeCoursesOrganisee() {
+    const data = chargerListeCourses();
+    const zoneListe = document.getElementById('courses-liste-zone');
+    if (!zoneListe) return;
+
+    zoneListe.innerHTML = data.articles.map((a, i) => {
+        if (a.separateur) {
+            return `<p style="font-family:'Playfair Display',serif;font-weight:700;color:var(--brown);margin:18px 0 8px;font-size:1.05rem;">${a.texte}</p>`;
+        }
+        return `
+        <div style="display:flex;align-items:center;gap:12px;background:white;border-radius:12px;padding:14px 16px;margin-bottom:8px;${a.coche ? 'opacity:0.5;' : ''}">
+            <input type="checkbox" ${a.coche ? 'checked' : ''} onchange="window.toggleArticleCourses(${i})" style="width:20px;height:20px;cursor:pointer;accent-color:#e8671a;flex-shrink:0;">
+            <span style="flex:1;font-family:'DM Sans',sans-serif;font-size:0.95rem;color:#2d1f14;${a.coche ? 'text-decoration:line-through;' : ''}">${a.texte}</span>
+            <button onclick="window.supprimerArticleCourses(${i})" style="background:none;border:none;color:#c0392b;font-size:1.1rem;cursor:pointer;padding:4px;">✕</button>
+        </div>`;
+    }).join('');
+}
+
+window.imprimerListeCourses = () => {
+    const data = chargerListeCourses();
+    if (!data.articles.length) { showToast("Ta liste est vide !", 'error'); return; }
+
+    const zone = document.getElementById('zone-impression-courses');
+    const dateStr = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+
+    let html = `<h1 style="font-family:'Playfair Display',serif;color:#3d2b1f;">🛒 Liste de courses</h1>
+                 <p style="color:#9a8878;margin-bottom:24px;">${dateStr}</p>`;
+
+    data.articles.forEach(a => {
+        if (a.separateur) {
+            html += `<h3 style="font-family:'Playfair Display',serif;color:#e8671a;margin-top:20px;margin-bottom:8px;">${a.texte}</h3>`;
+        } else {
+            html += `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #eee;">
+                        <span style="width:18px;height:18px;border:2px solid #3d2b1f;border-radius:4px;display:inline-block;${a.coche ? 'background:#3d2b1f;' : ''}"></span>
+                        <span style="${a.coche ? 'text-decoration:line-through;color:#aaa;' : ''}">${a.texte}</span>
+                     </div>`;
+        }
+    });
+
+    zone.innerHTML = html;
+    document.body.classList.add('impression-courses');
+    window.print();
+    setTimeout(() => document.body.classList.remove('impression-courses'), 500);
+};
+
+// Affiche la liste au chargement de l'onglet
+const _origChangerOngletCourses = window.changerOnglet;
+window.changerOnglet = (page, el) => {
+    _origChangerOngletCourses(page, el);
+    if (page === 'courses') {
+        const data = chargerListeCourses();
+        const aDesRayons = data.articles.some(a => a.separateur);
+        if (aDesRayons) afficherListeCoursesOrganisee();
+        else afficherListeCourses();
+    }
+};
 });
